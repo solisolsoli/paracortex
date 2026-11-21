@@ -1,7 +1,7 @@
 # Development and validation
 
-This guide covers local development, testing and release checks for Context
-Layer. Keep changes within [SCOPE.md](SCOPE.md). When using an AI assistant,
+This guide covers local development, testing and release checks for
+Paracortex. Keep changes within [SCOPE.md](SCOPE.md). When using an AI assistant,
 review and test its output; the assistant's report alone is not acceptance
 evidence. The [MIT license](LICENSE) applies to use, modification and
 redistribution; preserve copyright and license notices.

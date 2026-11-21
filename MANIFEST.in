@@ -4,7 +4,7 @@ recursive-include discipline *.md
 recursive-include templates *.md *.json
 recursive-include paracortex/data *.md
 include CREDITS.md
-recursive-include docs *.md *.png
+recursive-include docs *.md *.png *.svg *.py
 recursive-include retrieval-patches *.patch *.md *.txt *.json *.sh
 recursive-include tests *.py *.json *.jsonl
 recursive-include scripts *.py
