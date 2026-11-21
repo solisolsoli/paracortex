@@ -11,12 +11,12 @@ import ast
 from pathlib import Path
 import sys
 
-SCANNED = ("context_layer", "router", "eval")
-NETWORK_ALLOWED = frozenset({"context_layer/github_client.py",
-                             "context_layer/decisions_client.py",
-                             "context_layer/responses_client.py"})
-DECISIONS_CLIENT = "context_layer/decisions_client.py"
-RESPONSES_CLIENT = "context_layer/responses_client.py"
+SCANNED = ("paracortex", "router", "eval")
+NETWORK_ALLOWED = frozenset({"paracortex/github_client.py",
+                             "paracortex/decisions_client.py",
+                             "paracortex/responses_client.py"})
+DECISIONS_CLIENT = "paracortex/decisions_client.py"
+RESPONSES_CLIENT = "paracortex/responses_client.py"
 NETWORK_MODULES = (
     "urllib.request", "http.client", "http.server", "http.cookiejar", "ssl", "socket",
     "socketserver", "asyncio", "ftplib", "smtplib", "poplib", "imaplib", "nntplib",
@@ -58,7 +58,7 @@ class Scanner(ast.NodeVisitor):
                 self.flag(node, "network-import", f"imports {alias.name}")
             if self.api_client and alias.name.split(".")[0] in SPAWN_MODULES:
                 self.flag(node, "api-process", f"imports {alias.name}")
-            if self.api_client and alias.name == "context_layer.backends":
+            if self.api_client and alias.name == "paracortex.backends":
                 self.flag(node, "api-process", "imports task backends")
         self.generic_visit(node)
 

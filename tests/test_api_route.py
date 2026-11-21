@@ -11,7 +11,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from context_layer import api_route
+from paracortex import api_route
 
 
 class ApiRouteTests(unittest.TestCase):
@@ -38,13 +38,13 @@ def deny(*args, **kwargs):
 builtins.__import__ = guarded_import
 socket.create_connection = deny
 socket.socket.connect = deny
-from context_layer import api_route
+from paracortex import api_route
 result = api_route.plan(\"local\", \"private\")
 assert result[\"route\"] == \"local\"
 assert result[\"endpoint_kind\"] == \"local_retrieval\"
 assert result[\"source_status\"] == \"NOT_CHECKED\"
-assert \"context_layer.decisions_client\" not in sys.modules
-assert \"context_layer.responses_client\" not in sys.modules
+assert \"paracortex.decisions_client\" not in sys.modules
+assert \"paracortex.responses_client\" not in sys.modules
 """
         result = subprocess.run([sys.executable, "-c", code], cwd=Path(__file__).resolve().parents[1],
                                 capture_output=True, text=True, check=False)
@@ -75,7 +75,7 @@ assert \"context_layer.responses_client\" not in sys.modules
                 self.assert_unverified(result)
 
     def test_generation_requires_an_explicit_model_and_routes_to_responses(self):
-        from context_layer import responses
+        from paracortex import responses
 
         missing = api_route.plan("generate", "public")
         self.assertEqual(missing["route"], "needs_configuration")
@@ -85,7 +85,7 @@ assert \"context_layer.responses_client\" not in sys.modules
         self.assertEqual(result["endpoint_kind"], "responses_api")
         self.assertEqual(result["model"], "gpt-example-1")
         self.assertEqual(result["next_cli_argv_template"], [
-            "context-layer", "responses", "run", "--input-file", "<INPUT_FILE>",
+            "paracortex", "responses", "run", "--input-file", "<INPUT_FILE>",
             "--data-scope", "public", "--model", "gpt-example-1",
         ])
         self.assertTrue(result["send_requires_explicit_flag"])
@@ -130,7 +130,7 @@ assert \"context_layer.responses_client\" not in sys.modules
         self.assertEqual(json.loads(output.getvalue())["route"], "local")
 
     def test_all_provider_templates_parse_without_reading_or_sending(self):
-        from context_layer import decisions, responses
+        from paracortex import decisions, responses
 
         root = api_route.argparse.ArgumentParser()
         commands = root.add_subparsers(dest="command", required=True)
@@ -158,7 +158,7 @@ assert \"context_layer.responses_client\" not in sys.modules
                 patch("sys.stderr", new_callable=io.StringIO) as stderr:
             self.assertEqual(api_route.cmd_plan(args), 2)
         self.assertEqual(stdout.getvalue(), "")
-        self.assertIn("context-layer api plan:", stderr.getvalue())
+        self.assertIn("paracortex api plan:", stderr.getvalue())
         self.assertNotIn("Traceback", stderr.getvalue())
 
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 # Lab candidate: make a context-helper failure visible instead of silent empty
-# success. Installing context-layer does not install, register or run this file.
+# success. Installing paracortex does not install, register or run this file.
 # It is an example of the wrapper shape an optional host integration could use,
 # kept here with the other lab candidates so it can be reviewed and tested.
 #

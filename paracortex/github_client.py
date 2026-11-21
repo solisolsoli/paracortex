@@ -61,7 +61,7 @@ def _request_json(url: str, timeout: float, *, limit: int) -> dict:
     request = urllib.request.Request(url, headers={
         "Accept": "application/vnd.github+json",
         "X-GitHub-Api-Version": API_VERSION,
-        "User-Agent": "context-layer-github-context/1",
+        "User-Agent": "paracortex-github-context/1",
     }, method="GET")
     try:
         opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), _NoRedirect(),

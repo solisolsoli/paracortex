@@ -55,7 +55,7 @@ MAX_REWRITE_SHARE = 0.4
 SKIP_REASONS = ("oversize", "unreadable", "unsupported_name", "not_utf8")
 SKIPS_SHOWN = 20
 # The index this build replaces is kept next to it, and the plain-text manifest
-# records what the index covers. context_layer.health reads both.
+# records what the index covers. paracortex.health reads both.
 INDEX_NAME = "index.sqlite"
 MANIFEST_NAME = "index-manifest.json"
 PREV_SUFFIX = ".prev"
@@ -207,7 +207,7 @@ def replace_atomically(target: Path, data: bytes) -> None:
 
 
 def keep_previous(path: Path) -> None:
-    """Copy path to path + .prev, so `context-layer rollback` has a restore point."""
+    """Copy path to path + .prev, so `paracortex rollback` has a restore point."""
     if not path.is_file():
         return
     replace_atomically(path.with_name(path.name + PREV_SUFFIX), path.read_bytes())
@@ -231,7 +231,7 @@ class Source(NamedTuple):
 READ_THREADS = min(8, os.cpu_count() or 1)
 READ_AHEAD = 64
 READ_AHEAD_BYTES = 64 << 20
-# A full build called with a result dict (context-layer index) hands the text of the
+# A full build called with a result dict (paracortex index) hands the text of the
 # Markdown notes it decoded to the link graph, up to this many characters in total,
 # so the graph need not read those files again.
 KEEP_TEXT_CHARS = 64 << 20

@@ -169,15 +169,15 @@ def parse_config(text, label=CONFIG_LABEL):
     except ValueError as exc:
         where = f' (line {exc.lineno}, column {exc.colno}: {exc.msg})' if hasattr(exc, 'lineno') else ''
         raise ConfigError(f'{label} is not valid JSON{where}; fix it or regenerate it '
-                          'with `context-layer init <vault> --force`') from None
+                          'with `paracortex init <vault> --force`') from None
     if not isinstance(data, dict):
         raise ConfigError(f'{label} must be a JSON object containing a routes object')
     version = data.get('schema_version', CONFIG_SCHEMA_VERSION)
     if isinstance(version, bool) or not isinstance(version, int) or version < 1:
         raise ConfigError(f'{label}: schema_version must be a positive integer')
     if version > CONFIG_SCHEMA_VERSION:
-        raise ConfigError(f'{label} has schema_version {version}, but this context-layer '
-                          f'reads only up to {CONFIG_SCHEMA_VERSION}; upgrade context-layer')
+        raise ConfigError(f'{label} has schema_version {version}, but this paracortex '
+                          f'reads only up to {CONFIG_SCHEMA_VERSION}; upgrade paracortex')
     for key in EXCLUSION_KEYS:
         if key not in data:
             continue
@@ -239,7 +239,7 @@ def load_config(path, required=False, label=None):
         if path.exists():
             raise ConfigError(f'{label} is not a regular file')
         if required:
-            raise ConfigError(f'{label} not found; run `context-layer init <vault>` first')
+            raise ConfigError(f'{label} not found; run `paracortex init <vault>` first')
         return {}
     try:
         text = path.read_text(encoding='utf-8')

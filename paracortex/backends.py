@@ -1,4 +1,4 @@
-"""context_layer.backends — the local command lines a sub-agent task can run.
+"""paracortex.backends — the local command lines a sub-agent task can run.
 
 A backend is a command, not an API client: the task backend code does not call a
 model API or open a network connection. It spawns a binary the user
@@ -34,6 +34,8 @@ import shlex
 import shutil
 import sys
 
+from .naming import getenv
+
 BACKENDS = ("fake", "claude", "codex", "cmd")
 # What a `claude -p` child may load besides the prompt. `--bare` is documented in
 # the Claude Code CLI reference; `--safe-mode` is listed by `claude --help`
@@ -67,7 +69,7 @@ CLAUDE_INSTRUCTION = ("Carry out the sub-agent task given on standard input. Its
 CLAUDE_SETTINGS = '{"permissions":{"blockReadsOutsideWorkingDirectories":true}}'
 CLAUDE_DISALLOWED = "WebFetch,WebSearch"
 
-FAKE_ENV = "CONTEXT_LAYER_FAKE_BACKEND"
+FAKE_ENV = "PARACORTEX_FAKE_BACKEND"
 UNKNOWN_USAGE = "usage unknown: the backend did not print the expected JSON object"
 COST_LABEL = "host-estimated USD (the host's client-side estimate, not billing data)"
 USAGE_LABEL = ("usage is the top-level agent loop only (claude excludes subagent calls "
@@ -120,7 +122,7 @@ def plan(backend: str, *, prompt_file: Path, prompt_text: str = "", out_dir: Pat
         raise BackendError("a spend cap must be a positive number of USD")
 
     if backend == "fake":
-        script = environment.get(FAKE_ENV)
+        script = getenv(FAKE_ENV, environ=environment)
         if not script:
             raise BackendError(
                 f"backend 'fake' needs {FAKE_ENV}=<script>; the script receives the prompt "

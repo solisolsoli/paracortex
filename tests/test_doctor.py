@@ -1,8 +1,8 @@
-"""`context-layer doctor`: offline, read-only checks of a vault and its host wiring.
+"""`paracortex doctor`: offline, read-only checks of a vault and its host wiring.
 
 Every test owns a disposable, fictional vault, a project directory and a HOME inside
-its temp directory. The doctor is run as `python -m context_layer.doctor` (the same
-command `context-layer doctor` runs once cli.py registers it); no host is started.
+its temp directory. The doctor is run as `python -m paracortex.doctor` (the same
+command `paracortex doctor` runs once cli.py registers it); no host is started.
 """
 import hashlib
 import base64
@@ -42,10 +42,10 @@ class Doctor(unittest.TestCase):
         for path in (self.vault / "notes", self.project, self.home, self.root / "bin"):
             path.mkdir(parents=True)
         (self.vault / "notes" / "lamp.md").write_text("# Lamp\nThe lamp wick is trimmed weekly.\n")
-        # No `context-layer` script and no `claude` on PATH: the installers write this
+        # No `paracortex` script and no `claude` on PATH: the installers write this
         # interpreter plus PYTHONPATH, and nothing can reach a real host.
         self.env = dict(isolated_home_env(os.environ, self.home), PATH=str(self.root / "bin"))
-        for name in ("CODEX_HOME", "CLAUDE_CODE_SESSION_ID", "CONTEXT_LAYER_SESSION_EVIDENCE"):
+        for name in ("CODEX_HOME", "CLAUDE_CODE_SESSION_ID", "PARACORTEX_SESSION_EVIDENCE"):
             self.env.pop(name, None)
         (self.vault / ".context").mkdir()
         (self.vault / ".context" / "routes.json").write_text(json.dumps({
@@ -57,11 +57,11 @@ class Doctor(unittest.TestCase):
         self.assertEqual(built.returncode, 0, built.stderr)
 
     def cli(self, *argv):
-        return subprocess.run([sys.executable, "-m", "context_layer.cli", *argv], cwd=REPO,
+        return subprocess.run([sys.executable, "-m", "paracortex.cli", *argv], cwd=REPO,
                               capture_output=True, text=True, env=self.env)
 
     def doctor(self, *flags, host="claude-code", env=None):
-        done = subprocess.run([sys.executable, "-m", "context_layer.doctor", str(self.vault),
+        done = subprocess.run([sys.executable, "-m", "paracortex.doctor", str(self.vault),
                                "--host", host, "--project", str(self.project), "--json",
                                *flags], cwd=REPO, capture_output=True, text=True,
                               env=env or self.env)
@@ -69,7 +69,7 @@ class Doctor(unittest.TestCase):
         return done.returncode, {check["name"]: check for check in report["checks"]}, report
 
     def install(self, *flags, host="claude-code", env=None):
-        done = subprocess.run([sys.executable, "-m", "context_layer.cli", "install", host,
+        done = subprocess.run([sys.executable, "-m", "paracortex.cli", "install", host,
                                "--vault", str(self.vault), "--project", str(self.project),
                                *flags, "--apply"], cwd=REPO, capture_output=True, text=True,
                               env=env or self.env)
@@ -114,12 +114,12 @@ class Doctor(unittest.TestCase):
         self.assertEqual(report["schema"], "context-layer-doctor/v1")
         self.assertEqual(report["failed"], 0, report)
         for name in ("python", "sqlite fts5", "vault", "routes.json", "index.sqlite",
-                     "graph.sqlite", "rule files", ".mcp.json context-layer",
+                     "graph.sqlite", "rule files", ".mcp.json paracortex",
                      "settings.json UserPromptSubmit", "settings.json SessionStart",
                      "settings.json Stop"):
             self.assertEqual(checks[name]["status"], "ok", (name, checks.get(name)))
         self.assertEqual(self.snapshot(), before)               # read-only
-        table = subprocess.run([sys.executable, "-m", "context_layer.doctor", str(self.vault),
+        table = subprocess.run([sys.executable, "-m", "paracortex.doctor", str(self.vault),
                                 "--host", "claude-code", "--project", str(self.project)],
                                cwd=REPO, capture_output=True, text=True, env=self.env)
         self.assertEqual(table.returncode, 0)
@@ -182,14 +182,14 @@ class Doctor(unittest.TestCase):
         self.assertIn("PYTHONPATH", checks["settings.json UserPromptSubmit"]["detail"])
         mcp = self.project / ".mcp.json"
         data = json.loads(mcp.read_text())
-        args = data["mcpServers"]["context-layer"]["args"]
+        args = data["mcpServers"]["paracortex"]["args"]
         args[args.index("--vault") + 1] = str(self.root / "moved-vault")
         mcp.write_text(json.dumps(data))
         self.install("--hook")                                   # restores the hook only
         mcp.write_text(json.dumps(data))
         code, checks, _ = self.doctor()
         self.assertEqual(code, 1)
-        self.assertIn("vault not found", checks[".mcp.json context-layer"]["detail"])
+        self.assertIn("vault not found", checks[".mcp.json paracortex"]["detail"])
 
     def test_vault_state_and_rule_parity(self):
         (self.vault / "CLAUDE.md").write_text("# Rules\nA\n")
@@ -205,7 +205,7 @@ class Doctor(unittest.TestCase):
         code, checks, _ = self.doctor(host="generic")
         self.assertEqual(code, 1)
         self.assertEqual(checks["index.sqlite"]["status"], "fail")
-        self.assertIn("context-layer index", checks["index.sqlite"]["detail"])
+        self.assertIn("paracortex index", checks["index.sqlite"]["detail"])
         (self.vault / ".context" / "routes.json").write_text('{"routes": {} "x": 1}')
         code, checks, _ = self.doctor(host="generic")
         self.assertEqual(checks["routes.json"]["status"], "fail")
@@ -219,7 +219,7 @@ class Doctor(unittest.TestCase):
         self.assertEqual(code, 0, report)
         self.assertEqual(checks["hooks.json UserPromptSubmit"]["status"], "ok")
         if sys.version_info >= (3, 11):
-            self.assertEqual(checks["config.toml [mcp_servers.context_layer]"]["status"], "ok")
+            self.assertEqual(checks["config.toml [mcp_servers.paracortex]"]["status"], "ok")
             config = codex_home / "config.toml"
             config.write_text(config.read_text().replace("tool_timeout_sec = 180",
                                                          "tool_timeout_sec = 30"))
@@ -236,9 +236,9 @@ class Doctor(unittest.TestCase):
         self.assertEqual(code, 1)
 
     def test_the_cli_registers_doctor(self):
-        from context_layer import cli
+        from paracortex import cli
         if "doctor" not in cli.build_parser()._subparsers._group_actions[0].choices:
-            self.skipTest("`context-layer doctor` needs the cli.py registration requested in "
+            self.skipTest("`paracortex doctor` needs the cli.py registration requested in "
                           "the W2a report; cli.py is not W2a's file")
         done = self.cli("doctor", str(self.vault))
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)

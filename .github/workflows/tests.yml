@@ -189,6 +189,6 @@ jobs:
           [ -z "$failed" ] || { echo "failed:$failed"; exit 1; }
       - run: python bench/seal.py check
       - run: python -m unittest bench/test_scorer.py bench/test_runner.py
-      - run: python -m compileall -q context_layer router eval tests scripts bench obsidian-plugin/build.py
-      - run: python -m pyflakes context_layer router eval tests scripts bench obsidian-plugin/build.py
+      - run: python -m compileall -q paracortex context_layer router eval tests scripts bench obsidian-plugin/build.py
+      - run: python -m pyflakes paracortex context_layer router eval tests scripts bench obsidian-plugin/build.py
       - run: python scripts/check_network_surface.py

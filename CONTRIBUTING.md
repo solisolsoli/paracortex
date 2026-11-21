@@ -66,6 +66,7 @@ CI set `PYTHONUTF8=1`; under a Latin-1 locale without it, some suites fail (`tes
 | `tests/test_github_sources.py` | Owner source configuration, dry runs, compare-and-swap pins, bounded upstream checks and configuration backups |
 | `tests/test_github_cache.py` | Opt-in public-byte cache, integrity checks, offline/refresh behavior, bounded storage and purge |
 | `tests/test_platform_support.py` | Portable locks, private files and platform-specific process/filesystem behavior |
+| `tests/test_rename.py` | The 0.6 rename: old environment names, the `context-layer` command, the `context_layer` import shim, and 0.5 host entries, hooks and rule markers |
 
 `tests/dev_bridge_eval.py` is a development aid (the synaptic dev set), not a
 suite, and `make test` does not run it. Outside `make test`: `make plugin-test`
@@ -90,7 +91,7 @@ documentation or fixtures. No test may read the operator's real vault or host
 settings, and no unit test may spawn a real model backend: the sub-agent tests
 drive the `fake` backend with a script they write themselves.
 
-`make lint` byte-compiles every Python file under `context_layer/`,
+`make lint` byte-compiles every Python file under `paracortex/`, `context_layer/`,
 `router/`, `eval/`, `tests/`, `scripts/` and `bench/`, and
 `obsidian-plugin/build.py`, and runs `pyflakes` on them when it is installed
 (`pip install pyflakes`); under CI (`CI` set) a missing `pyflakes` fails the
@@ -111,7 +112,7 @@ lint and the network boundary check. Ubuntu jobs also cover the plugin's build
 and Node tests (Node 24), the sealed benchmark, `bench-reproduce` (fresh benchmark
 and documented benchmark numbers), `doc-claims`, and
 `reproducible build` (two builds, one SHA-256).
-The [accepted runtime run for `4dc60a9`](https://github.com/solisolsoli/context-layer/actions/runs/36773269705)
+The [accepted runtime run for `4dc60a9`](https://github.com/solisolsoli/paracortex/actions/runs/36773269705)
 passed all 12 jobs. This is package and platform verification; a live AI host
 session and model answer quality require separate evidence.
 `.github/workflows/release-audit.yml` runs the history audit on every `v*` tag.
@@ -122,7 +123,7 @@ See [docs/publishing-checklist.md](docs/publishing-checklist.md).
 ```sh
 python3 -m pip install build
 make dist                                # includes sdist privacy normalization
-python3 scripts/check_distribution.py dist/context_layer-*.whl
+python3 scripts/check_distribution.py dist/paracortex-*.whl
 ```
 
 The project declares its licence in PEP 639 form (`license = "MIT"` plus
@@ -171,7 +172,7 @@ CI pass; say which one you ran.
 
 ## Before proposing a release
 
-- Bump the version in `pyproject.toml` and `context_layer/__init__.py` together.
+- Bump the version in `pyproject.toml` and `paracortex/__init__.py` together.
 - Add the entry to `CHANGELOG.md`.
 - Update `THIRD_PARTY.md` if the set of distributed components changed — a new
   vendored file, a new patch, or anything whose licence asks for a notice.
@@ -190,7 +191,7 @@ CI pass; say which one you ran.
   `scripts/audit_history.py` (`tests/test_release_tooling.py` fails when the list
   and the tree disagree): the case-folding examples (sharp s and dotted capital
   I, U+0130) in `CHANGELOG.md`, `docs/cli.md` and `router/textfold.py`; the
-  dotted capital I in `context_layer/synapse.py`, `tests/test_harden.py` and
+  dotted capital I in `paracortex/synapse.py`, `tests/test_harden.py` and
   `tests/test_synapse.py`; byte-preservation and Unicode file-name fixtures in
   `tests/test_boundaries.py`, `tests/test_memory.py`,
   `tests/test_session_evidence.py`, `tests/test_incremental_index.py` and

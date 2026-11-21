@@ -31,10 +31,10 @@ import sqlite3
 # index_meta `format_version`. An index from 0.2 or earlier has user_version 0
 # and is read as legacy version 1: its layout is identical.
 INDEX_FORMAT_VERSION = 1
-# graph.sqlite: graph_meta `schema_version` written by context_layer/graph.py.
+# graph.sqlite: graph_meta `schema_version` written by paracortex/graph.py.
 GRAPH_FORMAT_VERSION = 1
 
-REBUILD = "rebuild it with `context-layer index <vault>`"
+REBUILD = "rebuild it with `paracortex index <vault>`"
 
 
 class IndexFormatError(ValueError):
@@ -62,8 +62,8 @@ def check_format(connection: sqlite3.Connection, label: str = "index") -> int:
     version = connection.execute("PRAGMA user_version").fetchone()[0]
     if version > INDEX_FORMAT_VERSION:
         raise IndexFormatError(
-            f"the {label} has format version {version}, but this context-layer reads only "
-            f"up to {INDEX_FORMAT_VERSION}; upgrade context-layer, or {REBUILD}")
+            f"the {label} has format version {version}, but this paracortex reads only "
+            f"up to {INDEX_FORMAT_VERSION}; upgrade paracortex, or {REBUILD}")
     return version or INDEX_FORMAT_VERSION
 
 
@@ -129,7 +129,7 @@ def open_checked(path, label: str = "index") -> sqlite3.Connection:
     path = Path(path)
     if not path.is_file():
         raise IndexFormatError(f"no {label} at .context/{path.name}; "
-                               "run `context-layer index <vault>` first")
+                               "run `paracortex index <vault>` first")
     connection = sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True)
     try:
         check_index(connection, label)
@@ -184,8 +184,8 @@ def check_graph_meta(meta: dict, label: str = "link graph") -> None:
                                f"{REBUILD}") from None
     if version > GRAPH_FORMAT_VERSION:
         raise IndexFormatError(
-            f"the {label} has format version {version}, but this context-layer reads only "
-            f"up to {GRAPH_FORMAT_VERSION}; upgrade context-layer, or {REBUILD}")
+            f"the {label} has format version {version}, but this paracortex reads only "
+            f"up to {GRAPH_FORMAT_VERSION}; upgrade paracortex, or {REBUILD}")
 
 
 def check_graph_file(path, label: str = "link graph") -> None:

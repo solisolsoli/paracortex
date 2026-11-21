@@ -14,7 +14,7 @@ Closed items stay, marked with the date and the evidence.
 
 | id | area | state | source | next step | blocker |
 | --- | --- | --- | --- | --- | --- |
-| B-1 | setup | open | [[LOG]] | Read CLAUDE.md, fill the CUSTOMIZE sections, then run `context-layer rules check .` | none |
+| B-1 | setup | open | [[LOG]] | Read CLAUDE.md, fill the CUSTOMIZE sections, then run `paracortex rules check .` | none |
 
 ## Closed
 

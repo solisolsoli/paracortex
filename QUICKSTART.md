@@ -6,7 +6,7 @@ are marked as such. Python 3.10+ with SQLite FTS5 support.
 
 The shell examples below use macOS/Linux syntax. On Windows, start with the
 [PowerShell installation](README.md#quick-start), use
-`.\.venv\Scripts\context-layer.exe` in place of `context-layer`, quote paths,
+`.\.venv\Scripts\paracortex.exe` in place of `paracortex`, quote paths,
 and place multiline commands on one line. GNU Make is used only for the
 development demo/checks, not for normal CLI use.
 
@@ -19,7 +19,7 @@ with the project you will talk to the host from.
 python3 -m venv .venv
 . .venv/bin/activate
 pip install -e .
-python3 -m context_layer.cli --version
+python3 -m paracortex.cli --version
 make demo
 ```
 
@@ -30,10 +30,10 @@ inspection. `make clean` removes demo/build artifacts, not your own vault.
 ## 1. Install, configure, index
 
 ```sh
-context-layer init /absolute/path/to/vault --print-only   # see the guesses, write nothing
-context-layer init /absolute/path/to/vault
+paracortex init /absolute/path/to/vault --print-only   # see the guesses, write nothing
+paracortex init /absolute/path/to/vault
 # Review .context/routes.json before indexing — especially exclude_prefixes.
-context-layer index /absolute/path/to/vault
+paracortex index /absolute/path/to/vault
 ```
 
 `init` reads files to extract headings and metadata; routes and canonical sources
@@ -44,7 +44,7 @@ files live in `.context`; optional router run artifacts live in `.context-runs`.
 Check the evidence path before connecting anything to it:
 
 ```sh
-context-layer search /absolute/path/to/vault --prompt "release versioning policy"
+paracortex search /absolute/path/to/vault --prompt "release versioning policy"
 ```
 
 Search defaults to FTS, top-k 3, 6,000 evidence characters, 2,000 per source.
@@ -56,7 +56,7 @@ and line span.
 `NOT_FOUND` means this retrieval returned nothing, not proof of corpus-wide absence.
 Search exits 0 on completed retrieval, including abstention, and 1 on operational
 failure. Invalid arguments exit 2. A note that changed after indexing is left out
-and listed under `withheld` with the next command (`context-layer index <vault>`);
+and listed under `withheld` with the next command (`paracortex index <vault>`);
 a missing or broken index is an `ERROR`, and operational errors carry empty
 evidence.
 
@@ -65,9 +65,9 @@ evidence.
 Look at the change before it happens; nothing is written without `--apply`.
 
 ```sh
-context-layer install claude-code --vault /absolute/path/to/vault \
+paracortex install claude-code --vault /absolute/path/to/vault \
   --project /absolute/path/to/repo --hook              # unified diff, writes nothing
-context-layer install claude-code --vault /absolute/path/to/vault \
+paracortex install claude-code --vault /absolute/path/to/vault \
   --project /absolute/path/to/repo --hook --apply      # backs up, then writes
 ```
 
@@ -75,14 +75,14 @@ That writes `<project>/.mcp.json` and one `UserPromptSubmit` hook in
 `<project>/.claude/settings.json`. For any other MCP stdio client:
 
 ```sh
-context-layer install generic --vault /absolute/path/to/vault   # prints a snippet, writes nothing
+paracortex install generic --vault /absolute/path/to/vault   # prints a snippet, writes nothing
 ```
 
 Undo at any time — `uninstall` removes this tool's MCP entry and its hook
 together, whatever flags the install used, and keeps a timestamped backup:
 
 ```sh
-context-layer uninstall claude-code --vault /absolute/path/to/vault \
+paracortex uninstall claude-code --vault /absolute/path/to/vault \
   --project /absolute/path/to/repo --apply
 ```
 
@@ -91,7 +91,7 @@ Details, the Codex block and troubleshooting: [docs/host-integration.md](docs/ho
 ## 3. Ask in the host *(inside the host)*
 
 Start the host in that project and confirm it sees the server — in Claude Code,
-`/mcp` lists `context-layer` and its available tools. Ask a question the vault
+`/mcp` lists `paracortex` and its available tools. Ask a question the vault
 answers. The reply should cite a `source_path` and a `source_sha256` you never
 pasted. If the index is broken or a file is unreadable, you get a visible error,
 not an empty success; a note edited since the last `index` is left out with a
@@ -108,8 +108,8 @@ The tool must be connected and permitted in that host.
 For CLI use, after configuring a source named `project-docs`:
 
 ```sh
-context-layer search /absolute/path/to/vault --prompt "project setup" --github
-context-layer github-context /absolute/path/to/vault --prompt "project setup" --source project-docs
+paracortex search /absolute/path/to/vault --prompt "project setup" --github
+paracortex github-context /absolute/path/to/vault --prompt "project setup" --source project-docs
 ```
 
 These return candidate evidence with immutable citations, not a verified
@@ -119,7 +119,7 @@ answer. Source setup, cache/offline controls and deliberate pin updates are in
 ## 4. Record the decision
 
 ```sh
-context-layer memory add /absolute/path/to/vault --kind decision --state approved \
+paracortex memory add /absolute/path/to/vault --kind decision --state approved \
   --text "Search defaults to FTS." --source notes/search.md
 ```
 
@@ -130,9 +130,9 @@ Running the same command twice appends one line, not two.
 ## 5. Resume somewhere else
 
 ```sh
-context-layer memory resume /absolute/path/to/vault
-context-layer memory resume /absolute/path/to/vault --json
-context-layer memory verify /absolute/path/to/vault    # exit 1 on any problem
+paracortex memory resume /absolute/path/to/vault
+paracortex memory resume /absolute/path/to/vault --json
+paracortex memory verify /absolute/path/to/vault    # exit 1 on any problem
 ```
 
 `resume` returns the records still in force, the open tasks, and a `stale` list
@@ -143,7 +143,7 @@ files. More: [docs/memory.md](docs/memory.md).
 ## 6. Dispatch a bounded sub-agent task
 
 ```sh
-context-layer tasks new /absolute/path/to/vault \
+paracortex tasks new /absolute/path/to/vault \
   --goal "Summarise the release versioning policy" \
   --source "notes/release/*.md" --output-dir drafts \
   --backend claude --model <model> --max-attempts 2 --timeout 300
@@ -155,39 +155,39 @@ the sources you allowed can appear in it; everything else is listed under
 `dropped_outside_spec`. Then:
 
 ```sh
-context-layer tasks run /absolute/path/to/vault <id>
-context-layer tasks list /absolute/path/to/vault
+paracortex tasks run /absolute/path/to/vault <id>
+paracortex tasks list /absolute/path/to/vault
 ```
 
 A finished run stops at `pending_review`. A backend whose binary is missing
 gives `blocked`, never `done`.
 
 `--backend` defaults to `fake`, which runs no model: it runs the executable
-script named in `CONTEXT_LAYER_FAKE_BACKEND` (set it for `tasks run`). The
+script named in `PARACORTEX_FAKE_BACKEND` (set it for `tasks run`). The
 script reads the prompt on stdin, writes its files under
-`$CONTEXT_LAYER_OUT_DIR`, and prints one claude-style JSON object on stdout
+`$PARACORTEX_OUT_DIR`, and prints one claude-style JSON object on stdout
 (`{"result": "...", "is_error": false, "usage": {...}}`; the full shape is in
 [docs/tasks.md](docs/tasks.md#backends)). That is enough to try the whole
 new/run/verify/cost flow without a model:
 
 ```sh
-CONTEXT_LAYER_FAKE_BACKEND=/absolute/path/to/agent.py \
-  context-layer tasks run /absolute/path/to/vault <id>
+PARACORTEX_FAKE_BACKEND=/absolute/path/to/agent.py \
+  paracortex tasks run /absolute/path/to/vault <id>
 ```
 
 `--output-dir` is a folder inside the vault (without it, output stays under
 `.context/tasks/<id>/out`). Its files are ordinary vault files, so the next
-`context-layer index` makes them searchable evidence; if drafts must not become
+`paracortex index` makes them searchable evidence; if drafts must not become
 evidence, add that folder to `exclude_prefixes` in `.context/routes.json`.
 
 ## 7. Verify, and total the cost
 
 ```sh
-context-layer tasks show /absolute/path/to/vault <id>
-context-layer tasks verify /absolute/path/to/vault <id>            # 0 verified, 1 rejected
+paracortex tasks show /absolute/path/to/vault <id>
+paracortex tasks verify /absolute/path/to/vault <id>            # 0 verified, 1 rejected
 # instead of the line above, to also append the result to memory:
-#   context-layer tasks verify /absolute/path/to/vault <id> --record
-context-layer tasks cost /absolute/path/to/vault \
+#   paracortex tasks verify /absolute/path/to/vault <id> --record
+paracortex tasks cost /absolute/path/to/vault \
   --coordinator-usage /absolute/path/to/host-usage.json
 ```
 
@@ -207,11 +207,11 @@ the state machine: [docs/tasks.md](docs/tasks.md).
 ## 8. Watch the sources
 
 ```sh
-context-layer status /absolute/path/to/vault          # 0 ok, 1 stale/degraded, 2 no usable index
-context-layer status /absolute/path/to/vault --json
-context-layer index /absolute/path/to/vault           # rebuild; keeps the replaced index
-context-layer rollback /absolute/path/to/vault --dry-run
-context-layer rollback /absolute/path/to/vault        # restore the previous index
+paracortex status /absolute/path/to/vault          # 0 ok, 1 stale/degraded, 2 no usable index
+paracortex status /absolute/path/to/vault --json
+paracortex index /absolute/path/to/vault           # rebuild; keeps the replaced index
+paracortex rollback /absolute/path/to/vault --dry-run
+paracortex rollback /absolute/path/to/vault        # restore the previous index
 ```
 
 `status` reads and hashes every in-scope file, so a source rewritten with its
@@ -230,7 +230,7 @@ python3 eval/compare.py --out /tmp/context-comparison
 It writes per-case stdout/stderr, scoring JSON and a summary. The test corpus is
 disposable. See [the contract](eval/EVIDENCE_CONTRACT.md) and
 [the evaluation limits](eval/comparison/README.md). The CLI also forwards custom
-evaluation arguments through `context-layer eval`; use absolute paths for your
+evaluation arguments through `paracortex eval`; use absolute paths for your
 own stimuli and outputs because its default working directory is the bundled eval directory.
 
 The live before/after — same host, same model, same questions, with and without
@@ -242,7 +242,7 @@ set written before any candidate run. Its definitions are in [SCOPE.md](SCOPE.md
 Richer configuration and metadata, not the default:
 
 ```sh
-context-layer route /absolute/path/to/vault \
+paracortex route /absolute/path/to/vault \
   --prompt "writing standards" --evidence-json --no-save
 ```
 

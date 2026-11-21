@@ -13,7 +13,7 @@ class NetworkSurfaceTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
-        (self.root / "context_layer").mkdir()
+        (self.root / "paracortex").mkdir()
         (self.root / "router").mkdir()
         (self.root / "eval").mkdir()
 
@@ -22,9 +22,9 @@ class NetworkSurfaceTests(unittest.TestCase):
         path.write_text(source, encoding="utf-8")
 
     def test_only_explicit_transports_can_import_network(self):
-        self.write("context_layer/decisions_client.py", "import urllib.request\n")
-        self.write("context_layer/responses_client.py", "import urllib.request\n")
-        self.write("context_layer/github_client.py", "import socket\n")
+        self.write("paracortex/decisions_client.py", "import urllib.request\n")
+        self.write("paracortex/responses_client.py", "import urllib.request\n")
+        self.write("paracortex/github_client.py", "import socket\n")
         self.write("eval/retrieve.py", "import urllib.request\n")
         violations, files = scan(self.root)
         self.assertEqual(files, 4)
@@ -34,7 +34,7 @@ class NetworkSurfaceTests(unittest.TestCase):
     def test_api_transports_cannot_spawn(self):
         for name in ("decisions_client.py", "responses_client.py"):
             with self.subTest(name=name):
-                self.write(f"context_layer/{name}", "import subprocess\nsubprocess.run(['echo'])\n")
+                self.write(f"paracortex/{name}", "import subprocess\nsubprocess.run(['echo'])\n")
                 violations, _ = scan(self.root)
                 self.assertTrue(any(entry[0].endswith(name) and entry[2] == "api-process"
                                     for entry in violations))

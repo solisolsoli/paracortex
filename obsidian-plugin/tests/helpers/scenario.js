@@ -41,7 +41,7 @@ async function runScenario({ PluginClass, env, label }) {
 
   // Load: defaults, commands, no view opened on startup.
   step('Load: defaults, commands, no view opened on startup.');
-  const plugin = new PluginClass(app, { id: 'context-layer-brain', version: '0.4.0' });
+  const plugin = new PluginClass(app, { id: 'paracortex-brain', version: '0.4.0' });
   await plugin.onload();
   assert.deepEqual(plugin.commands.map(c => c.id), ['open-view', 'focus-last-retrieval', 'clear-activation'], label + ': commands');
   assert.equal(plugin.settings.openOnStartup, false);
@@ -203,7 +203,7 @@ async function runScenario({ PluginClass, env, label }) {
   step('Without WebGL the view shows a message instead of failing.');
   FakeCanvas.contextFactory = () => null;
   const leaf2 = app.workspace.getLeaf('tab');
-  await leaf2.setViewState({ type: 'context-layer-brain-view' });
+  await leaf2.setViewState({ type: 'paracortex-brain-view' });
   await leaf2.view.ready;
   assert.ok(leaf2.view.contentEl.find('nb-message'), label + ': WebGL message');
   await leaf2.view.onClose();

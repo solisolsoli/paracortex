@@ -1,6 +1,6 @@
 """Development set for synaptic retrieval: a fictional linked vault plus labelled questions.
 
-This is a DEV set: it is used while developing context_layer/synapse.py and is
+This is a DEV set: it is used while developing paracortex/synapse.py and is
 kept separate from any sealed benchmark. Everything is invented. `build(root)`
 writes the vault and returns the cases; the generator is deterministic.
 

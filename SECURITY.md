@@ -9,7 +9,7 @@ from a checkout, since its behavior may differ from the 0.4.0 tag.
 
 ## Reporting a vulnerability
 
-Use [GitHub private vulnerability reporting](https://github.com/solisolsoli/context-layer/security/advisories/new),
+Use [GitHub private vulnerability reporting](https://github.com/solisolsoli/paracortex/security/advisories/new),
 or open this repository's **Security** tab and choose **Report a vulnerability**.
 Sign in to GitHub if prompted. Reports stay private to the reporting and
 repository security participants until disclosure; they are not public issues.
@@ -20,7 +20,7 @@ There is no alternate project email address or public support queue.
 
 Include:
 
-- the context-layer version (`context-layer --version` or the commit),
+- the paracortex version (`paracortex --version` or the commit),
   Python version and operating system;
 - a **minimal synthetic reproducer**: a few invented notes, the
   `.context/routes.json` involved and the exact commands;

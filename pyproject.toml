@@ -5,8 +5,8 @@ requires = ["setuptools==84.0.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "context-layer"
-version = "0.5.0"
+name = "paracortex"
+version = "0.6.0"
 authors = [{name = "solisolsoli"}]
 description = "Local context and memory for AI agents: source-linked retrieval from Markdown and Obsidian, with MCP and optional GitHub sources."
 readme = "README.md"
@@ -32,39 +32,44 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/solisolsoli/context-layer"
-Documentation = "https://github.com/solisolsoli/context-layer/blob/main/docs/README.md"
-Source = "https://github.com/solisolsoli/context-layer"
-Changelog = "https://github.com/solisolsoli/context-layer/blob/main/CHANGELOG.md"
-Security = "https://github.com/solisolsoli/context-layer/security/policy"
+Homepage = "https://github.com/solisolsoli/paracortex"
+Documentation = "https://github.com/solisolsoli/paracortex/blob/main/docs/README.md"
+Source = "https://github.com/solisolsoli/paracortex"
+Changelog = "https://github.com/solisolsoli/paracortex/blob/main/CHANGELOG.md"
+Security = "https://github.com/solisolsoli/paracortex/security/policy"
 
 [project.scripts]
-context-layer = "context_layer.cli:main"
+paracortex = "paracortex.cli:main"
+# The 0.5 name, kept for one release: prints one line naming `paracortex`, then runs it.
+context-layer = "paracortex.cli:legacy_main"
 
 [tool.setuptools]
 packages = [
-  "context_layer", "context_layer.router", "context_layer.eval", "context_layer.eval.adapters",
-  "context_layer.eval.comparison", "context_layer.eval.fixtures", "context_layer.eval.fixtures.docs",
-  "context_layer.templates", "context_layer.templates.vault", "context_layer.data",
+  "paracortex", "paracortex.router", "paracortex.eval", "paracortex.eval.adapters",
+  "paracortex.eval.comparison", "paracortex.eval.fixtures", "paracortex.eval.fixtures.docs",
+  "paracortex.templates", "paracortex.templates.vault", "paracortex.data",
+  # Deprecated import shim for the 0.5 package name; removed in a later release.
+  "context_layer",
 ]
 
 [tool.setuptools.package-dir]
+"paracortex" = "paracortex"
+"paracortex.router" = "router"
+"paracortex.eval" = "eval"
+"paracortex.eval.adapters" = "eval/adapters"
+"paracortex.eval.fixtures" = "eval/fixtures"
+"paracortex.eval.comparison" = "eval/comparison"
+"paracortex.eval.fixtures.docs" = "eval/fixtures/docs"
+"paracortex.templates" = "templates"
+"paracortex.templates.vault" = "templates/vault"
+"paracortex.data" = "paracortex/data"
 "context_layer" = "context_layer"
-"context_layer.router" = "router"
-"context_layer.eval" = "eval"
-"context_layer.eval.adapters" = "eval/adapters"
-"context_layer.eval.fixtures" = "eval/fixtures"
-"context_layer.eval.comparison" = "eval/comparison"
-"context_layer.eval.fixtures.docs" = "eval/fixtures/docs"
-"context_layer.templates" = "templates"
-"context_layer.templates.vault" = "templates/vault"
-"context_layer.data" = "context_layer/data"
 
 [tool.setuptools.package-data]
-"context_layer.data" = ["*.md"]
-"context_layer.router" = ["*.md", "*.json", "example-vault/.context/routes.json", "example-vault/.context/facts.json", "example-vault/**/*.md"]
-"context_layer.eval" = ["*.md", "*.json", "*.jsonl"]
-"context_layer.eval.comparison" = ["*.md", "*.json", "*.jsonl"]
-"context_layer.eval.fixtures.docs" = ["*.md"]
-"context_layer.templates.vault" = ["*.md"]
-"context_layer.templates" = ["starter-brain/*.md", "starter-brain/*/*.md", "starter-brain/obsidian/*.json"]
+"paracortex.data" = ["*.md"]
+"paracortex.router" = ["*.md", "*.json", "example-vault/.context/routes.json", "example-vault/.context/facts.json", "example-vault/**/*.md"]
+"paracortex.eval" = ["*.md", "*.json", "*.jsonl"]
+"paracortex.eval.comparison" = ["*.md", "*.json", "*.jsonl"]
+"paracortex.eval.fixtures.docs" = ["*.md"]
+"paracortex.templates.vault" = ["*.md"]
+"paracortex.templates" = ["starter-brain/*.md", "starter-brain/*/*.md", "starter-brain/obsidian/*.json"]

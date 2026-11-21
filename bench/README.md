@@ -1,4 +1,4 @@
-# context-layer benchmark: evidence completeness and packet cost
+# paracortex benchmark: evidence completeness and packet cost
 
 This directory is a public, reproducible benchmark for one question:
 
@@ -95,7 +95,7 @@ both the link that identifies the target and the fact in the target.
    vault, cases and seal were committed together as **"bench: seal cases"**
    before `run_offline.py` existed and before any search method was run on the
    vault. The only commands run on a copy of the vault before sealing were
-   `context-layer init` and `index`, to confirm no folder is excluded as noise.
+   `paracortex init` and `index`, to confirm no folder is excluded as noise.
 4. The runners refuse to score if `python3 bench/seal.py check` fails
    (`run_offline.py --allow-unsealed` overrides and marks the output).
 
@@ -123,9 +123,9 @@ python3 -m unittest bench/test_scorer.py bench/test_runner.py
 ```
 
 The runner copies the vault to a temporary directory, runs
-`python3 -m context_layer.cli init` and `index` on the copy (the checkout is
+`python3 -m paracortex.cli init` and `index` on the copy (the checkout is
 put on `PYTHONPATH`), then for every case and method runs
-`python3 -m context_layer.cli search <copy> --prompt <question> --method <m>`.
+`python3 -m paracortex.cli search <copy> --prompt <question> --method <m>`.
 
 - A method the CLI rejects (`invalid choice`) is skipped with a note.
 - `--top-k K` and `--search-arg=...` are forwarded to every method. A flag that
@@ -156,7 +156,7 @@ the vault-relative path, percent-encoded so it has no spaces. No output file has
 a timestamp or a temporary path, so the same checkout produces the same bytes.
 
 Provenance: every result file records the command, the checkout (`+dirty` when
-`context_layer/`, `router/`, `eval/` or `bench/` has uncommitted changes, apart
+`paracortex/`, `router/`, `eval/` or `bench/` has uncommitted changes, apart
 from `bench/results/`), the SHA-256 of the cases and of the vault manifest, and
 `python`, `sqlite`, `unicode` (the Unicode database version), `platform` and
 `scorer_sha256` (one digest over `bench/run_offline.py` and `bench/seal.py`).
@@ -205,8 +205,8 @@ three arms that all allow only the host's `Read`, `Grep` and `Glob` tools:
 
 - `baseline`: no hook;
 - `hook-fts`: the copy's `.claude/settings.json` has a `UserPromptSubmit` hook
-  `PYTHONPATH=<checkout> python3 -m context_layer.cli hook claude-code --vault <copy>`
-  (the checkout form of what `context_layer/install.py` writes);
+  `PYTHONPATH=<checkout> python3 -m paracortex.cli hook claude-code --vault <copy>`
+  (the checkout form of what `paracortex/install.py` writes);
 - `hook-synaptic`: the same with `--method synaptic`.
 
 ```

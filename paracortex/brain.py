@@ -1,6 +1,6 @@
-"""context_layer.brain - create a starter Obsidian/Markdown vault ("brain") in one command.
+"""paracortex.brain - create a starter Obsidian/Markdown vault ("brain") in one command.
 
-`context-layer brain init <path>` lays out folders, one hub note per folder, a
+`paracortex brain init <path>` lays out folders, one hub note per folder, a
 Dashboard, note templates, a few fictional example notes that show linking and
 an archived older version, the vault rule files (CLAUDE.md = AGENTS.md, LOG.md,
 BACKLOG.md) and a starting `.context/routes.json`. Dry run by default; `--apply`
@@ -93,7 +93,7 @@ CREDIT = ("Folder layout adapted from Avenox Beyin by Avenox "
 CREDIT_COMPAT = ("Folder layout follows Avenox Beyin by Avenox "
                  "(github.com/avenoxai/avenoxbeyin, MIT), using its original folder names "
                  "for compatibility. No Avenox code or text is included.")
-PLUGIN_ID = "context-layer-brain"
+PLUGIN_ID = "paracortex-brain"
 IGNORED_IN_EMPTY = {".DS_Store", "Thumbs.db", "desktop.ini"}
 TOKEN = re.compile(r"\{\{(folder:([a-z]+)|hubs|credit)\}\}")
 
@@ -276,7 +276,7 @@ def init(path, layout: str = "standard", avenox_compat: bool = False,
             kept_config = None
         if kept_config is not None and rules.exclude_rule_files(kept_config) != kept_config:
             routes_note = ("kept .context/routes.json does not exclude CLAUDE.md and AGENTS.md "
-                           "from search; `context-layer rules init <vault> --apply` adds them")
+                           "from search; `paracortex rules init <vault> --apply` adds them")
     return {"layout": layout, "avenox_compat": avenox_compat, "applied": apply_now,
             "examples": examples,
             "directories": directories, "new_directories": new_directories,
@@ -294,13 +294,13 @@ def _next_steps(path: str) -> str:
     quoted = path if re.fullmatch(r"[\w./~-]+", path) else json.dumps(path)
     return "\n".join([
         "Next steps:",
-        f"  context-layer index {quoted}",
-        f"  context-layer rules check {quoted}",
-        f"  context-layer install claude-code --vault {quoted}          (dry run; add --apply)",
-        f"  context-layer install claude-code --vault {quoted} --rules  (optional record hooks)",
+        f"  paracortex index {quoted}",
+        f"  paracortex rules check {quoted}",
+        f"  paracortex install claude-code --vault {quoted}          (dry run; add --apply)",
+        f"  paracortex install claude-code --vault {quoted} --rules  (optional record hooks)",
         "Open the folder in Obsidian (Open folder as vault). To see the Brain View, copy",
         "obsidian-plugin/manifest.json, obsidian-plugin/styles.css and",
-        "obsidian-plugin/dist/main.js (as main.js) from the context-layer repository into",
+        "obsidian-plugin/dist/main.js (as main.js) from the paracortex repository into",
         f"<vault>/.obsidian/plugins/{PLUGIN_ID}/ (the bundle is prebuilt), then enable it",
         "under Settings > Community plugins. Nothing was enabled for you.",
     ])
@@ -309,7 +309,7 @@ def _next_steps(path: str) -> str:
 def cmd_init(args: argparse.Namespace) -> int:
     extra = [token for token in getattr(args, "rest", []) or [] if token]
     if extra:
-        print(f"context-layer brain init: unrecognised arguments: {' '.join(extra)}",
+        print(f"paracortex brain init: unrecognised arguments: {' '.join(extra)}",
               file=sys.stderr)
         return 2
     try:
@@ -317,7 +317,7 @@ def cmd_init(args: argparse.Namespace) -> int:
                       apply_now=args.apply, into_existing=args.into_existing,
                       examples=args.examples)
     except (BrainError, rules.RulesError, OSError) as exc:
-        print(f"context-layer brain init: {exc}", file=sys.stderr)
+        print(f"paracortex brain init: {exc}", file=sys.stderr)
         return 1
     if args.as_json:
         print(json.dumps(result, ensure_ascii=False, indent=2))
@@ -340,8 +340,8 @@ def cmd_init(args: argparse.Namespace) -> int:
         else:
             print(_next_steps(args.path))
     if result["applied"] and result["parity"] is False:
-        print("context-layer brain init: CLAUDE.md and AGENTS.md differ in the target "
-              "(an existing file was kept); run `context-layer rules check` and merge them.",
+        print("paracortex brain init: CLAUDE.md and AGENTS.md differ in the target "
+              "(an existing file was kept); run `paracortex rules check` and merge them.",
               file=sys.stderr)
         return 1
     return 0

@@ -47,7 +47,7 @@ def tokens(packet: dict) -> int:
 def index(vault: Path, *flags: str) -> None:
     for step in ([] if (vault / ".context").exists() else [["init", str(vault)]]) \
             + [["index", str(vault), *flags]]:
-        subprocess.run([sys.executable, "-m", "context_layer.cli", *step], cwd=REPO,
+        subprocess.run([sys.executable, "-m", "paracortex.cli", *step], cwd=REPO,
                        capture_output=True, check=True)
 
 

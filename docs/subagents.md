@@ -1,7 +1,7 @@
 # Sub-agents that cost little: delegate less, return evidence, check it mechanically
 
 This page covers the orchestration commands (`packet`, `job`, `handback`,
-`handoff`, in `context_layer/orchestrate.py`) and how they sit on top of
+`handoff`, in `paracortex/orchestrate.py`) and how they sit on top of
 [`tasks`](tasks.md). Everything described here is deterministic and local. No
 model is called and nothing touches the network.
 
@@ -27,11 +27,11 @@ Check the job before dispatch, not after an attractive report comes back.
 | **Return** (mandatory) | A small receipt plus durable evidence records carries the whole result | The budget can only be met by dropping findings |
 | **All-in estimate** (mandatory) | Startup, verification, retries and interruptions fit inside the avoided work, with a buffer | The saving only appears if the root's remaining work is ignored |
 
-`context-layer job estimate` does the break-even arithmetic and prints the
+`paracortex job estimate` does the break-even arithmetic and prints the
 checklist:
 
 ```
-context-layer job estimate --root-read-tokens 40000 --reread-fraction 0.15 \
+paracortex job estimate --root-read-tokens 40000 --reread-fraction 0.15 \
     --worker-price-ratio 0.2 --startup-tokens 2700 --verify-tokens 650
 DELEGATE  (estimate; root-input-token equivalents)
   direct    W = 40000
@@ -78,11 +78,11 @@ packet build ──► job new / job validate ──► dispatch (tasks) ──�
 
 1. **Build evidence once.**
    ```
-   context-layer packet build VAULT --prompt "..." [--method fts] [--budget-tokens N]
-   context-layer packet build VAULT --prompt "..." --method synaptic [--extra-tokens N]
-   context-layer packet build VAULT --prompt "..." --method synaptic --compact [--budget-tokens N]
+   paracortex packet build VAULT --prompt "..." [--method fts] [--budget-tokens N]
+   paracortex packet build VAULT --prompt "..." --method synaptic [--extra-tokens N]
+   paracortex packet build VAULT --prompt "..." --method synaptic --compact [--budget-tokens N]
    ```
-   This runs the same retrieval as `context-layer search` and pins every
+   This runs the same retrieval as `paracortex search` and pins every
    passage to its source SHA-256 and line range. The result is stored at
    `.context/packets/<id>.json`, where `id` is the SHA-256 of the packet's
    canonical JSON. That JSON covers:
@@ -98,9 +98,9 @@ packet build ──► job new / job validate ──► dispatch (tasks) ──�
    `--budget-tokens` sizes only the `--compact` synaptic packet and is refused
    without `--compact` (exit 2), the same rule as `install --hook`. If the
    search withheld a source because it changed since indexing, no packet is
-   built: run `context-layer index <vault>` first.
+   built: run `paracortex index <vault>` first.
 
-2. **Serve it only if it is still true.** `context-layer packet show VAULT ID`
+2. **Serve it only if it is still true.** `paracortex packet show VAULT ID`
    (or the MCP tool `read_packet {id}`) re-checks the packet before serving it:
    - the file still matches its id, and every entry is well formed (a crafted
      entry, such as a line number that is not an integer, is withheld with its
@@ -115,7 +115,7 @@ packet build ──► job new / job validate ──► dispatch (tasks) ──�
 
 3. **Write the job.**
    ```
-   context-layer job new VAULT --objective "..." --packet ID --root-goal "..." \
+   paracortex job new VAULT --objective "..." --packet ID --root-goal "..." \
        --allowed-root REL [--allowed-root REL]... --acceptance "..." --stop-when "..." \
        --max-total-tokens N --max-seconds N [--known-unknown "..."]... [--exclude "..."]... \
        [--out REL] [--task-id ID] [--attempt N] [--allow-over]
@@ -137,13 +137,13 @@ packet build ──► job new / job validate ──► dispatch (tasks) ──�
    `--out` is BLOCKED when it contains an indexed source, overlaps an allowed
    root (`.` overlaps every directory retrieval can serve), or sits in another
    hidden or tool-state folder; one outside `routes.json` exclusions is accepted
-   with a warning that the next `context-layer index` will index the worker's
+   with a warning that the next `paracortex index` will index the worker's
    files. `--max-seconds` becomes the task timeout when `tasks new --job`
    dispatches it (the smaller wins) and bounds all attempts together.
    `--max-total-tokens` is recorded and checked between attempts; no backend
    enforces a token cap.
 
-4. **Validate at any time.** `context-layer job validate FILE` prints OK or
+4. **Validate at any time.** `paracortex job validate FILE` prints OK or
    BLOCKED with every reason. BLOCKED covers:
    - a missing or empty mandatory value (a missing value is never inferred);
    - `may_modify_source` not `false`, or a changed authority line;
@@ -161,7 +161,7 @@ packet build ──► job new / job validate ──► dispatch (tasks) ──�
 
 6. **Check the return mechanically.**
    ```
-   context-layer handback check OUT_DIR --job JOB.md [--sample K|auto] [--seed S] [--out FILE] [--json]
+   paracortex handback check OUT_DIR --job JOB.md [--sample K|auto] [--seed S] [--out FILE] [--json]
    ```
    `receipt.json` must parse, have the schema, stay at or under 160 estimated
    tokens, name a blocker when PARTIAL or BLOCKED, match the job's task and
@@ -219,7 +219,7 @@ packet build ──► job new / job validate ──► dispatch (tasks) ──�
 
 8. **Hand off.**
    ```
-   context-layer handoff write --job JOB.md --state READY|PARTIAL|BLOCKED \
+   paracortex handoff write --job JOB.md --state READY|PARTIAL|BLOCKED \
        --done "..." --next "..." --not-established "..." [--check CHECK.json]
    ```
    This writes the minimal control file (`support-handoff/v1`, at most 800
@@ -245,7 +245,7 @@ The counts are **estimated tokens, ceil(characters / 4)**, not a tokenizer count
 
 | Part | Budget | Shipped / typical |
 | --- | ---: | ---: |
-| worker rule core (`context_layer/data/worker_core.md`) | 1,000 | 856 |
+| worker rule core (`paracortex/data/worker_core.md`) | 1,000 | 856 |
 | job (`job.md`) | 750 | about 380–430 |
 | input manifest | 250 | about 200–210 |
 | evidence packet | 3,000 | depends on `--budget-tokens` (fts, compact) or `--extra-tokens` (synaptic) |
@@ -338,7 +338,7 @@ measures the default synaptic packet (the fts packet plus link-graph extras)
 instead.
 
 The block below is the output of `python3 eval/orchestration_cost.py --docs`,
-last regenerated on 28 September, after the compact-packet change; `tests/test_live_compare.py` fails when it no
+last regenerated on 21 November, after the 0.6 rename shortened the rule texts by a few tokens; `tests/test_live_compare.py` fails when it no
 longer matches the eval's `--json` output.
 
 <!-- BEGIN generated by `python3 eval/orchestration_cost.py --docs` -->
@@ -352,8 +352,8 @@ The rule file a naive worker loads is a synthetic 250-line stand-in: 250 lines, 
 | Arm (4 workers) | Initial worker payload, est. tokens | vs naive | Gold fact in payload |
 | --- | ---: | ---: | ---: |
 | naive: full rule file + objective + full text of the 3 files its own FTS search surfaced | 16,827 | 100% | 4/4 |
-| lean-own: core + job + manifest + a compact synaptic packet for its own sub-question (budget 1,200) | 9,441 | 56% | 4/4 |
-| lean-shared: core + job + manifest + one shared compact synaptic packet (budget 2,000; 10 passages, 1,419 est. tokens), counted once per worker | 11,626 | 69% | 4/4 |
+| lean-own: core + job + manifest + a compact synaptic packet for its own sub-question (budget 1,200) | 9,437 | 56% | 4/4 |
+| lean-shared: core + job + manifest + one shared compact synaptic packet (budget 2,000; 10 passages, 1,419 est. tokens), counted once per worker | 11,622 | 69% | 4/4 |
 
 | Root verification reading | est. tokens |
 | --- | ---: |
@@ -366,13 +366,13 @@ The rule file a naive worker loads is a synthetic 250-line stand-in: 250 lines, 
 python3 eval/orchestration_cost.py --rules templates/vault/CLAUDE.md
 ```
 
-This run uses the vault rule template: 175 lines, 2,099 estimated tokens.
+This run uses the vault rule template: 175 lines, 2,090 estimated tokens.
 
 | Arm | Initial worker payload, est. tokens | vs naive |
 | --- | ---: | ---: |
-| naive | 13,527 | 100% |
-| lean-own | 9,441 | 70% |
-| lean-shared | 11,626 | 86% |
+| naive | 13,491 | 100% |
+| lean-own | 9,437 | 70% |
+| lean-shared | 11,622 | 86% |
 
 Verification reading is the same as above (12,452 vs 2,580).
 
@@ -382,7 +382,7 @@ The fixed part of every lean payload is the worker core (856 est. tokens), the j
 python3 eval/orchestration_cost.py --standin --packet default
 ```
 
-With the default synaptic packet (the fts packet plus link-graph extras, not sized to a token budget) the stand-in run gives lean-own 11,658 and lean-shared 14,614 est. tokens against naive 16,827; the shared packet then holds 11 passages, 2,166 est. tokens, with 4 of the 4 gold facts.
+With the default synaptic packet (the fts packet plus link-graph extras, not sized to a token budget) the stand-in run gives lean-own 11,654 and lean-shared 14,610 est. tokens against naive 16,827; the shared packet then holds 11 passages, 2,166 est. tokens, with 4 of the 4 gold facts.
 
 <!-- END generated -->
 

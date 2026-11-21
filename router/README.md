@@ -17,9 +17,9 @@ verbatim source text, with provenance, in front of whatever does answer.
 Python 3.10+, standard library only, no network access.
 
 > **Status: experimental, and a candidate for removal.** The routing and packet
-> step (`context_router.py`, reached as `context-layer route`) is experimental and
+> step (`context_router.py`, reached as `paracortex route`) is experimental and
 > may be removed from the package in a later release; nothing is removed in this
-> one. The maintained retrieval paths are `context-layer search`, the prompt hook
+> one. The maintained retrieval paths are `paracortex search`, the prompt hook
 > and the MCP server, which read the same index and do not go through
 > `context_router.py`. `build_index.py` and `source_policy.py` are shared with those paths and
 > stay. If you depend on `route`, say so before it goes.
@@ -63,7 +63,7 @@ python3 test_context_router.py
 | --- | --- |
 | `context_router.py` | The router and packet builder. |
 | `build_index.py` | Builds the SQLite/FTS5 lexical index the router reads. |
-| `textfold.py` | The folding contract shared by the index, `eval/retrieve.py`, the router and `context-layer init`: verbatim query terms for MATCH, one folded form for comparisons, Markdown headings outside code fences. |
+| `textfold.py` | The folding contract shared by the index, `eval/retrieve.py`, the router and `paracortex init`: verbatim query terms for MATCH, one folded form for comparisons, Markdown headings outside code fences. |
 | `routes.example.json` | Example routing config. Copy to `<vault>/.context/routes.json` and edit. |
 | `facts.example.json` | Example fast-path answer cards. Optional. |
 | `test_context_router.py` | Regression tests against `example-vault/`. |
@@ -124,7 +124,7 @@ Other config keys, all optional:
 | `freshness_terms` + `external_fact_terms` | Both present → status `EXTERNAL_RECHECK`. |
 | `vague_memory_terms`, `vague_request_routes`, `ambient_terms` | Detect a deliberately vague request and abstain. |
 | `continuation_terms` | A "go on / keep going / shorter" list. A prompt made only of these has no anchor, so the router abstains instead of sweeping the index. |
-| `stopwords` | Extra stopwords for the vault's language, added to the built-in English list (never replacing it). Used by the router when it tokenizes a prompt, by `eval/retrieve.py`'s query terms once that reads the config, and by `context-layer init` when it picks trigger terms. Must be a list of strings; anything else is a config error. |
+| `stopwords` | Extra stopwords for the vault's language, added to the built-in English list (never replacing it). Used by the router when it tokenizes a prompt, by `eval/retrieve.py`'s query terms once that reads the config, and by `paracortex init` when it picks trigger terms. Must be a list of strings; anything else is a config error. |
 | `exclude_prefixes` | Path prefixes skipped at index time **and** dropped after retrieval — intended for the tool's own generated output, so a measurement file can never be quoted back as vault evidence. A prefix matches whole path components, literally (`%`, `_` and quotes are ordinary characters), but case-insensitively and after Unicode NFC normalisation, so `private` also excludes `Private/` and a decomposed file name; on a case-sensitive file system that errs toward excluding more. An entry with blanks around it or around a component, or with an empty component (`"private/ "`, `"a//b"`), is refused: it would exclude nothing. |
 | `max_file_bytes` | The index builder's per-file limit in bytes (1 to 50,000,000; default 2,000,000). A larger file is skipped and listed, never indexed in part. |
 | `retrieval_exclude_prefixes` | Extra `LIKE 'prefix%'` exclusions in the SQL. |

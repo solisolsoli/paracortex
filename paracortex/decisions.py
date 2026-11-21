@@ -143,13 +143,13 @@ def cmd_assess(args: argparse.Namespace) -> int:
         data = _read_input(args.input)
         result = assess(args.task, data, data_scope=args.data_scope, send=args.send)
     except decisions_client.DecisionsError as exc:
-        print(f"context-layer decisions: {exc}", file=sys.stderr)
+        print(f"paracortex decisions: {exc}", file=sys.stderr)
         return 1
     except OSError:
-        print("context-layer decisions: input_read_failed", file=sys.stderr)
+        print("paracortex decisions: input_read_failed", file=sys.stderr)
         return 2
     except (InvalidDecisionInput, ValueError, json.JSONDecodeError) as exc:
-        print(f"context-layer decisions: {exc}", file=sys.stderr)
+        print(f"paracortex decisions: {exc}", file=sys.stderr)
         return 2
     print(json.dumps(result, ensure_ascii=False, separators=(",", ":")))
     return 1 if result["status"] == "refused" else 0

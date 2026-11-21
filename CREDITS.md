@@ -2,14 +2,14 @@
 
 ## Authorship
 
-Context Layer is maintained by solisolsoli, who set its direction and made its
+Paracortex is maintained by solisolsoli, who set its direction and made its
 product decisions. The code, tests and documentation were written and reviewed
 with AI coding assistants (Anthropic's Claude models in Claude Code) working
 under that direction; this note replaces per-commit co-author lines.
 
 ## Avenox Beyin
 
-The starter brain's folder layout (`context-layer brain init`) is adapted from
+The starter brain's folder layout (`paracortex brain init`) is adapted from
 **Avenox Beyin** by **Avenox**, released under the MIT licence
 (Copyright (c) 2026 Avenox).
 
@@ -35,12 +35,12 @@ What was adapted, and how:
 
 What was not taken: **no Avenox code, hooks, skills, scripts or text is included
 in the starter brain.** Every note, hub, template and example in
-`templates/starter-brain/` was written for this project. context-layer is a
+`templates/starter-brain/` was written for this project. paracortex is a
 separate tool with a compatible layout, not a fork of Avenox Beyin.
 
 ## Historical Jev advisor credit
 
-The former optional advisor (`context-layer jev`, [migration note](docs/jev.md)) followed
+The former optional advisor (`paracortex jev`, [migration note](docs/jev.md)) followed
 the design of the optional Jev advisor in **Avenox Beyin** (v3.1.0-v3.5.1, MIT
 licence, Copyright (c) 2026 Avenox), whose Jev integration was contributed by
 **Forn** and adapts Forn's hafiza-os (MIT licence).
@@ -56,7 +56,7 @@ The name "Jev" follows that advisor. It is also the name of TypeSafe's model;
 no affiliation with TypeSafe or Avenox is claimed.
 
 The code was written independently for this project: no Avenox file was copied
-or adapted. A line-level comparison of `context_layer/jev*.py` and
+or adapted. A line-level comparison of `paracortex/jev*.py` and
 `tests/test_jev*.py` against Avenox Beyin's Jev, client, contracts and Laya
 modules and their tests (difflib over lines longer than 20 characters, run on
 2026-09-29) found at most seven identical lines in one file pair, all generic

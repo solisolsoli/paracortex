@@ -6,8 +6,8 @@
 
 The traces come from the real writer, not from hand-written JSON: the script
 builds the fictional development vault (tests/fixtures/dev_bridge.py) in a
-temporary directory, runs `context-layer init`, `index` and two synaptic
-searches through `python3 -m context_layer.cli`, and copies each
+temporary directory, runs `paracortex init`, `index` and two synaptic
+searches through `python3 -m paracortex.cli`, and copies each
 `.context/activation.json` byte for byte. HOME points at a temporary directory,
 no model is involved and nothing outside the temporary directory is read or
 written except the fixture files next to this script.
@@ -40,10 +40,10 @@ CASES = [
 
 
 def run_cli(args, env):
-    done = subprocess.run([sys.executable, "-m", "context_layer.cli", *args], cwd=REPO, env=env,
+    done = subprocess.run([sys.executable, "-m", "paracortex.cli", *args], cwd=REPO, env=env,
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if done.returncode != 0:
-        sys.exit(f"context-layer {args[0]} failed ({done.returncode}): {done.stderr.strip()[:400]}")
+        sys.exit(f"paracortex {args[0]} failed ({done.returncode}): {done.stderr.strip()[:400]}")
     return done.stdout
 
 

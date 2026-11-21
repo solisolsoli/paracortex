@@ -48,14 +48,14 @@ class WheelContents(TempDir):
     """E-07: the content pass fails on a wheel that lost its starter-brain templates."""
 
     def wheel(self, with_brain=True):
-        path = self.root / "context_layer-9.9.9-py3-none-any.whl"
+        path = self.root / "paracortex-9.9.9-py3-none-any.whl"
         with zipfile.ZipFile(path, "w") as archive:
             for name in check_distribution.WHEEL_REQUIRED:
                 archive.writestr(name, "x")
             if with_brain:
-                archive.writestr("context_layer/templates/starter-brain/README.md", "x")
+                archive.writestr("paracortex/templates/starter-brain/README.md", "x")
             for name in check_distribution.WHEEL_LICENSES:
-                archive.writestr(f"context_layer-9.9.9.dist-info/licenses/{name}", "x")
+                archive.writestr(f"paracortex-9.9.9.dist-info/licenses/{name}", "x")
         return path
 
     def test_a_complete_wheel_passes(self):
@@ -89,7 +89,7 @@ class ConsoleScriptIdentity(TempDir):
     def test_console_command_must_resolve_to_the_installed_file(self):
         scripts = self.root / "Scripts"
         scripts.mkdir()
-        console = scripts / "context-layer.exe"
+        console = scripts / "paracortex.exe"
         console.write_bytes(b"console launcher")
         self.assertTrue(check_distribution.is_same_file(console, console))
 
@@ -104,7 +104,7 @@ class ConsoleScriptIdentity(TempDir):
         if os.name == "nt":
             # Windows path lookup is case-insensitive; file identity must accept
             # this valid spelling while still rejecting a different executable.
-            case_variant = str(console).replace("context-layer.exe", "CONTEXT-LAYER.EXE")
+            case_variant = str(console).replace("paracortex.exe", "PARACORTEX.EXE")
             self.assertTrue(check_distribution.is_same_file(case_variant, console))
 
 

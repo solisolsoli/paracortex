@@ -669,7 +669,7 @@ def render_config(result: ScanResult) -> dict:
         "schema_version": 1,
         "engine_version": f"{__version__}-generated",
         "_generated": {
-            "by": "context-layer init",
+            "by": "paracortex init",
             "at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "vault_shape": result.shape,
             "indexable_files_seen": len(result.text_files),

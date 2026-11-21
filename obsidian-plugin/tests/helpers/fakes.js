@@ -242,7 +242,7 @@ class ItemView extends Component {
 class Plugin extends Component {
   constructor(app, manifest) {
     super();
-    this.app = app; this.manifest = manifest || { id: 'context-layer-brain' };
+    this.app = app; this.manifest = manifest || { id: 'paracortex-brain' };
     this.commands = []; this.ribbons = []; this.settingTabs = []; this.saved = [];
   }
   async loadData() { return this.app._pluginData ? JSON.parse(JSON.stringify(this.app._pluginData)) : null; }

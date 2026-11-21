@@ -28,7 +28,7 @@ PROVENANCE = ("python", "sqlite", "unicode", "platform", "scorer_sha256")
 def runner(*argv, out=None):
     home = tempfile.mkdtemp(prefix="cl-bench-home-")
     env = dict(os.environ, HOME=home)
-    env.pop("CONTEXT_LAYER_HOME", None)
+    env.pop("PARACORTEX_HOME", None); env.pop("CONTEXT_LAYER_HOME", None)
     command = [sys.executable, str(BENCH / "run_offline.py"), *argv]
     if out is not None:
         command += ["--out", str(out)]

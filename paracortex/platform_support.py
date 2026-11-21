@@ -1,4 +1,4 @@
-"""Small, fail-closed cross-platform primitives for Context Layer runtime code.
+"""Small, fail-closed cross-platform primitives for Paracortex runtime code.
 
 Windows support uses only the standard library plus documented Win32 APIs via
 ctypes. Private files get a protected DACL for their owner and SYSTEM; an ACL
@@ -395,7 +395,7 @@ def private_tempfile(directory, *, prefix: str = ".tmp-", suffix: str = "") -> t
         raise
 
 
-def private_tempdir(directory=None, *, prefix: str = "context-layer-") -> Path:
+def private_tempdir(directory=None, *, prefix: str = "paracortex-") -> Path:
     """Create a private directory with an inheritable user+SYSTEM DACL on Windows."""
     target = Path(tempfile.mkdtemp(prefix=prefix, dir=directory))
     try:

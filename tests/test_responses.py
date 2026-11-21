@@ -13,7 +13,7 @@ import urllib.error
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from context_layer import responses, responses_client
+from paracortex import responses, responses_client
 
 
 MODEL = "test-model"

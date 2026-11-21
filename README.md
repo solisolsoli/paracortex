@@ -1,13 +1,17 @@
-# Context Layer
+# Paracortex
 
-[![tests](https://github.com/solisolsoli/context-layer/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/solisolsoli/context-layer/actions/workflows/tests.yml)
+[![tests](https://github.com/solisolsoli/paracortex/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/solisolsoli/paracortex/actions/workflows/tests.yml)
 
 **Give your AI agents the context in your notes.**
 
-Context Layer connects a folder of Markdown notes or an Obsidian vault to your
-AI tools. Ask why a decision was made, pick up a project, or look up a setup
-guide: it retrieves the original passages and their sources so an agent can
-work from your material.
+Paracortex is a local search tool that gives AI agents the original passages
+from your Markdown notes or Obsidian vault, each with its file path and hash.
+
+Ask why a decision was made, pick up a project, or look up a setup guide: it
+retrieves the passages and their sources so an agent can work from your
+material, through a command line, an MCP server or a prompt hook. The name means
+"beside the cortex": a second memory that stays in your own files. Until 0.6 the
+project was called Context Layer ([what changed](docs/RENAME.md)).
 
 - **Keep your notes where they are.** Search runs locally; Obsidian is optional.
 - **Follow the connections you wrote.** Link-aware search can bring in related
@@ -33,8 +37,8 @@ The commands below create a new folder of fictional example notes.
 First, get the repository:
 
 ```sh
-git clone https://github.com/solisolsoli/context-layer.git
-cd context-layer
+git clone https://github.com/solisolsoli/paracortex.git
+cd paracortex
 ```
 
 On **macOS or Linux**, install and try a question:
@@ -44,9 +48,9 @@ python3 -m venv .venv
 . .venv/bin/activate
 python -m pip install -e .
 
-context-layer brain init ~/ContextLayerDemo --apply
-context-layer index ~/ContextLayerDemo
-context-layer search ~/ContextLayerDemo --prompt "which timer controller did we choose and why" --method synaptic
+paracortex brain init ~/ParacortexDemo --apply
+paracortex index ~/ParacortexDemo
+paracortex search ~/ParacortexDemo --prompt "which timer controller did we choose and why" --method synaptic
 ```
 
 <details>
@@ -59,9 +63,9 @@ is needed:
 py -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e .
 
-.\.venv\Scripts\context-layer.exe brain init "$env:USERPROFILE\ContextLayerDemo" --apply
-.\.venv\Scripts\context-layer.exe index "$env:USERPROFILE\ContextLayerDemo"
-.\.venv\Scripts\context-layer.exe search "$env:USERPROFILE\ContextLayerDemo" --prompt "which timer controller did we choose and why" --method synaptic
+.\.venv\Scripts\paracortex.exe brain init "$env:USERPROFILE\ParacortexDemo" --apply
+.\.venv\Scripts\paracortex.exe index "$env:USERPROFILE\ParacortexDemo"
+.\.venv\Scripts\paracortex.exe search "$env:USERPROFILE\ParacortexDemo" --prompt "which timer controller did we choose and why" --method synaptic
 ```
 
 </details>
@@ -70,28 +74,29 @@ py -m venv .venv
 and its linked notes. The example chose a battery timer with two programs
 because hot days need a second watering time. The packet includes the original
 text, source paths and hashes. Its `PARTIAL` status means evidence was found;
-Context Layer retrieves material for an answer, it does not generate one.
+Paracortex retrieves material for an answer, it does not generate one.
 
 The `--method synaptic` option follows links between notes. Leave it out for
 ordinary full-text search. To use your own notes, follow the
 [existing-vault setup](QUICKSTART.md#1-install-configure-index).
 
-The package version is **0.5.0** (alpha). This version removes the Jev advisor
-and adds explicit, preview-first API commands alongside source/cache controls
-and Windows support. See the [migration guide](docs/migration-0.5.md) before
-upgrading from 0.4.0; local search still needs no API key.
+The package version is **0.6.0** (alpha). This version renames the project;
+the 0.5 command `context-layer`, `import context_layer` and host entries written
+by 0.5 keep working for this release (see [the rename guide](docs/RENAME.md)).
+Upgrading from 0.4.0? Read the [0.5 migration guide](docs/migration-0.5.md)
+first. Local search still needs no API key.
 
 ## Connect an agent
 
 The local demo works on its own. To let an agent look up your notes during a
-conversation, connect Context Layer through **MCP**, the tool interface used by
+conversation, connect Paracortex through **MCP**, the tool interface used by
 AI applications.
 
 For Claude Code, preview the configuration first. On macOS/Linux, with the
 environment above still active:
 
 ```sh
-context-layer install claude-code --vault ~/ContextLayerDemo --project ~/ContextLayerDemo
+paracortex install claude-code --vault ~/ParacortexDemo --project ~/ParacortexDemo
 # Review the diff, then repeat with --apply to save it.
 ```
 
@@ -107,7 +112,7 @@ in the [support matrix](SCOPE.md#support-matrix).
 **Data boundary:** local search makes no network requests. Once connected, your
 AI host may send retrieved notes to its model provider under that host's settings.
 Retrieved text can contain misleading instructions: treat it as source material.
-Context Layer does not sandbox the host or eliminate prompt injection. See
+Paracortex does not sandbox the host or eliminate prompt injection. See
 [privacy](docs/privacy.md) and [security](SECURITY.md).
 
 ## How it works
@@ -137,7 +142,7 @@ repository, allowed files and a fixed commit. After adding a source named
 `project-docs`, you can request it directly:
 
 ```sh
-context-layer github-context ~/ContextLayerDemo --prompt "project setup" --source project-docs
+paracortex github-context ~/ParacortexDemo --prompt "project setup" --source project-docs
 ```
 
 For fallback after a clean, empty local search, use `search --github`. If local

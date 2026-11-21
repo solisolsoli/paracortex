@@ -9,14 +9,14 @@ from pathlib import Path
 from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from context_layer import github_client, github_sources as sources  # noqa: E402
+from paracortex import github_client, github_sources as sources  # noqa: E402
 
 OLD = "a" * 40
 NEW = "b" * 40
 
 
 def hold_lock_process(lock_path, ready_path, release_path):
-    script = ("from context_layer.platform_support import file_lock; "
+    script = ("from paracortex.platform_support import file_lock; "
               "from pathlib import Path; import sys,time; "
               "p,r,x=map(Path,sys.argv[1:]); "
               "ctx=file_lock(p,timeout=5); ctx.__enter__(); r.touch(); "

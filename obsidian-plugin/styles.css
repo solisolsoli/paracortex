@@ -1,9 +1,9 @@
-/* Context Layer Brain View. The 3D stage is dark by design: the renderer
+/* Paracortex Brain View. The 3D stage is dark by design: the renderer
    draws light on black. The colours of the text layers on top of it are
    plugin variables that themes and CSS snippets can override; fonts, sizes,
    radii and layers come from Obsidian's own variables. No network fonts. */
 
-.workspace-leaf-content[data-type="context-layer-brain-view"] {
+.workspace-leaf-content[data-type="paracortex-brain-view"] {
   --nb-stage: #000000;
   --nb-text: #F2EFE9;
   --nb-text-accent: #FFD48A;
@@ -30,8 +30,8 @@
   --nb-region-other: #C3C3B4;
 }
 
-.workspace-leaf-content[data-type="context-layer-brain-view"],
-.workspace-leaf-content[data-type="context-layer-brain-view"] .view-content,
+.workspace-leaf-content[data-type="paracortex-brain-view"],
+.workspace-leaf-content[data-type="paracortex-brain-view"] .view-content,
 .nb-root {
   background: var(--nb-stage, #000000);
 }

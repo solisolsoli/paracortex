@@ -1,8 +1,8 @@
-"""Tests for context_layer.brain - the starter vault. Runnable as `python3 tests/test_brain.py`.
+"""Tests for paracortex.brain - the starter vault. Runnable as `python3 tests/test_brain.py`.
 
 Every test writes into its own temporary directory, with HOME pointed there too.
 The CLI is driven through a small parser that registers `brain` and `rules` the
-way cli.py does; `index` and `search` run through `python -m context_layer.cli`.
+way cli.py does; `index` and `search` run through `python -m paracortex.cli`.
 """
 import json
 import os
@@ -22,12 +22,12 @@ REPO = Path(os.environ.get("TEST_REPO_HOME", Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from context_layer import brain  # noqa: E402
+from paracortex import brain  # noqa: E402
 
 DRIVER = (
     "import argparse, sys\n"
-    "from context_layer import brain, rules\n"
-    "parser = argparse.ArgumentParser(prog='context-layer')\n"
+    "from paracortex import brain, rules\n"
+    "parser = argparse.ArgumentParser(prog='paracortex')\n"
     "sub = parser.add_subparsers(dest='command', required=True)\n"
     "brain.register(sub)\n"
     "rules.register(sub)\n"
@@ -104,7 +104,7 @@ class BrainBase(unittest.TestCase):
 
     def env(self):
         env = dict(os.environ)
-        env.pop("CONTEXT_LAYER_HOME", None)
+        env.pop("PARACORTEX_HOME", None)
         env["PYTHONPATH"] = str(REPO) + os.pathsep + env.get("PYTHONPATH", "")
         return env
 
@@ -112,12 +112,12 @@ class BrainBase(unittest.TestCase):
         return subprocess.run([sys.executable, "-c", DRIVER, *argv], cwd=REPO,
                               capture_output=True, text=True, env=self.env())
 
-    def context_layer(self, *argv):
-        return subprocess.run([sys.executable, "-m", "context_layer.cli", *argv], cwd=REPO,
+    def paracortex(self, *argv):
+        return subprocess.run([sys.executable, "-m", "paracortex.cli", *argv], cwd=REPO,
                               capture_output=True, text=True, env=self.env())
 
     def index(self):
-        result = self.context_layer("index", str(self.vault))
+        result = self.paracortex("index", str(self.vault))
         self.assertEqual(result.returncode, 0, result.stderr)
         return result
 
@@ -167,7 +167,7 @@ class Create(BrainBase):
         dashboard = (self.vault / "100-Command-Center" / "Dashboard.md").read_text(encoding="utf-8")
         self.assertIn("adapted from Avenox Beyin", dashboard)
         self.assertIn("github.com/avenoxai/avenoxbeyin", dashboard)
-        self.assertIn("context-layer index", result.stdout)
+        self.assertIn("paracortex index", result.stdout)
         self.assertIn("rules check", result.stdout)
         self.assertIn("install claude-code", result.stdout)
         # The plugin bundle is committed: the message names the files to copy, no build.
@@ -405,7 +405,7 @@ class Integration(BrainBase):
         self.assertEqual(check.returncode, 0, check.stderr)
         self.index()
         self.assertTrue((self.vault / ".context" / "index.sqlite").is_file())
-        search = self.context_layer("search", str(self.vault), "--prompt",
+        search = self.paracortex("search", str(self.vault), "--prompt",
                                     "drip irrigation emitters")
         self.assertEqual(search.returncode, 0, search.stderr)
         self.assertIn("Example - Drip Irrigation Basics.md", search.stdout)
@@ -429,7 +429,7 @@ class Integration(BrainBase):
         for prompt in ("when should the agent stop and ask", "record every meaningful step",
                        "what is our budget total", "merge two notes"):
             with self.subTest(prompt=prompt):
-                search = self.context_layer("search", str(self.vault), "--prompt", prompt)
+                search = self.paracortex("search", str(self.vault), "--prompt", prompt)
                 self.assertEqual(search.returncode, 0, search.stderr)
                 packet = json.loads(search.stdout)
                 paths = [item["source_path"] for item in packet.get("evidence", [])]
@@ -443,7 +443,7 @@ class Integration(BrainBase):
         self.cli("rules", "record", str(self.vault), "--summary", "Planted the zucchini seedlings",
                  "--files", "none", "--verified", "ok", "--next", "none")
         self.index()
-        search = self.context_layer("search", str(self.vault), "--prompt", "zucchini seedlings")
+        search = self.paracortex("search", str(self.vault), "--prompt", "zucchini seedlings")
         self.assertEqual(search.returncode, 0, search.stderr)
         paths = [item["source_path"] for item in json.loads(search.stdout)["evidence"]]
         self.assertIn("LOG.md", paths)

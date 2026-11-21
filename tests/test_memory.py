@@ -1,4 +1,4 @@
-"""Phase tests for context_layer.memory — every test owns a disposable vault.
+"""Phase tests for paracortex.memory — every test owns a disposable vault.
 
 HOME is redirected to a temporary folder for every command this file runs, and
 nothing here reads a real vault or a host configuration.
@@ -24,7 +24,7 @@ REPO = Path(os.environ.get("TEST_REPO_HOME", Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from context_layer import memory  # noqa: E402
+from paracortex import memory  # noqa: E402
 
 WORKERS = 8
 PER_WORKER = 25
@@ -36,7 +36,7 @@ BOM_KEYS = {"schema", "ts", "session", "op", "event", "id", "path", "sha256", "c
 def write_batch(payload):
     """One child process: PER_WORKER records into the shared store."""
     vault, tag, count = payload
-    from context_layer import memory as child_memory
+    from paracortex import memory as child_memory
     for index in range(count):
         child_memory.record(Path(vault), kind="note", text=f"{tag} line {index}",
                             tool="worker", session=tag)
@@ -46,7 +46,7 @@ def write_batch(payload):
 def write_batch_with_portable_lock(payload):
     """One child process writing through the configured portable file lock."""
     vault, tag, count = payload
-    from context_layer import memory as child_memory
+    from paracortex import memory as child_memory
     for index in range(count):
         child_memory.record(Path(vault), kind="note", text=f"{tag} concurrent {index}",
                             tool="worker", session=tag)
@@ -92,7 +92,7 @@ class Base(unittest.TestCase):
         environment = patch.dict(os.environ, isolated_home_env(os.environ, str(self.home)))
         environment.start()
         self.addCleanup(environment.stop)
-        for name in ("CONTEXT_LAYER_TOOL", "CONTEXT_LAYER_SESSION"):
+        for name in ("PARACORTEX_TOOL", "PARACORTEX_SESSION"):
             os.environ.pop(name, None)
         self.alpha = self.vault / "alpha.md"
         self.alpha.write_text("# Alpha\nalpha body naïve café\n", encoding="utf-8")
@@ -129,10 +129,10 @@ class Base(unittest.TestCase):
 
     def run_cli(self, *argv, env=None):
         environment = isolated_home_env(os.environ, self.home)
-        environment.pop("CONTEXT_LAYER_TOOL", None)
-        environment.pop("CONTEXT_LAYER_SESSION", None)
+        environment.pop("PARACORTEX_TOOL", None)
+        environment.pop("PARACORTEX_SESSION", None)
         environment.update(env or {})
-        return subprocess.run([sys.executable, "-m", "context_layer.cli", *argv],
+        return subprocess.run([sys.executable, "-m", "paracortex.cli", *argv],
                               cwd=REPO, capture_output=True, text=True, env=environment)
 
     def cli(self, *argv, env=None):
@@ -281,8 +281,8 @@ class MemoryStore(Base):
         self.assertFalse(self.records.exists())
 
     def test_environment_supplies_tool_and_session(self):
-        with patch.dict(os.environ, {"CONTEXT_LAYER_TOOL": "codex",
-                                     "CONTEXT_LAYER_SESSION": "env-session"}):
+        with patch.dict(os.environ, {"PARACORTEX_TOOL": "codex",
+                                     "PARACORTEX_SESSION": "env-session"}):
             stored = self.add(kind="note", text="from the environment")
             explicit = self.add(kind="note", text="explicit wins", tool="claude-code",
                                 session="arg-session")
@@ -379,7 +379,7 @@ class MemoryStore(Base):
         self.add(kind="note", text="before the crash")
         lock = self.records.parent / memory.LOCK_NAME
         lock.write_text("999999 0\n", encoding="ascii")
-        from context_layer.platform_support import set_private_path
+        from paracortex.platform_support import set_private_path
         set_private_path(lock)
         stored = self.add(kind="note", text="after the abandoned lock file")
         self.assertFalse(stored["duplicate"])
@@ -394,7 +394,7 @@ class MemoryStore(Base):
         memory.register(subcommands)
         args = parser.parse_args(["memory", "add", str(self.vault), "--kind", "note",
                                  "--text", "must not append"])
-        from context_layer.platform_support import LockTimeout
+        from paracortex.platform_support import LockTimeout
         stderr = io.StringIO()
         with patch.object(memory, "file_lock",
                           side_effect=LockTimeout("timed out waiting for lock: .lock")), \
@@ -472,8 +472,8 @@ class MemoryStore(Base):
 
     def test_cli_reads_tool_and_session_from_the_environment(self):
         result = self.cli("add", str(self.vault), "--kind", "note", "--text", "env test",
-                          "--json", env={"CONTEXT_LAYER_TOOL": "codex",
-                                         "CONTEXT_LAYER_SESSION": "cli-session"})
+                          "--json", env={"PARACORTEX_TOOL": "codex",
+                                         "PARACORTEX_SESSION": "cli-session"})
         self.assertEqual(result.returncode, 0, result.stderr)
         stored = json.loads(result.stdout)
         self.assertEqual((stored["tool"], stored["session"]), ("codex", "cli-session"))
@@ -617,7 +617,7 @@ class FormatTwo(Base):
         self.assertIn(f"--supersedes {second['id']}", message)
         self.assertEqual(len(self.lines()), 2)
         command = shlex.split(message.rsplit("in force: ", 1)[1])
-        self.assertEqual(command[:4], ["context-layer", "memory", "add", "<vault>"])
+        self.assertEqual(command[:4], ["paracortex", "memory", "add", "<vault>"])
         done = self.run_cli(*[str(self.vault) if arg == "<vault>" else arg
                               for arg in command[1:]])
         self.assertEqual(done.returncode, 0, done.stderr)
@@ -993,7 +993,7 @@ class NotesMirror(Base):
         self.routes.unlink()
         done = self.cli("mirror", str(self.vault), "--notes", "Memory")
         self.assertEqual(done.returncode, 1)
-        self.assertIn("context-layer init", done.stderr)
+        self.assertIn("paracortex init", done.stderr)
         self.assertFalse((self.vault / "Memory").exists())
 
 
@@ -1012,7 +1012,7 @@ class SessionRecord(Base):
 
     def test_every_event_is_written_once_and_no_text_is_stored(self):
         secret_text = "Quarterly plan: tell nobody."
-        with patch.dict(os.environ, {"CONTEXT_LAYER_SESSION": "s-bom"}):
+        with patch.dict(os.environ, {"PARACORTEX_SESSION": "s-bom"}):
             task = self.add(kind="task", text=secret_text, sources=["alpha.md"])
             first = self.rows()
             self.assertEqual(self.events(first), [("memory.write", task["id"]),
@@ -1041,7 +1041,7 @@ class SessionRecord(Base):
         self.assertFalse((self.vault / ".context" / "sessions").exists())
 
     def test_an_unusual_session_id_is_hashed_into_a_file_name(self):
-        with patch.dict(os.environ, {"CONTEXT_LAYER_SESSION": "../../outside session"}):
+        with patch.dict(os.environ, {"PARACORTEX_SESSION": "../../outside session"}):
             self.add(kind="note", text="odd id")
         files = list((self.vault / ".context" / "sessions").glob("*.jsonl"))
         self.assertEqual(len(files), 1)
@@ -1050,7 +1050,7 @@ class SessionRecord(Base):
         self.assertFalse((self.vault.parent / "outside session.jsonl").exists())
 
     def test_session_show_renders_stale_flags(self):
-        env = {"CONTEXT_LAYER_SESSION": "s-show"}
+        env = {"PARACORTEX_SESSION": "s-show"}
         added = self.cli("add", str(self.vault), "--kind", "decision", "--text", "rests on alpha",
                          "--source", "alpha.md", "--json", env=env)
         self.assertEqual(added.returncode, 0, added.stderr)
@@ -1072,13 +1072,13 @@ class SessionRecord(Base):
         self.assertIn("s-show", listed.stdout)
         missing = self.cli("session", "show", str(self.vault), "s-none")
         self.assertEqual(missing.returncode, 1)
-        self.assertIn("CONTEXT_LAYER_SESSION", missing.stderr)
+        self.assertIn("PARACORTEX_SESSION", missing.stderr)
 
     def test_a_session_record_that_cannot_be_written_never_fails_the_record(self):
         sessions = self.vault / ".context" / "sessions"
         sessions.write_text("not a folder")
         done = self.cli("add", str(self.vault), "--kind", "note", "--text", "still recorded",
-                        env={"CONTEXT_LAYER_SESSION": "s-broken"})
+                        env={"PARACORTEX_SESSION": "s-broken"})
         self.assertEqual(done.returncode, 0, done.stderr)
         self.assertIn("session record", done.stderr)
         self.assertEqual(len(self.lines()), 1)
@@ -1105,7 +1105,7 @@ class Durability(Base):
         self.assertEqual(self.records.read_text().count("\n"), 2)
 
     def test_one_import_route_to_the_source_policy(self):
-        from context_layer import health, mcp_server
+        from paracortex import health, mcp_server
         self.assertIs(memory._policy(), mcp_server.policy())
         self.assertIs(health._router_modules()[0], mcp_server.policy())
 

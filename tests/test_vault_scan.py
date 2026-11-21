@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for the `context-layer init` vault scanner.
+"""Tests for the `paracortex init` vault scanner.
 
 Run directly: `python3 tests/test_vault_scan.py`, or via `make test`.
 Standard library only.
@@ -20,7 +20,7 @@ from _portable_helpers import isolated_home_env
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
-from context_layer.vault_scan import (print_report, render_config, scan_vault,
+from paracortex.vault_scan import (print_report, render_config, scan_vault,
                                       writable_exclusions)  # noqa: E402
 from router import source_policy  # noqa: E402
 
@@ -42,7 +42,7 @@ class ScannerTests(unittest.TestCase):
     # -- noise -------------------------------------------------------------
 
     def test_text_files_skip_tooling_dot_excluded_empty_and_linked_paths(self) -> None:
-        from context_layer.vault_scan import collect_text_files
+        from paracortex.vault_scan import collect_text_files
         for name in ("notes/a.md", "notes/deep/b.TXT", "Index.md", ".dot.md", "arch.md",
                      "node_modules/x.md", ".git/y.md", "notes/.hidden/z.md", "archive/old.md",
                      "venv/v.md", "notes/pic.png"):
@@ -95,7 +95,7 @@ class ScannerTests(unittest.TestCase):
     def test_generated_config_names_this_version_and_a_utc_time(self) -> None:
         # F2-15: not a stale 0.1.0 label and not a local-offset timestamp.
         import re
-        from context_layer import __version__
+        from paracortex import __version__
         write(self.root, "Notes/one.md", "# One\n\nbody\n")
         config = render_config(scan_vault(self.root))
         self.assertEqual(config["engine_version"], f"{__version__}-generated")
@@ -269,7 +269,7 @@ class ScannerTests(unittest.TestCase):
     def test_init_output_names_no_absolute_path(self) -> None:
         write(self.root, "Reference/glossary.md", "# Glossary\n\n## Terms\n\nx\n")
         write(self.root, "Reference/style-guide.md", "# Style guide\n\n## Voice\n\ny\n")
-        done = subprocess.run([sys.executable, "-m", "context_layer.cli", "init", str(self.root)],
+        done = subprocess.run([sys.executable, "-m", "paracortex.cli", "init", str(self.root)],
                               cwd=REPO, capture_output=True, text=True,
                               env=isolated_home_env(os.environ, str(self.root)))
         self.assertEqual(done.returncode, 0, done.stderr)
@@ -295,7 +295,7 @@ class ScannerTests(unittest.TestCase):
         probe = ("import json, locale, sys\n"
                  "from pathlib import Path\n"
                  "sys.path.insert(0, sys.argv[1])\n"
-                 "from context_layer.vault_scan import heading_tokens\n"
+                 "from paracortex.vault_scan import heading_tokens\n"
                  "counter = heading_tokens(Path(sys.argv[2]), [Path('Notes/one.md')])\n"
                  "print(json.dumps([locale.getpreferredencoding(False), sorted(counter)]))\n")
         env = dict(os.environ, LC_ALL="C", LANG="C", PYTHONUTF8="0", PYTHONCOERCECLOCALE="0")

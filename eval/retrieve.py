@@ -32,12 +32,12 @@ METHODS = ['grep', 'fts', 'fts-canonical', 'router', 'synaptic']
 
 
 def synapse_module():
-    """context_layer.synapse from an install, or from this checkout's root."""
+    """paracortex.synapse from an install, or from this checkout's root."""
     try:
-        from context_layer import synapse
+        from paracortex import synapse
     except ImportError:
         sys.path.insert(0, str(ROOT))
-        from context_layer import synapse
+        from paracortex import synapse
     return synapse
 
 def record_usage(args, packet):
@@ -55,18 +55,18 @@ def record_usage(args, packet):
         return
     try:
         synapse_module()
-        from context_layer import coactivation
+        from paracortex import coactivation
         coactivation.record(args.vault, packet, args.method)
     except Exception:
         pass
 
 
-REINDEX_HINT = 'run `context-layer index <vault>`'
+REINDEX_HINT = 'run `paracortex index <vault>`'
 
 
 def withheld_entry(name, reason):
     """One source left out of a packet, with the reason and the command that fixes it."""
-    return {'source_path': name, 'reason': reason, 'next': 'context-layer index <vault>'}
+    return {'source_path': name, 'reason': reason, 'next': 'paracortex index <vault>'}
 
 
 STOP = context_router.STOPWORDS | {'what', 'does', 'should', 'please', 'could', 'would'}
@@ -148,7 +148,7 @@ def _cut(text, lo, hi, limit):
 
 def windows(text, query_terms, limit, synapse):
     """Match-anchored (lo, hi) spans of `text`, at most `limit` characters in all and at
-    most WINDOWS_PER_SOURCE: the paragraph-sized blocks (context_layer.synapse.split_blocks)
+    most WINDOWS_PER_SOURCE: the paragraph-sized blocks (paracortex.synapse.split_blocks)
     in which FTS5, with the index tokenizer, finds query terms; most distinct terms first,
     then by position. A block longer than the limit is cut at line ends and its pieces
     re-matched. Spans separated only by blank lines merge when the gap fits. None when
@@ -391,7 +391,7 @@ def open_index(index):
     """Open the index read-only; return (connection, handle, generation digest).
 
     The handle lets the coverage receipt hash exactly the file this connection reads,
-    even when `context-layer index` replaces it meanwhile.
+    even when `paracortex index` replaces it meanwhile.
     """
     if not index.is_file():
         raise ValueError(f'no index at .context/{index.name}; {REINDEX_HINT} first')
@@ -514,7 +514,7 @@ def retrieve(args):
             if args.name_fields:    # opt-in: `rows` (the graph seeds) stays the content ranking
                 if not index_format.has_name_fields(connection):
                     raise ValueError('this index has no name fields; run '
-                                     '`context-layer index <vault> --name-fields`')
+                                     '`paracortex index <vault> --name-fields`')
                 ranked = index_format.merge_name_hits(connection, expression, ranked)
             ranked = Kept(ranked, is_excluded)
         withheld = []
@@ -553,7 +553,7 @@ def retrieve(args):
             # A source that changed, vanished, became unreadable or became a symlink since
             # indexing is withheld on its own, with a visible reason; the rest of the
             # packet is still delivered. Its slot is not back-filled, so after
-            # `context-layer index` the packet is the one a fresh index gives. Index-wide
+            # `paracortex index` the packet is the one a fresh index gives. Index-wide
             # failures (format, full-text table) stay ERROR: open_index above.
             # Delivery: at most --top-k notes, --per-source characters per note and
             # --budget in all; a note is delivered whole when it fits, else as
@@ -620,7 +620,7 @@ def retrieve(args):
             return packet
 
         if args.method == 'synaptic':
-            # The graph layer lives in context_layer.synapse so the MCP server and the hook
+            # The graph layer lives in paracortex.synapse so the MCP server and the hook
             # share one copy. Default mode: the fts packet, built by the very function fts
             # uses below, plus graph extras in a separate budget. --compact: the older packer.
             synapse = synapse_module()

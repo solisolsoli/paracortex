@@ -1,6 +1,6 @@
 # Measurements and limits
 
-This guide collects the results behind Context Layer. Start with the
+This guide collects the results behind Paracortex. Start with the
 [README](../README.md) for usage and the [support matrix](../SCOPE.md#support-matrix)
 for tested platforms. Retrieval checks, live-host studies and answer quality
 are different kinds of evidence; the limits below are part of each result.
@@ -77,7 +77,7 @@ answer when a stronger-scoring note outranks it; it is not measured on the
 sealed benchmark, so it is not a default.
 
 **Sub-agent payloads** (`python3 eval/orchestration_cost.py --standin`,
-synthetic setup, estimates): four workers' initial payloads 16,827 → 9,441
+synthetic setup, estimates): four workers' initial payloads 16,827 → 9,437
 est. tokens with per-worker compact packets; the coordinator's verification reading
 12,452 → 2,580; the one planted fabricated quote was caught (re-measured after the compact-packet change). Not billed tokens
 and not quality evidence. [docs/subagents.md](subagents.md)

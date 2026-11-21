@@ -14,7 +14,7 @@ named rather than linked.
 ## Working files
 
 - `CLAUDE.md` and `AGENTS.md`: the rules every agent follows. They hold one
-  rule text; check with `context-layer rules check .` The agents load them at
+  rule text; check with `paracortex rules check .` The agents load them at
   the start of every session, so they are left out of search.
 - [[LOG]]: what was done, dated, append-only.
 - [[BACKLOG]]: what is open, blocked or unfinished.

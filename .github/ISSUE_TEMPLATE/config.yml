@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Documentation
-    url: https://github.com/solisolsoli/context-layer/blob/main/docs/README.md
+    url: https://github.com/solisolsoli/paracortex/blob/main/docs/README.md
     about: Setup, usage, command references and troubleshooting.
   - name: Report a security vulnerability privately
-    url: https://github.com/solisolsoli/context-layer/security/advisories/new
+    url: https://github.com/solisolsoli/paracortex/security/advisories/new
     about: Synthetic vulnerability reports only; never include credentials or private vault content.

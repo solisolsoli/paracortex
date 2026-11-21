@@ -91,9 +91,9 @@ test('full lifecycle against the bundle', async () => {
 });
 
 test('manifest matches the release contract', () => {
-  assert.equal(manifest.id, 'context-layer-brain');
-  assert.equal(manifest.name, 'Context Layer Brain View');
-  assert.equal(manifest.version, '0.5.0');
+  assert.equal(manifest.id, 'paracortex-brain');
+  assert.equal(manifest.name, 'Paracortex Brain View');
+  assert.equal(manifest.version, '0.6.0');
   const packageMetadata = fs.readFileSync(path.join(root, '..', 'pyproject.toml'), 'utf8');
   const packageVersion = /^version = "([^"]+)"$/m.exec(packageMetadata);
   assert.ok(packageVersion, 'package metadata declares a release version');

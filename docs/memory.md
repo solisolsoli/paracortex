@@ -1,6 +1,6 @@
 # Shared memory
 
-`context-layer memory` keeps one append-only file per vault so a decision, a
+`paracortex memory` keeps one append-only file per vault so a decision, a
 task or a result survives the end of a session and is readable by the next
 tool. It records what was asserted and which sources it rested on, with the
 SHA-256 those sources had at the time. It does not judge whether the text is
@@ -49,8 +49,8 @@ the opt-in visible mirror described below.
 | `id` | `m-` + the first 16 hex of SHA-256 over the canonical JSON of `kind`, `text`, `sources` (path + sha256), `supersedes` and, when it is not empty, `closes`. It addresses what the record asserts, not when or by whom. |
 | `prev` | `id` of the previous line, or `null` on the first. A simple chain that makes a removed, reordered or inserted line visible. |
 | `ts` | UTC ISO 8601, microsecond precision, `Z` suffix. |
-| `tool` | Argument, else `$CONTEXT_LAYER_TOOL`, else `cli`. |
-| `session` | Argument, else `$CONTEXT_LAYER_SESSION`, else `null`. |
+| `tool` | Argument, else `$PARACORTEX_TOOL`, else `cli`. |
+| `session` | Argument, else `$PARACORTEX_SESSION`, else `null`. |
 | `kind` | `decision`, `task`, `result` or `note`. |
 | `state` | `draft`, `approved` or `published`. |
 | `text` | What is being recorded, stripped of surrounding whitespace. |
@@ -74,7 +74,7 @@ content.
 Both formats are read, and a store may hold both: nothing is migrated and no
 old line is rewritten. `verify` recomputes every line's id with that line's own
 format. A line with a newer `format_version` than this version knows is
-refused with "upgrade context-layer" rather than half understood.
+refused with "upgrade paracortex" rather than half understood.
 
 ### Same record twice
 
@@ -89,7 +89,7 @@ Re-recording content that a later record superseded is refused: the stored
 record is no longer in force, and returning it as a duplicate would silently
 adopt nothing. The error names the records in force and prints the exact
 command that records the content again as their replacement
-(`context-layer memory add <vault> … --supersedes <id in force>`).
+(`paracortex memory add <vault> … --supersedes <id in force>`).
 
 A state is not part of the id. Recording an existing draft again with
 `--state approved` returns the stored draft as a duplicate, and the CLI prints
@@ -160,8 +160,8 @@ asserts anything.
 When a source is missing, its recorded SHA-256 is looked up in
 `.context/index-manifest.json`, and every in-scope path listed there that still
 holds exactly those bytes is reported in `moved_to`. The manifest describes the
-last index build, so a rename is found after the next `context-layer index`.
-`context-layer memory rebind VAULT ID` then appends a record that supersedes ID
+last index build, so a rename is found after the next `paracortex index`.
+`paracortex memory rebind VAULT ID` then appends a record that supersedes ID
 with the same kind, state, text and hashes (and the `closes` of tasks still in
 force), and the new path. A
 missing source with exactly one `moved_to` copy is rebound on its own;
@@ -173,12 +173,12 @@ No line is edited.
 
 ```python
 from pathlib import Path
-from context_layer import memory
+from paracortex import memory
 
 packet = memory.resume(Path(vault), limit=20, kinds=["decision", "task"])
 ```
 
-or `context-layer memory resume VAULT --json`. Either returns:
+or `paracortex memory resume VAULT --json`. Either returns:
 
 | Key | Contents |
 | --- | --- |
@@ -222,8 +222,8 @@ every other memory command refuse, `verify` reports it, and the refusal names
 the fix:
 
 ```sh
-context-layer memory repair VAULT --dry-run   # what would move
-context-layer memory repair VAULT             # move it aside
+paracortex memory repair VAULT --dry-run   # what would move
+paracortex memory repair VAULT             # move it aside
 ```
 
 `repair` moves only that last fragment, byte for byte, to
@@ -231,15 +231,15 @@ context-layer memory repair VAULT             # move it aside
 `MEMORY.md`. Every other unusable line is reported and left as it is (exit 1):
 those are fixed by hand, and `verify` shows the consequences. A complete last
 record that only lost its newline is not torn; the next append adds the
-newline first. `context-layer memory mirror VAULT` rebuilds `MEMORY.md` on its
+newline first. `paracortex memory mirror VAULT` rebuilds `MEMORY.md` on its
 own, for example after a hand edit of `records.jsonl`.
 
 ## Visible notes for Obsidian (opt-in)
 
 ```sh
-context-layer memory mirror VAULT --notes Memory             # write or refresh
-context-layer memory mirror VAULT --notes Memory --dry-run   # show the plan
-context-layer memory mirror VAULT --notes Memory --remove    # take it away again
+paracortex memory mirror VAULT --notes Memory             # write or refresh
+paracortex memory mirror VAULT --notes Memory --dry-run   # show the plan
+paracortex memory mirror VAULT --notes Memory --remove    # take it away again
 ```
 
 This writes one note per decision and task: records in force as
@@ -259,7 +259,7 @@ notes are not mirrored. Each note carries frontmatter
 and a body with the text as a quote, each source as a wikilink with its
 recorded hash prefix and its state (`current`, `changed since it was
 recorded`, `missing`), and the supersession links. Obsidian's graph and
-backlinks show the chain; context-layer's own link graph reads only indexed
+backlinks show the chain; paracortex's own link graph reads only indexed
 notes, so it sees them only if the folder is made searchable.
 
 The notes are a snapshot: run the command again to refresh them, and a note
@@ -274,7 +274,7 @@ same.
 
 Safety rules: a dot or tool folder is refused (Obsidian would not show it), so
 is a folder that holds files the mirror did not write, and a vault without
-`routes.json` (run `context-layer init` first). What the mirror wrote is listed
+`routes.json` (run `paracortex init` first). What the mirror wrote is listed
 with hashes in `<folder>/.memory-mirror.json`; a note edited since it was
 written is never overwritten or deleted, only reported as kept. `--remove`
 deletes the unedited notes, the marker and the folders it leaves empty, and
@@ -285,7 +285,7 @@ components: a job written before the change is BLOCKED by `job validate`
 
 ## Session record (opt-in)
 
-With `CONTEXT_LAYER_SESSION` set in the environment, memory appends what each
+With `PARACORTEX_SESSION` set in the environment, memory appends what each
 call used to `.context/sessions/<id>.jsonl`, a bill of materials for the
 session: which records it wrote, matched as duplicates or read, and which
 sources it hashed. `--session` only sets a record's `session` field; the file is
@@ -313,9 +313,9 @@ shared: other components can append their own events with the same keys (none
 does yet).
 
 ```sh
-context-layer memory session list VAULT
-context-layer memory session show VAULT ID          # records and sources, with stale flags
-context-layer memory session show VAULT ID --json
+paracortex memory session list VAULT
+paracortex memory session show VAULT ID          # records and sources, with stale flags
+paracortex memory session show VAULT ID --json
 ```
 
 `show` lists each record with the events that touched it and whether it is
@@ -323,7 +323,7 @@ still in force, and each source with whether it was stale when it was checked
 and whether the file holds the recorded bytes now (`STALE now: changed` or
 `missing`).
 
-To see more than memory did in a session, `context-layer session show VAULT ID`
+To see more than memory did in a session, `paracortex session show VAULT ID`
 joins this record with the memory records written under the id, the evidence
 delivered to the host and the tasks and their ledger status, read-only and with
 a file and line for every row
@@ -333,36 +333,36 @@ a file and line for every row
 
 ```sh
 # Record a decision with the source it rests on.
-context-layer memory add VAULT --kind decision --state approved \
+paracortex memory add VAULT --kind decision --state approved \
   --text "Search defaults to FTS." --source notes/search.md
 
 # Pin an exact version; a mismatch is refused.
-context-layer memory add VAULT --kind result --text "Indexed 1,204 notes." \
+paracortex memory add VAULT --kind result --text "Indexed 1,204 notes." \
   --source notes/search.md@744cbc47ce31a443f1218e73192f05e0450ecd96b135b1fe7cf0a1acdfd98bc7
 
 # Approve an earlier draft (a new record, not an edit).
-context-layer memory add VAULT --kind decision --state approved \
+paracortex memory add VAULT --kind decision --state approved \
   --text "Search defaults to FTS." --supersedes m-a14e86f4509693e1
 
 # Close a task; merge a fork.
-context-layer memory add VAULT --kind result --text "Guide written." --closes m-5c0d1e2f3a4b5c6d
-context-layer memory add VAULT --kind decision --text "Cap at 15k." \
+paracortex memory add VAULT --kind result --text "Guide written." --closes m-5c0d1e2f3a4b5c6d
+paracortex memory add VAULT --kind decision --text "Cap at 15k." \
   --supersedes m-0f1e2d3c4b5a6978 --supersedes m-8a7b6c5d4e3f2a1b
 
 # Read it back.
-context-layer memory list VAULT --kind decision --limit 10
-context-layer memory resume VAULT            # compact continuation packet
-context-layer memory resume VAULT --json     # the same packet as JSON
-context-layer memory verify VAULT            # exit 1 on any problem
+paracortex memory list VAULT --kind decision --limit 10
+paracortex memory resume VAULT            # compact continuation packet
+paracortex memory resume VAULT --json     # the same packet as JSON
+paracortex memory verify VAULT            # exit 1 on any problem
 
 # Maintenance.
-context-layer memory rebind VAULT m-153ee1f8efbed8dc [--move OLD NEW]
-context-layer memory repair VAULT [--dry-run]
-context-layer memory mirror VAULT [--notes FOLDER [--remove]] [--dry-run]
+paracortex memory rebind VAULT m-153ee1f8efbed8dc [--move OLD NEW]
+paracortex memory repair VAULT [--dry-run]
+paracortex memory mirror VAULT [--notes FOLDER [--remove]] [--dry-run]
 ```
 
-`--tool` and `--session` default to `$CONTEXT_LAYER_TOOL` and
-`$CONTEXT_LAYER_SESSION`, so a host can set them once per session. Every
+`--tool` and `--session` default to `$PARACORTEX_TOOL` and
+`$PARACORTEX_SESSION`, so a host can set them once per session. Every
 refusal prints to stderr and exits non-zero; no failure is reported as success.
 
 `verify` reports unusable lines (invalid JSON, invalid UTF-8, a

@@ -4,6 +4,42 @@
 
 No changes recorded yet.
 
+## 0.6.0
+
+- Renamed the project from Context Layer to Paracortex: the distribution, the
+  command and the package are now `paracortex`, the MCP server name is
+  `paracortex`, environment variables are `PARACORTEX_*`, and the Obsidian plugin
+  is the Paracortex Brain View (`paracortex-brain`). Entries below this one keep
+  the old name where they describe earlier releases. See
+  [docs/RENAME.md](docs/RENAME.md).
+- Kept the 0.5 names working for this release: the `context-layer` command (one
+  stderr line, stdout unchanged), `import context_layer` and
+  `python -m context_layer.cli` (a `DeprecationWarning`; the same module objects),
+  and `CONTEXT_LAYER_*` variables when the new one is unset. Task children get
+  both spellings. `install` replaces, and `uninstall` removes, a 0.5
+  `context-layer` entry in `.mcp.json` and a 0.5 Codex block when they launch this
+  tool, and replaces 0.5 hooks instead of adding a second set; a server of the
+  user's that happens to use the old name is left alone. A 0.5 plan-default
+  marker stays in use. Rule files with 0.5 record markers keep them. `doctor`
+  names a 0.5 host entry instead of reporting no server, and warns while the
+  0.5 distribution is still installed: pip does not replace a distribution
+  under a new name, so `pip uninstall context-layer` comes first. The import
+  shim aliases past 0.5 modules left beside it.
+- Unchanged on purpose: vault state under `.context/` and format identifiers such
+  as `context-layer-task-v1` and `context-layer-claim-check/v1`, so files written
+  by 0.5 and 0.6 read the same in both. MCP tool names are unchanged; hosts show
+  them under the new server name (`mcp__paracortex__search_vault`).
+- Changed (may affect users): the Obsidian plugin id changed, so Obsidian treats
+  it as a new plugin; copy `data.json` to keep settings (docs/RENAME.md).
+- The sub-agent payload estimates in `docs/subagents.md` and
+  `docs/validation.md` were regenerated (`eval/orchestration_cost.py --docs`):
+  the shorter name lowers the stand-in lean payloads by 4 estimated tokens and
+  the vault-template naive payload by 36. No retrieval packet changed.
+- Tests: `tests/test_rename.py` covers every compatibility path above;
+  `scripts/check_distribution.py` checks the installed `context-layer` alias and
+  the import shim; the history audit keeps its allowlist for files under their
+  pre-0.6 paths.
+
 ## 0.5.0
 
 - Added a [0.4 → 0.5 migration guide](docs/migration-0.5.md) and installed-package

@@ -1,4 +1,4 @@
-"""Tests for context_layer.brief - the evidence-pinned session brief.
+"""Tests for paracortex.brief - the evidence-pinned session brief.
 
 Runnable as `python3 tests/test_brief.py`. Every test builds a disposable,
 fictional vault in its own temporary folder (HOME points there too). The CLI is
@@ -21,12 +21,12 @@ REPO = Path(os.environ.get("TEST_REPO_HOME", Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from context_layer import brain, brief, memory, rules  # noqa: E402
+from paracortex import brain, brief, memory, rules  # noqa: E402
 
 DRIVER = (
     "import argparse, sys\n"
-    "from context_layer import brief\n"
-    "parser = argparse.ArgumentParser(prog='context-layer')\n"
+    "from paracortex import brief\n"
+    "parser = argparse.ArgumentParser(prog='paracortex')\n"
     "sub = parser.add_subparsers(dest='command', required=True)\n"
     "brief.register(sub)\n"
     "args, extra = parser.parse_known_args(sys.argv[1:])\n"
@@ -56,17 +56,17 @@ class BriefBase(unittest.TestCase):
 
     def env(self):
         env = dict(os.environ)
-        env.pop("CONTEXT_LAYER_HOME", None)
+        env.pop("PARACORTEX_HOME", None)
         env["PYTHONPATH"] = str(REPO) + os.pathsep + env.get("PYTHONPATH", "")
         return env
 
     def run_cli(self, *argv, module=False):
-        command = ([sys.executable, "-m", "context_layer.brief", *argv] if module
+        command = ([sys.executable, "-m", "paracortex.brief", *argv] if module
                    else [sys.executable, "-c", DRIVER, "brief", *argv])
         return subprocess.run(command, cwd=REPO, capture_output=True, text=True, env=self.env())
 
     def index(self):
-        result = subprocess.run([sys.executable, "-m", "context_layer.cli", "index",
+        result = subprocess.run([sys.executable, "-m", "paracortex.cli", "index",
                                  str(self.vault)], cwd=REPO, capture_output=True, text=True,
                                 env=self.env())
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -224,7 +224,7 @@ class Build(BriefBase):
 
     def test_no_network_module_is_loaded(self):
         self.full_vault()
-        probe = ("import sys\nfrom context_layer import brief\n"
+        probe = ("import sys\nfrom paracortex import brief\n"
                  f"brief.build({str(self.vault)!r})\n"
                  "print(sorted(m for m in ('socket', 'ssl', 'http.client', 'urllib.request') "
                  "if m in sys.modules))\n")

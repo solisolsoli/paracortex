@@ -31,7 +31,7 @@ from _portable_helpers import deny_path_access
 REPO = Path(os.environ.get("TEST_REPO_HOME", Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(REPO))
 
-from context_layer import graph, mcp_server, synapse  # noqa: E402
+from paracortex import graph, mcp_server, synapse  # noqa: E402
 
 sys.path.insert(0, str(REPO / "tests"))
 from fixtures import dev_bridge  # noqa: E402
@@ -66,7 +66,7 @@ class VaultCase(unittest.TestCase):
             path.write_text(text, encoding="utf-8", newline="\n")
 
     def cli(self, *argv, stdin=""):
-        return subprocess.run([sys.executable, "-m", "context_layer.cli", *argv], cwd=REPO,
+        return subprocess.run([sys.executable, "-m", "paracortex.cli", *argv], cwd=REPO,
                               capture_output=True, text=True, input=stdin,
                               env=isolated_home_env(os.environ, str(self.vault.parent)))
 
@@ -76,7 +76,7 @@ class VaultCase(unittest.TestCase):
         return done
 
     def search(self, prompt, *extra, options=None, method="synaptic"):
-        """eval/retrieve.py in-process, exactly the argv `context-layer search` forwards."""
+        """eval/retrieve.py in-process, exactly the argv `paracortex search` forwards."""
         argv = ["--method", method, "--vault", str(self.vault), *extra, prompt]
         out = io.StringIO()
         patch = mock.patch.object(synapse, "Options", functools.partial(synapse.Options,
@@ -447,7 +447,7 @@ class StoredGraph(VaultCase):
         self.assertEqual(summary["skipped"], sum(expected.values()))
         self.assertIn(f"skipped {summary['skipped']} note(s)", err.getvalue())
         self.assertIn("b.md, c.md", err.getvalue())
-        self.assertIn("context-layer index", err.getvalue())
+        self.assertIn("paracortex index", err.getvalue())
         connection = sqlite3.connect(self.vault / ".context" / "graph.sqlite")
         try:
             skipped = dict(connection.execute("SELECT path, reason FROM skipped"))
@@ -643,7 +643,7 @@ class Retrieval(VaultCase):
         self.assertEqual(packet["synapse"]["decision"], "graph_missing")
         self.assertFalse(packet["synapse"]["graph"]["present"])
         self.assertTrue(packet["evidence"])
-        self.assertIn("context-layer index", " ".join(packet["synapse"]["notes"]))
+        self.assertIn("paracortex index", " ".join(packet["synapse"]["notes"]))
 
     def test_changed_sources_are_withheld_and_reported(self):
         self.make(CHAIN)
@@ -811,7 +811,7 @@ class ActivationTrace(VaultCase):
         target.write_text("{half", encoding="utf-8")
         self.search("lantern owner")
         good = self.trace()                                  # replaced whole, parseable
-        from context_layer import platform_support
+        from paracortex import platform_support
         with mock.patch.object(platform_support.os, "replace", side_effect=OSError("disk full")):
             packet = self.search("lantern owner pager")
         self.assertIsNone(packet["synapse"]["trace"])
@@ -894,7 +894,7 @@ class HostTools(VaultCase):
         (self.vault / ".context" / "graph.sqlite").unlink()
         missing = self.call("graph_neighbors", {"path": "projects/lantern.md"})["result"]
         self.assertTrue(missing["isError"])
-        self.assertIn("context-layer index", missing["content"][0]["text"])
+        self.assertIn("paracortex index", missing["content"][0]["text"])
 
     def test_hook_text_carries_its_framing_once_and_no_per_item_boilerplate(self):
         done = self.cli("hook", "claude-code", "--vault", str(self.vault), "--method", "synaptic",
@@ -1197,7 +1197,7 @@ class TracePrivacyAndSafety(VaultCase):
 
 
 class GraphHealth(VaultCase):
-    """I-8 groundwork: `graph.health` and `context-layer graph health`, read-only."""
+    """I-8 groundwork: `graph.health` and `paracortex graph health`, read-only."""
 
     def setUp(self):
         super().setUp()
@@ -1297,7 +1297,7 @@ class GraphHealth(VaultCase):
         (self.vault / ".context" / "graph.sqlite").unlink()
         code, _, err = self.run_cli(str(self.vault))
         self.assertEqual(code, 1)
-        self.assertIn("context-layer index", err)
+        self.assertIn("paracortex index", err)
 
 
 class HostParity(VaultCase):
@@ -1392,10 +1392,10 @@ class Superset(unittest.TestCase):
                 "*.sqlite*", "index-manifest.json*", "activation.json", ".context-runs"))
         cases = build(vault) if build else []
         if not (vault / ".context" / "routes.json").is_file():
-            done = subprocess.run([sys.executable, "-m", "context_layer.cli", "init", str(vault)],
+            done = subprocess.run([sys.executable, "-m", "paracortex.cli", "init", str(vault)],
                                   cwd=REPO, capture_output=True, text=True)
             self.assertEqual(done.returncode, 0, done.stderr)
-        done = subprocess.run([sys.executable, "-m", "context_layer.cli", "index", str(vault)],
+        done = subprocess.run([sys.executable, "-m", "paracortex.cli", "index", str(vault)],
                               cwd=REPO, capture_output=True, text=True)
         self.assertEqual(done.returncode, 0, done.stderr)
         return vault, cases
@@ -1604,7 +1604,7 @@ class DamagedGraph(VaultCase):
                 self.assertEqual((meta["graph"]["present"], meta["graph"]["readable"]),
                                  (True, False))
                 self.assertIn(note_part, meta["notes"][0])
-                self.assertIn("context-layer index", meta["notes"][0])
+                self.assertIn("paracortex index", meta["notes"][0])
                 compact = self.compact(prompt)
                 self.assertEqual(compact["synapse"]["decision"], "graph_unreadable")
                 self.assertTrue(compact["evidence"])
@@ -1628,7 +1628,7 @@ class DamagedGraph(VaultCase):
                                                  "arguments": {"path": "projects/lantern.md"}}},
                                      mcp_server.Server(self.vault))["result"]
         self.assertTrue(response["isError"])
-        self.assertIn("context-layer index", response["content"][0]["text"])
+        self.assertIn("paracortex index", response["content"][0]["text"])
         for raw in self.RAW:
             self.assertNotIn(raw, response["content"][0]["text"].replace("GraphUnreadable", ""))
 

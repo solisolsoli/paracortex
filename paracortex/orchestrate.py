@@ -1,4 +1,4 @@
-"""context_layer.orchestrate — lean, checkable coordination of support workers.
+"""paracortex.orchestrate — lean, checkable coordination of support workers.
 
 A coordinator (the "root") that delegates pays twice: once for the worker and
 again for everything it must re-read to trust the result. This module keeps
@@ -66,6 +66,7 @@ import sqlite3
 import stat
 import sys
 import unicodedata
+from .naming import getenv
 from .platform_support import (atomic_write as _portable_atomic_write, file_lock,
                                private_tempfile, set_private_permissions)
 
@@ -101,7 +102,7 @@ MAX_LINE_SPAN = 20
 ESTIMATE_NOTE = ("estimated tokens = ceil(characters / 4); not a tokenizer count and not "
                  "billed host tokens")
 AUTHORITY = "candidate evidence only; root owns judgement and final authorship"
-DEFAULT_METHOD = ("read the packet with read_packet or `context-layer packet show`; read "
+DEFAULT_METHOD = ("read the packet with read_packet or `paracortex packet show`; read "
                   "files under allowed_source_roots with read_source; no other tool")
 STATES = ("READY", "PARTIAL", "BLOCKED")
 HEX64 = re.compile(r"^[0-9a-f]{64}$")
@@ -219,12 +220,12 @@ def create_exclusive(path: Path, text: str) -> bool:
 
 
 def verbose() -> bool:
-    """True when `context-layer --verbose` is running; only then are absolute paths shown.
+    """True when `paracortex --verbose` is running; only then are absolute paths shown.
 
-    The CLI module is `context_layer.cli` under the console script and `__main__`
-    under `python -m context_layer.cli`; both carry the flag as VERBOSE.
+    The CLI module is `paracortex.cli` under the console script and `__main__`
+    under `python -m paracortex.cli`; both carry the flag as VERBOSE.
     """
-    for name in ("context_layer.cli", "__main__"):
+    for name in ("paracortex.cli", "__main__"):
         module = sys.modules.get(name)
         if module is not None and hasattr(module, "repo_home") \
                 and getattr(module, "VERBOSE", False) is True:
@@ -412,7 +413,7 @@ def packet_id_of(body: dict) -> str:
 def _retrieve(vault: Path, prompt: str, method: str, top_k: int, budget: int,
               per_source: int, budget_tokens: int, extra_tokens: "int | None" = None,
               compact: bool = False) -> dict:
-    """The same retrieval `context-layer search` runs (eval/retrieve.py), captured."""
+    """The same retrieval `paracortex search` runs (eval/retrieve.py), captured."""
     from . import mcp_server
     state = mcp_server.Server(vault, top_k, budget, per_source, budget_tokens)
     _, packet, code = mcp_server.search(state, prompt, method, top_k, budget, per_source,
@@ -425,7 +426,7 @@ def _retrieve(vault: Path, prompt: str, method: str, top_k: int, budget: int,
         # A shared packet is pinned for other agents; build it only from a current index.
         names = ", ".join(e.get("source_path", "?") for e in packet["withheld"])
         raise OrchestrateError(f"source changed since indexing: {names}; "
-                               "run `context-layer index <vault>` first")
+                               "run `paracortex index <vault>` first")
     return packet
 
 
@@ -590,7 +591,7 @@ def read_packet(vault: Path, packet_id: str) -> dict:
     if reasons:
         query = (body.get("request") or {}).get("query") \
             if isinstance(body.get("request"), dict) else None
-        return {**withheld(reasons), "rebuild": "context-layer packet build <vault> --prompt "
+        return {**withheld(reasons), "rebuild": "paracortex packet build <vault> --prompt "
                 "... (a rebuilt packet gets a new id)" if query else None}
     served = {"id": packet_id, **body}
     return {**served, "status": "OK", "served": True, "checked_at": base["checked_at"],
@@ -744,7 +745,7 @@ def _output_scope(vault: Path, out: str, roots, job: dict) -> tuple[list, list]:
         blocked.append(f"owned_output_dir {name} contains indexed source(s): "
                        + ", ".join(inside[:3]) + (" ..." if len(inside) > 3 else ""))
     warnings.append(f"owned_output_dir {name} is not excluded by routes.json: the worker's "
-                    "files will be indexed as sources by the next `context-layer index`; "
+                    "files will be indexed as sources by the next `paracortex index`; "
                     "exclude it, or use the default output directory")
     return blocked, warnings
 
@@ -1724,7 +1725,7 @@ def write_handoff(job_file: Path, *, state: str, done: str, next_action: str,
 
 
 # ---------------------------------------------------------------------------
-# Hooks for context_layer.tasks (`tasks new --packet/--job`, `tasks verify`)
+# Hooks for paracortex.tasks (`tasks new --packet/--job`, `tasks verify`)
 # ---------------------------------------------------------------------------
 
 def task_packet(vault: Path, packet_id: str, goal: str, patterns: list, allowed,
@@ -1878,8 +1879,8 @@ def _last_line(path: Path) -> tuple[bytes | None, bool]:
 
 
 def _actor() -> dict:
-    tool = (os.environ.get("CONTEXT_LAYER_TOOL") or "").strip() or "cli"
-    session = (os.environ.get("CONTEXT_LAYER_SESSION") or "").strip() or None
+    tool = (getenv("PARACORTEX_TOOL") or "").strip() or "cli"
+    session = (getenv("PARACORTEX_SESSION") or "").strip() or None
     return {"tool": tool, "session": session}
 
 
@@ -1902,7 +1903,7 @@ def ledger_append(vault: Path, event: dict) -> dict:
         last, complete = _last_line(path)
         if last is not None and not complete:
             raise OrchestrateError(f"{LEDGER_NAME} ends in a torn line; check it with "
-                                   "`context-layer tasks ledger <vault>` before appending")
+                                   "`paracortex tasks ledger <vault>` before appending")
         if last is None:
             prev, number = None, 1
         else:
@@ -1912,7 +1913,7 @@ def ledger_append(vault: Path, event: dict) -> dict:
             except (ValueError, KeyError, TypeError) as exc:
                 raise OrchestrateError(f"the last line of {LEDGER_NAME} is not a ledger line "
                                        f"({type(exc).__name__}); check it with "
-                                       "`context-layer tasks ledger <vault>`") from None
+                                       "`paracortex tasks ledger <vault>`") from None
             prev = sha256_bytes(last)
         line = {"schema": SCHEMA_LEDGER, "n": number, **event, **_actor(), "ts": _utc(),
                 "prev": prev}
@@ -1990,15 +1991,15 @@ def _print_validation(report: dict) -> None:
 def cmd_packet_build(args: argparse.Namespace) -> int:
     # Same flag rules, and the same messages, as `install --hook --method synaptic`.
     if (args.compact or args.extra_tokens is not None) and args.method != "synaptic":
-        print("context-layer packet build: --extra-tokens and --compact need --method synaptic",
+        print("paracortex packet build: --extra-tokens and --compact need --method synaptic",
               file=sys.stderr)
         return 2
     if args.extra_tokens is not None and (args.extra_tokens < 0 or args.compact):
-        print("context-layer packet build: --extra-tokens sizes the default synaptic packet; "
+        print("paracortex packet build: --extra-tokens sizes the default synaptic packet; "
               "it needs a value >= 0 and no --compact", file=sys.stderr)
         return 2
     if args.method == "synaptic" and args.budget_tokens is not None and not args.compact:
-        print("context-layer packet build: --budget-tokens sizes only the --compact synaptic "
+        print("paracortex packet build: --budget-tokens sizes only the --compact synaptic "
               "packet and needs a positive value; the default synaptic packet is sized by "
               "--extra-tokens", file=sys.stderr)
         return 2
@@ -2025,7 +2026,7 @@ def _target(args: argparse.Namespace) -> tuple:
     if len(values) == 2:
         return _vault(values[0]), values[1]
     if len(values) == 1:
-        return _vault(args.vault or os.environ.get("CONTEXT_LAYER_VAULT") or "."), values[0]
+        return _vault(args.vault or getenv("PARACORTEX_VAULT") or "."), values[0]
     raise OrchestrateError("expected VAULT ID, or ID with --vault")
 
 
@@ -2126,13 +2127,13 @@ def _guarded(function):
     def wrapper(args: argparse.Namespace) -> int:
         extra = [token for token in getattr(args, "rest", []) if token]
         if extra:
-            print(f"context-layer: unrecognised arguments: {' '.join(extra)}", file=sys.stderr)
+            print(f"paracortex: unrecognised arguments: {' '.join(extra)}", file=sys.stderr)
             return 2
         try:
             return function(args)
         except (OrchestrateError, OSError, ValueError) as exc:
             detail = exc.strerror if isinstance(exc, OSError) and exc.strerror else exc
-            print(f"context-layer: {detail}", file=sys.stderr)
+            print(f"paracortex: {detail}", file=sys.stderr)
             return 1
     return wrapper
 

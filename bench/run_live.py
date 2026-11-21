@@ -14,7 +14,7 @@ Arms (all use the host's own file tools, Read/Grep/Glob, on a copy of the vault)
 
 - `baseline`       no hook; the host searches the copy itself.
 - `hook-fts`       a UserPromptSubmit hook in the copy's `.claude/settings.json`
-                   runs `context_layer.cli hook claude-code --vault <copy>` and
+                   runs `paracortex.cli hook claude-code --vault <copy>` and
                    injects its evidence before the model sees the question.
 - `hook-synaptic`  the same hook with `--method synaptic`. If the checkout's
                    `hook` subcommand does not accept `--method`, the preflight
@@ -74,7 +74,7 @@ def checkout_env() -> dict:
 
 
 def cli(args: list[str], stdin: str | None = None) -> subprocess.CompletedProcess:
-    return subprocess.run([sys.executable, "-m", "context_layer.cli", *args], input=stdin,
+    return subprocess.run([sys.executable, "-m", "paracortex.cli", *args], input=stdin,
                           capture_output=True, text=True, encoding="utf-8", env=checkout_env(),
                           cwd=str(REPO),
                           timeout=180)
@@ -86,17 +86,17 @@ def prepare_vault(workdir: Path) -> Path:
     for step in (["init", str(vault)], ["index", str(vault)]):
         done = cli(step)
         if done.returncode != 0:
-            raise SystemExit(f"run_live: `context-layer {step[0]}` failed:\n{done.stderr[-2000:]}")
+            raise SystemExit(f"run_live: `paracortex {step[0]}` failed:\n{done.stderr[-2000:]}")
     return vault
 
 
 def hook_argv(vault: Path, arm: str, extra: list[str]) -> list[str]:
-    """Mirror of context_layer/install.py hook_entry for a checkout (no installed script).
+    """Mirror of paracortex/install.py hook_entry for a checkout (no installed script).
 
     Always the checkout's interpreter and module, so the arm measures this
     checkout and never a different installed version.
     """
-    argv = [sys.executable, "-m", "context_layer.cli", "hook", "claude-code", "--vault", str(vault)]
+    argv = [sys.executable, "-m", "paracortex.cli", "hook", "claude-code", "--vault", str(vault)]
     if arm == "hook-synaptic":
         argv += ["--method", "synaptic"]
     return argv + extra

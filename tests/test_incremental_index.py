@@ -529,12 +529,12 @@ class LinkVault(Vault):
 
 
 class GraphFromCacheEqualsFresh(unittest.TestCase):
-    """`context-layer index` builds the link graph from what the index builder hashed in
+    """`paracortex index` builds the link graph from what the index builder hashed in
     the same run, reuses unchanged notes' parses and leaves an unchanged graph alone.
     After every randomized step that graph must equal one built from scratch."""
 
     def build_both(self, vault_dir: Path, root: Path, name: str):
-        from context_layer import graph
+        from paracortex import graph
         result: dict = {}
         with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
             self.assertEqual(build_index.main(["--vault", str(vault_dir)], result), 0)
@@ -565,7 +565,7 @@ class GraphFromCacheEqualsFresh(unittest.TestCase):
             self.assertEqual(third["edges"], 2)
 
     def test_random_edit_sequences(self):
-        from context_layer import graph
+        from paracortex import graph
         unchanged = updated = steps = 0
         for seed in range(300, 300 + max(SEEDS // 2, 3)):
             with tempfile.TemporaryDirectory() as temp:
@@ -611,11 +611,11 @@ class GraphFromCacheEqualsFresh(unittest.TestCase):
 
 
 class CliIndexRuns(unittest.TestCase):
-    """`context-layer index` end to end: the in-process builder, the graph left alone
+    """`paracortex index` end to end: the in-process builder, the graph left alone
     when nothing changed, `--full` rebuilding both, usage errors, rollback pairing."""
 
     def cli(self, *args):
-        return subprocess.run([sys.executable, "-m", "context_layer.cli", *args], cwd=REPO,
+        return subprocess.run([sys.executable, "-m", "paracortex.cli", *args], cwd=REPO,
                               capture_output=True, text=True,
                               env=dict(os.environ, PYTHONUTF8="1"))
 
@@ -771,7 +771,7 @@ class GraphGenerationIntegrity(unittest.TestCase):
         self.build()
 
     def build(self):
-        from context_layer import graph
+        from paracortex import graph
         result = {}
         with redirect_stdout(io.StringIO()):
             self.assertEqual(build_index.main(["--vault", str(self.vault)], result), 0)
@@ -793,7 +793,7 @@ class GraphGenerationIntegrity(unittest.TestCase):
         self.assert_repaired()
 
     def test_valid_but_incorrect_parse_cache_is_not_reused(self):
-        from context_layer import graph
+        from paracortex import graph
         wrong = graph._dump_parsed(graph.parse_note("# Alpha\n\nNo links.\n"))
         with sqlite_connection(self.path) as db:
             db.execute("UPDATE parse_cache SET parsed = ? WHERE path = 'a.md'", (wrong,))
@@ -812,7 +812,7 @@ class GraphGenerationIntegrity(unittest.TestCase):
         self.assert_repaired()
 
     def test_graph_freshness_hashes_same_size_same_mtime_sources(self):
-        from context_layer import graph
+        from paracortex import graph
         note = self.vault / "a.md"
         stamp = note.stat().st_mtime_ns
         size = note.stat().st_size
@@ -824,7 +824,7 @@ class GraphGenerationIntegrity(unittest.TestCase):
             self.assertTrue(view.fresh("b.md"))
 
     def test_graph_freshness_respects_new_source_exclusions(self):
-        from context_layer import graph
+        from paracortex import graph
         config = dict(ROUTES, exclude_prefixes=["a.md"])
         (self.vault / ".context/routes.json").write_text(json.dumps(config), encoding="utf-8")
         with graph.Graph(self.vault) as view:
@@ -832,7 +832,7 @@ class GraphGenerationIntegrity(unittest.TestCase):
             self.assertTrue(view.fresh("b.md"))
 
     def test_graph_freshness_refuses_a_parent_symlink(self):
-        from context_layer import graph
+        from paracortex import graph
         folder = self.vault / "notes"
         folder.mkdir()
         (folder / "a.md").write_text("# Source\n\nSee [[b]].\n", encoding="utf-8")
@@ -847,7 +847,7 @@ class GraphGenerationIntegrity(unittest.TestCase):
             self.assertFalse(view.fresh("notes/a.md"))
 
     def test_graph_freshness_bounds_growth_and_handles_short_reads(self):
-        from context_layer import graph
+        from paracortex import graph
         note = self.vault / "a.md"
         real_fdopen = os.fdopen
         requests, returned = [], []
@@ -1111,7 +1111,7 @@ GOLDEN = Path(__file__).resolve().parent / "fixtures" / "default_search_golden.j
 
 def default_search_digests() -> "dict[str, str]":
     """sha256 of the default `fts` and `synaptic` packets for every fourth dev_bridge
-    question, on a vault built by `context-layer init` and `index` (as a user would).
+    question, on a vault built by `paracortex init` and `index` (as a user would).
 
     Three things are normalised because they are not part of the packet's evidence: the
     temporary vault path, the coverage receipt's `index_sha256` (the hash of an index
@@ -1121,7 +1121,7 @@ def default_search_digests() -> "dict[str, str]":
         vault = Path(temp) / "v"
         cases = dev_bridge.build(vault)
         for step in (["init", str(vault)], ["index", str(vault)]):
-            subprocess.run([sys.executable, "-m", "context_layer.cli", *step], cwd=REPO,
+            subprocess.run([sys.executable, "-m", "paracortex.cli", *step], cwd=REPO,
                            capture_output=True, check=True)
         for method in ("fts", "synaptic"):
             for case in cases[::4]:
@@ -1148,7 +1148,7 @@ class DefaultSearchIsUnchanged(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             vault = Path(temp) / "v"
             cases = dev_bridge.build(vault)
-            subprocess.run([sys.executable, "-m", "context_layer.cli", "init", str(vault)],
+            subprocess.run([sys.executable, "-m", "paracortex.cli", "init", str(vault)],
                            cwd=REPO, capture_output=True, check=True)
             self.assertEqual(run_build(vault)[0], 0)
             (vault / "people" / "Zz New Person.md").write_text("# Zz New Person\n\nPlays the tuba.\n")

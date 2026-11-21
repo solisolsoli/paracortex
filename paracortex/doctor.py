@@ -1,6 +1,6 @@
-"""context_layer.doctor — offline, read-only checks of a vault and the host entries wired to it.
+"""paracortex.doctor — offline, read-only checks of a vault and the host entries wired to it.
 
-    context-layer doctor [--host claude-code|codex|generic] [--project DIR] [--json] VAULT
+    paracortex doctor [--host claude-code|codex|generic] [--project DIR] [--json] VAULT
 
 Every check only reads: no file is written, no host, model or network is contacted, and
 no hook or server is started. The hook and MCP lines found in host config are parsed with
@@ -67,7 +67,7 @@ def _no_exit(parser: argparse.ArgumentParser) -> None:
 def cli_parser() -> argparse.ArgumentParser:
     """`mcp`, `hook` and `rules` as this build defines them (cli.py wires the same)."""
     from . import rules
-    parser = argparse.ArgumentParser(prog="context-layer", add_help=False, allow_abbrev=False)
+    parser = argparse.ArgumentParser(prog="paracortex", add_help=False, allow_abbrev=False)
     sub = parser.add_subparsers(dest="command", required=True)
     mcp_server.register(sub)
     rules.register(sub)
@@ -96,12 +96,12 @@ def _split_powershell_hook(command: str):
 
 
 def launcher(argv: list[str]) -> tuple[list[str], list[str]]:
-    """(launcher tokens, context-layer arguments): `context-layer ...` or
-    `<python> -m context_layer.cli ...`."""
+    """(launcher tokens, paracortex arguments): `paracortex ...` or
+    `<python> -m paracortex.cli ...`."""
     for position, token in enumerate(argv):
         if token in ENTRY_COMMANDS and position:
             head = argv[:position]
-            if len(head) == 1 or head[1:] == ["-m", "context_layer.cli"]:
+            if len(head) == 1 or head[1:] == ["-m", "paracortex.cli"]:
                 return head, argv[position:]
     return argv, []
 
@@ -124,8 +124,8 @@ def pythonpath_problem(env: dict) -> str | None:
     if not value:
         return None
     roots = [Path(part) for part in value.split(os.pathsep) if part]
-    if not any((root / "context_layer" / "__init__.py").is_file() for root in roots):
-        return f"PYTHONPATH={value} holds no context_layer package"
+    if not any((root / "paracortex" / "__init__.py").is_file() for root in roots):
+        return f"PYTHONPATH={value} holds no paracortex package"
     return None
 
 
@@ -133,7 +133,7 @@ def check_line(argv: list[str], env: dict) -> tuple[str, str]:
     """(status, detail) for one launch line, parsed as this build would parse it."""
     head, arguments = launcher(argv)
     if not arguments:
-        return FAIL, "not a context-layer hook, rules or mcp command line"
+        return FAIL, "not a paracortex hook, rules or mcp command line"
     hard = [problem for problem in (executable_problem(head[0]), pythonpath_problem(env))
             if problem]
     soft = []
@@ -187,6 +187,23 @@ def check_runtime(report: Report) -> None:
     except sqlite3.Error as exc:
         report.add("sqlite fts5", FAIL, f"SQLite {sqlite3.sqlite_version} has no FTS5 ({exc}); "
                                         "index and search need it")
+    stale = legacy_distribution()
+    if stale:
+        report.add("context-layer", WARN,
+                   f"the 0.5 distribution context-layer {stale} is still installed beside "
+                   "paracortex; run `python -m pip uninstall context-layer`, then "
+                   "`python -m pip install --force-reinstall` paracortex (docs/RENAME.md)")
+
+
+def legacy_distribution() -> "str | None":
+    """The version of a still-installed 0.5 `context-layer` distribution, else None.
+    Its files share `context_layer/` and the `context-layer` script with 0.6's shim, so
+    uninstalling it later would remove them (docs/RENAME.md)."""
+    from importlib import metadata
+    try:
+        return metadata.version("context-layer")
+    except metadata.PackageNotFoundError:
+        return None
 
 
 def check_vault(report: Report, vault: Path) -> bool:
@@ -198,7 +215,7 @@ def check_vault(report: Report, vault: Path) -> bool:
     formats = mcp_server.router_module("index_format")
     config = source_policy.config_path(vault)
     if not config.is_file():
-        report.add("routes.json", FAIL, "missing; run `context-layer init <vault>`")
+        report.add("routes.json", FAIL, "missing; run `paracortex init <vault>`")
     else:
         try:
             loaded = source_policy.load_config(config, required=True)
@@ -222,7 +239,7 @@ def check_vault(report: Report, vault: Path) -> bool:
     graph = vault / ".context" / "graph.sqlite"
     if not graph.is_file():
         report.add("graph.sqlite", WARN, "missing; `--method synaptic` needs it (run "
-                                         "`context-layer index <vault>`)")
+                                         "`paracortex index <vault>`)")
     else:
         try:
             formats.check_graph_file(graph)
@@ -240,7 +257,7 @@ def check_rules(report: Report, vault: Path) -> None:
     if result.get("ok"):
         report.add("rule files", OK, "CLAUDE.md and AGENTS.md are byte-identical")
     elif not present:
-        report.add("rule files", OK, "none (optional; `context-layer rules init` adds them)")
+        report.add("rule files", OK, "none (optional; `paracortex rules init` adds them)")
     else:
         claude = vault / "CLAUDE.md"
         text = claude.read_text(encoding="utf-8", errors="replace") if claude.is_file() else ""
@@ -274,7 +291,7 @@ def check_hook_file(report: Report, path: Path) -> None:
         return
     entries = entries_in_settings(data)
     if not entries:
-        report.add(path.name, OK, f"{path}: no context-layer hooks")
+        report.add(path.name, OK, f"{path}: no paracortex hooks")
         return
     for event, handler in entries:
         name = f"{path.name} {event}"
@@ -311,15 +328,22 @@ def check_claude_code(report: Report, project: Path) -> None:
     if config.is_file():
         try:
             data = json.loads(config.read_text(encoding="utf-8"))
-            entry = (data.get("mcpServers") or {}).get(install.SERVER_NAME)
+            servers = data.get("mcpServers") or {}
+            entry = servers.get(install.SERVER_NAME)
+            legacy = servers.get(install.LEGACY_SERVER_NAME)
         except (OSError, ValueError, AttributeError) as exc:
             report.add(".mcp.json", FAIL, f"{config} is not readable JSON: {mcp_server.one_line(exc)}")
             entry = None
         else:
-            if entry is None:
-                report.add(".mcp.json", WARN, f"{config}: no context-layer server in mcpServers")
+            if entry is None and install.legacy_entry_is_ours(legacy):
+                report.add(".mcp.json", WARN, f"{config}: the 0.5 server name "
+                           f"`{install.LEGACY_SERVER_NAME}`; it still works, and "
+                           "`paracortex install claude-code` renames it")
+                check_mcp_entry(report, f".mcp.json {install.LEGACY_SERVER_NAME}", legacy)
+            elif entry is None:
+                report.add(".mcp.json", WARN, f"{config}: no paracortex server in mcpServers")
             else:
-                check_mcp_entry(report, ".mcp.json context-layer", entry)
+                check_mcp_entry(report, ".mcp.json paracortex", entry)
     else:
         report.add(".mcp.json", WARN, f"none in {project}; a user- or local-scope server lives "
                                       "in ~/.claude.json (see `claude mcp list`)")
@@ -344,13 +368,17 @@ def check_codex(report: Report, project: Path) -> None:
         elif install.tomllib is None:
             ours = install.START in text
             report.add("config.toml", OK if ours else WARN,
-                       ("context-layer block present (Python 3.10: TOML not parsed)" if ours
-                        else "no context-layer block"))
+                       ("paracortex block present (Python 3.10: TOML not parsed)" if ours
+                        else "no paracortex block"))
         else:
             data = install.tomllib.loads(text)
-            entry = (data.get("mcp_servers") or {}).get("context_layer")
-            if entry is None:
-                report.add("config.toml", WARN, f"{config}: no [mcp_servers.context_layer] table")
+            entry = (data.get("mcp_servers") or {}).get("paracortex")
+            if entry is None and install.LEGACY_START in text:
+                report.add("config.toml", WARN, f"{config}: the 0.5 block "
+                           f"(`{install.LEGACY_START}`); it still works, and "
+                           "`paracortex install codex` renames it")
+            elif entry is None:
+                report.add("config.toml", WARN, f"{config}: no [mcp_servers.paracortex] table")
             else:
                 check_mcp_entry(report, f"config.toml [{install.CODEX_TABLE}]", entry)
                 timeout = entry.get("tool_timeout_sec") if isinstance(entry, dict) else None
@@ -387,7 +415,7 @@ def render(report: Report) -> str:
 def cmd_doctor(args: argparse.Namespace) -> int:
     extra = [token for token in getattr(args, "rest", []) if token]
     if extra:
-        print(f"context-layer doctor: unrecognised arguments: {' '.join(extra)}", file=sys.stderr)
+        print(f"paracortex doctor: unrecognised arguments: {' '.join(extra)}", file=sys.stderr)
         return 2
     vault = Path(args.vault).expanduser().resolve()
     project = Path(args.project).expanduser().resolve() if args.project else vault
@@ -423,8 +451,8 @@ def register(sub: argparse._SubParsersAction) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """`python -m context_layer.doctor ...`, the same command without the CLI wrapper."""
-    parser = argparse.ArgumentParser(prog="context-layer", allow_abbrev=False)
+    """`python -m paracortex.doctor ...`, the same command without the CLI wrapper."""
+    parser = argparse.ArgumentParser(prog="paracortex", allow_abbrev=False)
     sub = parser.add_subparsers(dest="command", required=True)
     register(sub)
     args, extra = parser.parse_known_args(["doctor", *(sys.argv[1:] if argv is None else argv)])

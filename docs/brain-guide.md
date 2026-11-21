@@ -1,7 +1,7 @@
 # Build your own AI brain
 
 A practical guide to running an AI "second brain" on a plain Markdown or
-Obsidian vault with context-layer: your notes stay the source of truth, agents
+Obsidian vault with paracortex: your notes stay the source of truth, agents
 retrieve verbatim evidence from them, and every agent works from the same rules
 and leaves a record of what it did.
 
@@ -46,7 +46,7 @@ From a checkout of this repository:
 python3 -m venv .venv
 . .venv/bin/activate
 pip install -e .
-context-layer --version
+paracortex --version
 ```
 
 ### 2. Get a vault
@@ -54,15 +54,15 @@ context-layer --version
 Either create a new starter vault (next section):
 
 ```sh
-context-layer brain init ~/Brain            # shows what it would create
-context-layer brain init ~/Brain --apply    # creates it
+paracortex brain init ~/Brain            # shows what it would create
+paracortex brain init ~/Brain --apply    # creates it
 ```
 
 or use the vault you already have, and let `init` propose a configuration:
 
 ```sh
-context-layer init ~/Notes --print-only     # see the guesses, write nothing
-context-layer init ~/Notes                  # write .context/routes.json
+paracortex init ~/Notes --print-only     # see the guesses, write nothing
+paracortex init ~/Notes                  # write .context/routes.json
 ```
 
 Open `.context/routes.json` and check `exclude_prefixes`: every folder listed
@@ -75,12 +75,12 @@ folder, `CLAUDE.md` only the root file of that name, and neither matches
 ### 3. Build the index
 
 ```sh
-context-layer index ~/Brain
+paracortex index ~/Brain
 ```
 
 This builds the full-text index under `.context/`. Re-run it after notes change;
 a note that changed since the last index is withheld from results (the packet
-lists it under `withheld`, with `context-layer index <vault>` as the next step)
+lists it under `withheld`, with `paracortex index <vault>` as the next step)
 rather than served with a hash that no longer matches. The other results are
 still delivered.
 
@@ -89,9 +89,9 @@ still delivered.
 `brain init` already did this. For an existing vault, run it after `init`:
 
 ```sh
-context-layer rules init ~/Notes            # dry run: what would be written
-context-layer rules init ~/Notes --apply
-context-layer rules check ~/Notes           # exit 0 = CLAUDE.md and AGENTS.md hold one rule text
+paracortex rules init ~/Notes            # dry run: what would be written
+paracortex rules init ~/Notes --apply
+paracortex rules check ~/Notes           # exit 0 = CLAUDE.md and AGENTS.md hold one rule text
 ```
 
 `rules init` never overwrites a file you already have. It shows a diff as a merge
@@ -108,13 +108,13 @@ canonical sources were those files. Claude Code loads `CLAUDE.md` and Codex
 loads `AGENTS.md` at the start of every session, so search would only repeat
 them, and identical twins would fill two result slots. `LOG.md` and
 `BACKLOG.md` stay searchable. Without a `.context/routes.json` it prints a note
-instead: run `context-layer init` first, then `rules init --apply` again.
+instead: run `paracortex init` first, then `rules init --apply` again.
 
 ### 5. Connect Claude Code
 
 ```sh
-context-layer install claude-code --vault ~/Brain            # diff only
-context-layer install claude-code --vault ~/Brain --apply    # write .mcp.json
+paracortex install claude-code --vault ~/Brain            # diff only
+paracortex install claude-code --vault ~/Brain --apply    # write .mcp.json
 ```
 
 This gives the agent the nine MCP tools listed in
@@ -131,12 +131,12 @@ SessionStart takes a snapshot, PostToolUse notes which vault files the agent
 itself wrote, and Stop asks for a record of those. See them first:
 
 ```sh
-context-layer rules settings --vault ~/Brain                  # prints the entries
-context-layer rules settings --vault ~/Brain --plan-default   # ... plus plan mode by default
-context-layer rules settings --vault ~/Brain --brief --check-citations   # ... plus the opt-ins
+paracortex rules settings --vault ~/Brain                  # prints the entries
+paracortex rules settings --vault ~/Brain --plan-default   # ... plus plan mode by default
+paracortex rules settings --vault ~/Brain --brief --check-citations   # ... plus the opt-ins
 ```
 
-The command writes nothing. `context-layer install claude-code --vault ~/Brain
+The command writes nothing. `paracortex install claude-code --vault ~/Brain
 --rules` writes the same entries into `<project>/.claude/settings.json` (dry run
 until `--apply`, with a backup and an `uninstall`); or merge the printed JSON by
 hand. The project is the folder you start Claude Code in; usually the vault.
@@ -151,25 +151,25 @@ project settings.
 
 ### 7. Optional extras
 
-- **Synaptic search.** `context-layer search ~/Brain --prompt "..." --method synaptic`
+- **Synaptic search.** `paracortex search ~/Brain --prompt "..." --method synaptic`
   starts from the full-text matches and follows the vault's own explicit links
   (wikilinks, embeds, Markdown links, frontmatter relations) to pull in connected
   notes within a token budget. It is opt-in; the default search stays plain
   full-text. See [synapse.md](synapse.md).
-- **Brain View in Obsidian.** The plugin in `obsidian-plugin/` (Context Layer
+- **Brain View in Obsidian.** The plugin in `obsidian-plugin/` (Paracortex
   Brain View) draws the vault's link graph in 3D and lights up the notes and
   links the last synaptic search used. The bundle is prebuilt (no build or
   Node needed; `dist/main.js` is committed): copy
   `obsidian-plugin/dist/main.js` (as `main.js`), `obsidian-plugin/manifest.json`
   and `obsidian-plugin/styles.css` into
-  `<vault>/.obsidian/plugins/context-layer-brain/`, and enable it under
+  `<vault>/.obsidian/plugins/paracortex-brain/`, and enable it under
   Settings > Community plugins (details in `obsidian-plugin/README.md`).
   Nothing enables it for you.
 
 ## Create your brain
 
 ```sh
-context-layer brain init <path> [--layout standard|minimal] [--avenox-compat]
+paracortex brain init <path> [--layout standard|minimal] [--avenox-compat]
                                 [--into-existing] [--examples | --no-examples]
                                 [--apply] [--json]
 ```
@@ -186,7 +186,7 @@ It creates:
   note, and a schedule note that replaced an older one kept in the archive
   (`--no-examples` leaves them out);
 - the rule files `CLAUDE.md` = `AGENTS.md`, `LOG.md`, `BACKLOG.md`;
-- `.context/routes.json`, from the same scan `context-layer init` runs, with
+- `.context/routes.json`, from the same scan `paracortex init` runs, with
   the templates folder, the private records folder, the archive and the two
   rule files `CLAUDE.md` and `AGENTS.md` added to the search exclusions. A
   route whose canonical sources all fall under an exclusion is dropped, since
@@ -198,7 +198,7 @@ The shipped notes link only to notes that stay searchable. Folders kept out of
 search (records, archive, templates) are named in the Dashboard rather than
 linked, the rule files are named in code spans, and the new schedule names the
 archived one instead of linking it: a link into an excluded folder can never
-be followed, and `context-layer index` would count it as unresolved. A fresh
+be followed, and `paracortex index` would count it as unresolved. A fresh
 brain's link graph has no unresolved link in any layout (a test checks this).
 
 Layouts:
@@ -243,7 +243,7 @@ loaded twice.)
 ### One source instead of twins (option)
 
 ```sh
-context-layer rules init ~/Notes --single-source --apply
+paracortex rules init ~/Notes --single-source --apply
 ```
 
 keeps the rules and the work records in `AGENTS.md` and writes `CLAUDE.md` as
@@ -264,7 +264,7 @@ the backups. Twins remain the default.
 
 The template ([templates/vault/CLAUDE.md](../templates/vault/CLAUDE.md)) has nine
 sections: purpose, evidence and labels, plan first, stop and ask, recording,
-sub-agents, privacy, the context-layer tools, and a record format. Sections
+sub-agents, privacy, the paracortex tools, and a record format. Sections
 marked `CUSTOMIZE` in an HTML comment are yours to rewrite. Claude Code strips
 block-level HTML comments before loading the file, so those notes cost no
 context. Keep the rule files concise and put detailed evidence in linked
@@ -285,7 +285,7 @@ Every meaningful work step is recorded in the same run it happens:
 One command does the first two and keeps the rule text one:
 
 ```sh
-context-layer rules record ~/Brain \
+paracortex rules record ~/Brain \
   --summary "Chose the battery timer for the drip line" \
   --why "the schedule needs a second watering time on hot days" \
   --files "300-Projects/Example - Decision - Timer Controller.md" \
@@ -304,7 +304,7 @@ not UTF-8 is refused with a one-line message. The rule files keep the ten most
 recent entries (`--keep N`, `0` keeps all) so they stay short enough to load
 every session; `LOG.md` keeps every entry, and each short entry links to its
 long one (`[[LOG#^r-...]]`). Use `--json` for machine output. Run
-`context-layer index <vault>` afterwards: `LOG.md` changed and is indexed (see
+`paracortex index <vault>` afterwards: `LOG.md` changed and is indexed (see
 [the daily loop](#the-daily-loop), step 5).
 
 The lock is `fcntl` on POSIX. Where `fcntl` is missing (Windows), an
@@ -378,7 +378,7 @@ good.
 ## The session brief
 
 ```sh
-context-layer brief ~/Brain [--json] [--max-chars N]
+paracortex brief ~/Brain [--json] [--max-chars N]
 ```
 
 prints where the vault stands, for the start of a session, built from bytes
@@ -390,7 +390,7 @@ for a stale memory source, that source as it is now. Then it quotes the text:
 - log `LOG.md` 5e6f7a8b: 2026-01-15 - Chose the battery timer [r-20260115t143000z-a1b2c3]
 ```
 
-In this order: the index status (`context-layer status`: overall, and how many
+In this order: the index status (`paracortex status`: overall, and how many
 sources changed, were added, deleted or moved); sources of memory records in
 force whose bytes changed since they were recorded; the last three `LOG.md`
 entries; open work (`BACKLOG.md` table rows in state open, blocked or in
@@ -413,12 +413,12 @@ a large vault. If a section cannot be read, the others are still added and a
 ## The citation check
 
 `rules hook stop --check-citations` (see `rules settings --check-citations`)
-compares the answer Claude just gave with what context-layer delivered in the
+compares the answer Claude just gave with what paracortex delivered in the
 session, and adds one non-blocking line when the answer cites something that
 was never delivered:
 
 ```text
-context-layer: cited in the last answer but not delivered by context-layer in this session: `notes/beans.md`, hash 0badc0ff. Check them at the source before relying on them.
+paracortex: cited in the last answer but not delivered by paracortex in this session: `notes/beans.md`, hash 0badc0ff. Check them at the source before relying on them.
 ```
 
 A citation is a vault path the answer names as a whole path, or a hex run of 8
@@ -436,7 +436,7 @@ What was delivered comes from the session ledger,
 `{"path", "sha256", "packet_id", "at"}` plus the schema, session and channel
 (and the line span of a passage), with ids, paths and hashes only. The ledger is
 opt-in: nothing is written unless `install --session-evidence` (or the hook's
-`--session-evidence` flag and `CONTEXT_LAYER_SESSION_EVIDENCE=1` for the MCP
+`--session-evidence` flag and `PARACORTEX_SESSION_EVIDENCE=1` for the MCP
 server) is set and the `.context/session-evidence/` folder exists; without it
 the check reports every vault path the answer cites as undelivered, with the
 note that no delivery was recorded. The prompt hook and the MCP server append
@@ -451,7 +451,7 @@ a missing one.
 
 The line never blocks and never judges whether the answer is right. It flags
 what to check. Files the agent opened with its own Read tool were not delivered
-by context-layer, so citing them is reported too.
+by paracortex, so citing them is reported too.
 
 ## The daily loop
 
@@ -460,15 +460,15 @@ by context-layer, so citing them is reported too.
    starts in it; it stays on until you approve a plan or press Shift+Tab again.
    Other agents write the plan as their first message. The plan names the goal,
    the sources to read, the steps, the risks and what will be verified.
-2. **Retrieve evidence.** `search_vault` / `context-layer search` returns
+2. **Retrieve evidence.** `search_vault` / `paracortex search` returns
    verbatim passages with their path and SHA-256. `NOT_FOUND` means this search
    found nothing; it is not evidence that the answer is "no".
 3. **Act.** Edit notes, draft, research. Stop and ask before anything
    destructive, outward-facing or ambiguous (the checklist is in the rules).
 4. **Verify.** Re-read what you changed; re-run the search; count what was
    claimed to be counted. A measurement beats an estimate.
-5. **Record.** `context-layer rules record ...` in the same run, then
-   `context-layer index <vault>`. Recording rewrites the rule files and
+5. **Record.** `paracortex rules record ...` in the same run, then
+   `paracortex index <vault>`. Recording rewrites the rule files and
    `LOG.md`. `rules init` and `brain init` keep `CLAUDE.md` and `AGENTS.md` out
    of search (the agents load them at session start), while `LOG.md` stays
    searchable on purpose: the work records are part of what the brain
@@ -476,7 +476,7 @@ by context-layer, so citing them is reported too.
    under `withheld` instead of quoting it (the other results are still
    delivered). To keep `LOG.md` out of search too, add it to `exclude_prefixes`
    in `.context/routes.json` and re-index.
-6. **Check parity.** `context-layer rules check .` exits 0 when the two rule
+6. **Check parity.** `paracortex rules check .` exits 0 when the two rule
    files hold one rule text. `rules record` already checks it; run it yourself
    after you edit the rules by hand.
 
@@ -503,7 +503,7 @@ Retrieval can only find what the notes make findable.
 
 - Give each sub-agent a bounded task: the question, the sources it may read,
   what it may write (default: nothing), and the output format.
-  `context-layer tasks` runs such bounded tasks against the vault; see
+  `paracortex tasks` runs such bounded tasks against the vault; see
   [tasks.md](tasks.md).
 - Ask for sources, not conclusions: "file X, line Y says Z" can be checked in
   seconds.
@@ -545,7 +545,7 @@ It will not:
 
 [Avenox Beyin](https://github.com/avenoxai/avenoxbeyin) is a separate local
 second-brain engine for Claude Code, Codex and other clients, and the source of
-the starter layout. context-layer is designed to run alongside it on the same
+the starter layout. paracortex is designed to run alongside it on the same
 vault: it adds verbatim evidence search, synaptic retrieval, the Brain View and
 the rule files, and it does not replace or modify the Avenox engine. The two
 together have not been tested end to end here.
@@ -597,17 +597,17 @@ without it no change is attributed to the agent, so every change is only
 reported. Plan mode never blocks, and a session whose hooks were installed
 mid-session starts its snapshot at the first Stop.
 
-**The hook never fires.** Run `context-layer rules settings --vault <vault>` and
+**The hook never fires.** Run `paracortex rules settings --vault <vault>` and
 compare with `.claude/settings.json` in the folder you start Claude Code from.
 Start a new session after editing settings. Test the handlers by hand:
-`echo '{"session_id":"t","source":"startup"}' | context-layer rules hook session-start --vault <vault>`,
+`echo '{"session_id":"t","source":"startup"}' | paracortex rules hook session-start --vault <vault>`,
 then the same with `rules hook stop`.
 
 **`brain init` says the folder is not empty.** Choose a new folder, or add
 `--into-existing` to add only the missing files.
 
 **Search returns `NOT_FOUND` for a note you can see.** Re-run
-`context-layer index`, check that the note's folder is not in `exclude_prefixes`,
+`paracortex index`, check that the note's folder is not in `exclude_prefixes`,
 and try the words the note actually uses.
 
 **More:** [host-integration.md](host-integration.md#troubleshooting) and
@@ -631,7 +631,7 @@ most recent entries by default; the full history is in `LOG.md`.
 copy it), then run `rules check`. The sections marked `CUSTOMIZE` are meant for
 it.
 
-**Does anything leave my machine?** context-layer makes no network calls by default. The manual [Decisions](decisions.md),
+**Does anything leave my machine?** paracortex makes no network calls by default. The manual [Decisions](decisions.md),
 [Responses](responses.md) and [GitHub context](github-context.md) are separate opt-ins. Your
 AI host sends what it reads to its model provider, as it always does; exclude
 private folders in `.context/routes.json` to keep them out of search.

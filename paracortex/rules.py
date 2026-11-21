@@ -1,4 +1,4 @@
-"""context_layer.rules - one rule text for every agent, and a record of every step.
+"""paracortex.rules - one rule text for every agent, and a record of every step.
 
 What this is
 ------------
@@ -60,6 +60,7 @@ import sys
 import time
 import unicodedata
 
+from .naming import getenv
 
 
 # Imported on first use: most rules commands (and `brain init`, which reads this module)
@@ -86,8 +87,11 @@ EXCLUSION_KEYS = ("exclude_prefixes", "retrieval_exclude_prefixes")
 # AGENTS.md), so retrieval would only repeat them. LOG.md and BACKLOG.md stay searchable.
 RULE_EXCLUSIONS = RULE_FILES
 
-START_MARK = "<!-- context-layer:records:start -->"
-END_MARK = "<!-- context-layer:records:end -->"
+START_MARK = "<!-- paracortex:records:start -->"
+END_MARK = "<!-- paracortex:records:end -->"
+# The markers a 0.5 (Context Layer) rule file carries. A file that has them keeps them:
+# records are appended between them and nothing in the user's file is renamed.
+LEGACY_MARKS = ("<!-- context-layer:records:start -->", "<!-- context-layer:records:end -->")
 RECORDS_HEADING = "## Work records"
 DEFAULT_KEEP = 10                           # entries kept in the rule text; LOG.md keeps all
 
@@ -214,8 +218,8 @@ def _atomic_write(path: Path, data: bytes) -> None:
 
 
 def template_dir(name: str = "vault") -> Path:
-    """`templates/<name>` in a checkout, or `context_layer/templates/<name>` in a wheel."""
-    override = os.environ.get("CONTEXT_LAYER_HOME")
+    """`templates/<name>` in a checkout, or `paracortex/templates/<name>` in a wheel."""
+    override = getenv("PARACORTEX_HOME")
     roots = [Path(override).expanduser()] if override else []
     here = Path(__file__).resolve().parent
     roots += [here] + list(here.parents)
@@ -224,20 +228,20 @@ def template_dir(name: str = "vault") -> Path:
         if candidate.is_dir():
             return candidate
     raise RulesError(f"template directory templates/{name} was not found next to the package; "
-                     "set CONTEXT_LAYER_HOME to the checkout")
+                     "set PARACORTEX_HOME to the checkout")
 
 
 def router_module(name: str):
     """A router/ module (source_policy, build_index) from a wheel or a checkout.
 
-    Does not import context_layer.cli, so the PostToolUse hook starts quickly.
+    Does not import paracortex.cli, so the PostToolUse hook starts quickly.
     """
     for dotted in (f"{__package__}.router.{name}", f"router.{name}"):
         try:
             return importlib.import_module(dotted)
         except ImportError:
             continue
-    override = os.environ.get("CONTEXT_LAYER_HOME")
+    override = getenv("PARACORTEX_HOME")
     here = Path(__file__).resolve().parent
     for parent in ([Path(override).expanduser()] if override else []) + list(here.parents):
         folder = parent / "router"
@@ -246,7 +250,7 @@ def router_module(name: str):
                 sys.path.insert(0, str(folder))
             return importlib.import_module(name)
     raise RulesError(f"router/{name}.py was not found next to the package; "
-                     "set CONTEXT_LAYER_HOME to the checkout")
+                     "set PARACORTEX_HOME to the checkout")
 
 
 # ---------------------------------------------------------------------------
@@ -323,11 +327,19 @@ def _records_region(text: str | None) -> str | None:
     """The text between the record markers, or None when there are no markers."""
     if text is None:
         return None
-    start = text.find(START_MARK)
-    end = text.find(END_MARK, start + 1) if start != -1 else -1
+    start_mark, end_mark = _marks(text)
+    start = text.find(start_mark)
+    end = text.find(end_mark, start + 1) if start != -1 else -1
     if start == -1 or end == -1:
         return None
-    return text[start + len(START_MARK):end]
+    return text[start + len(start_mark):end]
+
+
+def _marks(text: str) -> tuple[str, str]:
+    """The record markers this file uses: the current ones, else the 0.5 ones it has."""
+    if START_MARK not in text and LEGACY_MARKS[0] in text:
+        return LEGACY_MARKS
+    return START_MARK, END_MARK
 
 
 def _records_digest(root: Path) -> str | None:
@@ -391,8 +403,8 @@ def _routes_step(root: Path) -> dict:
             "diff": None, "note": None}
     if not path.exists():
         step["action"] = "absent"
-        step["note"] = ("no .context/routes.json yet; after `context-layer init <vault>`, run "
-                        "`context-layer rules init <vault> --apply` again so CLAUDE.md and "
+        step["note"] = ("no .context/routes.json yet; after `paracortex init <vault>`, run "
+                        "`paracortex rules init <vault> --apply` again so CLAUDE.md and "
                         "AGENTS.md stay out of search")
         return step
     try:
@@ -576,8 +588,9 @@ def _with_entry(text: str, entry: str, keep: int, nl: str = "\n") -> tuple[str, 
     existing = region.strip("\r\n")
     body = nl + (existing + nl + nl if existing else "") + entry.rstrip("\r\n") + nl
     body, trimmed = _trim(body, keep)
-    start = text.find(START_MARK) + len(START_MARK)
-    end = text.find(END_MARK, start)
+    start_mark, end_mark = _marks(text)
+    start = text.find(start_mark) + len(start_mark)
+    end = text.find(end_mark, start)
     return text[:start] + body + text[end:], trimmed
 
 
@@ -598,7 +611,7 @@ def record(vault, *, summary: str, files: list[str], verified: str, next_step: s
                                     _neutral(_one_line(next_step)))
     why = _neutral(_one_line(why)) if why else None
     link = _neutral(_one_line(link)) if link else None
-    tool = _neutral(_one_line(tool or os.environ.get("CONTEXT_LAYER_TOOL") or "cli"))
+    tool = _neutral(_one_line(tool or getenv("PARACORTEX_TOOL") or "cli"))
     escaped = any(isinstance(value, str) and ("<!--" in value or "-->" in value)
                   for value in given)
     moment = now or _now()
@@ -633,7 +646,7 @@ def record(vault, *, summary: str, files: list[str], verified: str, next_step: s
             missing = [name for name, data in blobs.items() if data is None]
             if missing:
                 raise RulesError(f"{', '.join(missing)} missing; run "
-                                 "`context-layer rules init` first")
+                                 "`paracortex rules init` first")
         if not check["ok"]:
             raise RulesError("refusing to record while parity is broken: "
                              + "; ".join(check["problems"])
@@ -933,7 +946,7 @@ def _parity_text(root: Path, check: dict) -> str:
     return ("Vault rules check failed: " + "; ".join(check["problems"])
             + ". CLAUDE.md and AGENTS.md must hold one rule text (byte-identical files, or a "
               "CLAUDE.md whose first line imports AGENTS.md). Fix that first, then run "
-              f"`context-layer rules check {shlex.quote(str(root))}`.")
+              f"`paracortex rules check {shlex.quote(str(root))}`.")
 
 
 def hook_session_start(vault, payload: dict, now: datetime | None = None,
@@ -967,7 +980,7 @@ def hook_session_start(vault, payload: dict, now: datetime | None = None,
         if not check["ok"]:
             parts.append(_parity_text(root, check))
         if problem:
-            notes.append(f"context-layer rules: {problem}; vault changes are not tracked in "
+            notes.append(f"paracortex rules: {problem}; vault changes are not tracked in "
                          "this session.")
     if brief:
         # The whole additionalContext, parity text included, stays within the cap.
@@ -977,7 +990,7 @@ def hook_session_start(vault, payload: dict, now: datetime | None = None,
         if text:
             parts.append(text)
         if error:
-            notes.append(f"context-layer brief: {error}")
+            notes.append(f"paracortex brief: {error}")
     output: dict = {}
     if parts:
         output["hookSpecificOutput"] = {"hookEventName": "SessionStart",
@@ -1104,7 +1117,7 @@ def hook_stop(vault, payload: dict, now: datetime | None = None,
                     if previous.get(key):
                         session[key] = previous[key]
                 if problem and not previous.get("config_problem"):
-                    notes.append(f"context-layer rules: {problem}; vault changes are not "
+                    notes.append(f"paracortex rules: {problem}; vault changes are not "
                                  "tracked until it is fixed.")
                 changes = {}
             attributed = {_key(p) for p in session.get("attributed") or {}
@@ -1117,7 +1130,7 @@ def hook_stop(vault, payload: dict, now: datetime | None = None,
             new_other = [p for p in other if p not in reported]
             if new_other and not recorded:
                 # After a new record the stretch is closed; its changes are not re-listed.
-                notes.append(f"context-layer rules: {len(new_other)} vault path(s) changed in "
+                notes.append(f"paracortex rules: {len(new_other)} vault path(s) changed in "
                              "this session that the agent's file tools did not write (not "
                              f"asked about): {_listed(new_other)}.")
             reported.update(new_other)
@@ -1144,16 +1157,16 @@ def hook_stop(vault, payload: dict, now: datetime | None = None,
                 if can_block:
                     reasons.append("Rule parity is broken: " + "; ".join(check["problems"])
                                    + ". Write the same change to CLAUDE.md and AGENTS.md so "
-                                     "they hold one rule text, then run `context-layer rules "
+                                     "they hold one rule text, then run `paracortex rules "
                                      f"check {shlex.quote(str(root))}`.")
                     session["parity_problems"] = check["problems"]
                 elif session.get("parity_reported") != check["problems"]:
-                    notes.append("context-layer rules: " + "; ".join(check["problems"]) + ".")
+                    notes.append("paracortex rules: " + "; ".join(check["problems"]) + ".")
                     session["parity_reported"] = check["problems"]
             if pending and can_block:
                 reasons.append(
                     f"{len(pending)} vault path(s) the agent wrote in this session changed and "
-                    f"no work record was appended: {_listed(pending)}. Run: context-layer "
+                    f"no work record was appended: {_listed(pending)}. Run: paracortex "
                     f"rules record {shlex.quote(str(root))} --summary \"<what was done and "
                     "why>\" --files <changed paths> --verified \"<how it was checked>\" --next "
                     "\"<what remains>\". If the change was not meaningful, say so in one line "
@@ -1236,7 +1249,7 @@ def settings_snippet(vault: Path, plan_default: bool = False, brief: bool = Fals
 # ---------------------------------------------------------------------------
 
 def _fail(command: str, message: str, code: int = 1) -> int:
-    print(f"context-layer rules {command}: {message}", file=sys.stderr)
+    print(f"paracortex rules {command}: {message}", file=sys.stderr)
     return code
 
 
@@ -1305,7 +1318,7 @@ def cmd_check(args: argparse.Namespace) -> int:
         print(f"OK: CLAUDE.md and AGENTS.md are byte-identical (sha256 {digest}).")
     else:
         for problem in result["problems"]:
-            print(f"context-layer rules check: {problem}", file=sys.stderr)
+            print(f"paracortex rules check: {problem}", file=sys.stderr)
         for name, item in result["files"].items():
             if item["exists"]:
                 print(f"  {name}  sha256 {item['sha256']}", file=sys.stderr)
@@ -1390,7 +1403,7 @@ def cmd_settings(args: argparse.Namespace) -> int:
 
 def _hook_parser_error(message: str):
     # argparse would exit 2, which Claude Code reads as "block"; hooks exit 1 instead.
-    print(f"context-layer rules hook: {message}", file=sys.stderr)
+    print(f"paracortex rules hook: {message}", file=sys.stderr)
     raise SystemExit(1)
 
 
@@ -1439,7 +1452,7 @@ def register(sub: argparse._SubParsersAction) -> None:
     p_record.add_argument("--why", default=None, help="Why it was done.")
     p_record.add_argument("--link", default=None, help="Link to the detail ([[note]] or URL).")
     p_record.add_argument("--tool", default=None,
-                          help="Recording tool (default: $CONTEXT_LAYER_TOOL, else cli).")
+                          help="Recording tool (default: $PARACORTEX_TOOL, else cli).")
     p_record.add_argument("--keep", type=int, default=DEFAULT_KEEP,
                           help=f"Entries kept in the rule text (default {DEFAULT_KEEP}; "
                                "0 keeps all). LOG.md always keeps every entry.")
@@ -1453,10 +1466,10 @@ def register(sub: argparse._SubParsersAction) -> None:
     p_hook.add_argument("--vault", default=None)
     p_hook.add_argument("--brief", action="store_true",
                         help="session-start: also add the evidence-pinned brief "
-                             f"(`context-layer brief`, at most {BRIEF_HOOK_CHARS} characters).")
+                             f"(`paracortex brief`, at most {BRIEF_HOOK_CHARS} characters).")
     p_hook.add_argument("--check-citations", action="store_true",
                         help="stop: add one non-blocking line naming paths and hashes the "
-                             "last answer cited that context-layer never delivered in this "
+                             "last answer cited that paracortex never delivered in this "
                              "session.")
     p_hook.error = _hook_parser_error
     p_hook.set_defaults(func=cmd_hook, forward_to=None)

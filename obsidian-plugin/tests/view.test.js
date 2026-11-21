@@ -26,7 +26,7 @@ async function openView({ notes = 300, seed = 21, vault } = {}) {
   const v = vault || generateVault({ notes, seed, attachments: 5 });
   const app = fakes.createApp({ files: v.files, links: v.links });
   fakes.FakeCanvas.contextFactory = () => fakes.createFakeGL();
-  const plugin = new Plugin(app, { id: 'context-layer-brain', version: '0.4.0' });
+  const plugin = new Plugin(app, { id: 'paracortex-brain', version: '0.4.0' });
   await plugin.onload();
   const leaf = await plugin.activateView();
   await leaf.view.ready;
@@ -182,7 +182,7 @@ test('a fresh trace whose notes are not in this vault is reported, not shown, an
   assert.equal(view.overlay, null, 'no overlay for 0 matched notes');
   assert.deepEqual(alphas(view), before, 'no note is dimmed');
   assert.equal(view.activationStatus().state, 'unmatched');
-  assert.match(view.activationEl.text, /0 of 3 notes are in this vault \(check that context-layer indexed this vault folder\)$/);
+  assert.match(view.activationEl.text, /0 of 3 notes are in this vault \(check that paracortex indexed this vault folder\)$/);
   assert.equal(view.overlayKeyEl.hasClass('nb-hidden'), true);
   fakes.notices.length = 0;
   assert.equal(await view.focusLastRetrieval(), false);
@@ -195,7 +195,7 @@ test('a fresh trace whose notes are not in this vault is reported, not shown, an
   await closeView(ctx);
 });
 
-test('a NOT_FOUND trace written by context-layer shows "no evidence found" and dims nothing', async () => {
+test('a NOT_FOUND trace written by paracortex shows "no evidence found" and dims nothing', async () => {
   const ctx = await openView({ notes: 150 });
   const { app, view } = ctx;
   env.frames.flush(2);
@@ -319,15 +319,15 @@ test('deferred views: Focus reveals and loads the view; Clear loads it in place 
   const vault = generateVault({ notes: 120, seed: 4, attachments: 0 });
   const app = fakes.createApp({ files: vault.files, links: vault.links });
   fakes.FakeCanvas.contextFactory = () => fakes.createFakeGL();
-  const plugin = new Plugin(app, { id: 'context-layer-brain' });
+  const plugin = new Plugin(app, { id: 'paracortex-brain' });
   await plugin.onload();
-  const leaf = app.workspace.getLeaf('tab'); leaf.defer('context-layer-brain-view');
+  const leaf = app.workspace.getLeaf('tab'); leaf.defer('paracortex-brain-view');
   assert.equal(leaf.view instanceof BrainView, false, 'restored leaf holds a placeholder');
   let cleared = null;
   await plugin.withView(view => { cleared = view; view.clearActivation(); }, { open: false, reveal: false });
   assert.ok(cleared instanceof BrainView, 'clear reaches the real view');
   assert.equal(app.workspace.revealed || 0, 0, 'clearing does not switch tabs');
-  leaf.defer('context-layer-brain-view');
+  leaf.defer('paracortex-brain-view');
   let focused = null;
   await plugin.withView(view => { focused = view; }, { open: true, reveal: true });
   assert.ok(focused instanceof BrainView);

@@ -66,7 +66,7 @@ class Vault(unittest.TestCase):
         self.ctx = self.vault / ".context"
         self.write_routes(json.dumps(ROUTES))
         self.env = isolated_home_env(os.environ, self.home)
-        self.env.pop("CONTEXT_LAYER_HOME", None)
+        self.env.pop("PARACORTEX_HOME", None)
         built = self.cli("index", str(self.vault))
         self.assertEqual(built.returncode, 0, built.stderr)
 
@@ -74,7 +74,7 @@ class Vault(unittest.TestCase):
         (self.ctx / "routes.json").write_text(text, encoding="utf-8")
 
     def cli(self, *argv, stdin=""):
-        return subprocess.run([sys.executable, "-m", "context_layer.cli", *argv], cwd=REPO,
+        return subprocess.run([sys.executable, "-m", "paracortex.cli", *argv], cwd=REPO,
                               capture_output=True, text=True, env=self.env, input=stdin)
 
     def search(self, *extra, prompt="alpha secret", method="fts"):
@@ -87,7 +87,7 @@ class Vault(unittest.TestCase):
         for number, (name, arguments) in enumerate(calls, 1):
             messages.append({"jsonrpc": "2.0", "id": number, "method": "tools/call",
                              "params": {"name": name, "arguments": arguments}})
-        done = subprocess.run([sys.executable, "-m", "context_layer.cli", "mcp",
+        done = subprocess.run([sys.executable, "-m", "paracortex.cli", "mcp",
                                "--vault", str(self.vault)], cwd=REPO, env=self.env, text=True,
                               capture_output=True,
                               input="\n".join(json.dumps(m) for m in messages) + "\n")
@@ -135,7 +135,7 @@ class StrictLoader(unittest.TestCase):
     def test_missing_config_is_empty_and_legacy_config_is_accepted(self):
         with tempfile.TemporaryDirectory() as temp:
             self.assertEqual(source_policy.load_exclusions(Path(temp)), ())
-            with self.assertRaisesRegex(source_policy.ConfigError, "context-layer init"):
+            with self.assertRaisesRegex(source_policy.ConfigError, "paracortex init"):
                 source_policy.load_config(Path(temp) / ".context" / "routes.json", required=True)
         legacy = source_policy.parse_config('{"routes": {}, "exclude_prefixes": ["a/"]}')
         self.assertEqual(source_policy.config_exclusions(legacy), ("a/",))
@@ -193,7 +193,7 @@ class ConfigFailsClosedEverywhere(Vault):
                 self.assertNotIn("DENIED", packet.stdout)
 
     def test_memory_and_tasks_refuse_a_bad_config(self):
-        from context_layer import memory, tasks
+        from paracortex import memory, tasks
         self.write_routes(BAD_CONFIGS["duplicate_keys"])
         with self.assertRaisesRegex(ValueError, "duplicate key"):
             memory.record(self.vault, kind="note", text="t",
@@ -312,7 +312,7 @@ class StaleSourceWithheld(Vault):
     def assert_withheld(self, packet, path="notes/alpha.md", reason="changed since indexing"):
         self.assertEqual(packet["operation_status"], "ok")
         self.assertEqual(packet["withheld"], [{"source_path": path, "reason": reason,
-                                               "next": "context-layer index <vault>"}])
+                                               "next": "paracortex index <vault>"}])
         self.assertNotIn(path, {item["source_path"] for item in packet["evidence"]})
         self.assertNotIn("edited after indexing", json.dumps(packet["evidence"]))
 
@@ -325,7 +325,7 @@ class StaleSourceWithheld(Vault):
             self.assertEqual(packet["status"], "PARTIAL", method)
             self.assert_withheld(packet)
             self.assertIn("notes/beta.md", {i["source_path"] for i in packet["evidence"]})
-            self.assertIn("context-layer index <vault>", done.stderr)
+            self.assertIn("paracortex index <vault>", done.stderr)
             self.assertIn("notes/alpha.md", done.stderr)
         self.assertEqual(self.cli("index", str(self.vault)).returncode, 0)
         fresh = json.loads(self.search(prompt="alpha lantern").stdout)
@@ -357,7 +357,7 @@ class StaleSourceWithheld(Vault):
             self.assertNotIn("path=notes/alpha.md", context)
             self.assertNotIn("edited after indexing", context)
             self.assertIn("notes/alpha.md (changed since indexing)", context)
-            self.assertIn("context-layer index <vault>", context)
+            self.assertIn("paracortex index <vault>", context)
         # B-26: stderr of a hook that exits 0 reaches only the host's debug log, so the
         # notice reaches the model (and, through it, the user) even when nothing else does.
         only = self.hook("alpha public")
@@ -367,7 +367,7 @@ class StaleSourceWithheld(Vault):
         self.assertIn("Not included: withheld 1 source(s): notes/alpha.md (changed since "
                       "indexing)", context)
         self.assertIn("Tell the user", context)
-        self.assertIn("context-layer index <vault>", context)
+        self.assertIn("paracortex index <vault>", context)
         self.assertNotIn("edited after indexing", context)
         self.assertNotIn("<<evidence", context)
 
@@ -379,10 +379,10 @@ class StaleSourceWithheld(Vault):
             done = self.hook(prompt)
             self.assertEqual(done.returncode, 0, done.stderr)
             output = json.loads(done.stdout)
-            self.assertEqual(output["systemMessage"].split(":", 1)[0], "context-layer")
+            self.assertEqual(output["systemMessage"].split(":", 1)[0], "paracortex")
             self.assertIn("withheld 1 source(s): notes/alpha.md (changed since indexing)",
                           output["systemMessage"])
-            self.assertIn("context-layer index <vault>", output["systemMessage"])
+            self.assertIn("paracortex index <vault>", output["systemMessage"])
             self.assertIn("Not included", output["hookSpecificOutput"]["additionalContext"])
         # Codex: systemMessage support is not verified, so only the context notice.
         codex = self.cli("hook", "codex", "--vault", str(self.vault),
@@ -411,11 +411,11 @@ class StaleSourceWithheld(Vault):
         self.change_alpha()
         done = self.cli("packet", "build", str(self.vault), "--prompt", "alpha lantern")
         self.assertEqual(done.returncode, 1, done.stdout)
-        self.assertIn("context-layer index <vault>", done.stderr)
+        self.assertIn("paracortex index <vault>", done.stderr)
         task = self.cli("tasks", "new", str(self.vault), "--goal", "alpha lantern")
         self.assertEqual(task.returncode, 1, task.stdout)
         self.assertIn("notes/alpha.md", task.stderr)
-        self.assertIn("context-layer index <vault>", task.stderr)
+        self.assertIn("paracortex index <vault>", task.stderr)
 
 
 # ---------------------------------------------------------------------------
@@ -432,14 +432,14 @@ class FirstRun(unittest.TestCase):
         self.env = isolated_home_env(os.environ, self.temp.name)
 
     def cli(self, *argv):
-        return subprocess.run([sys.executable, "-m", "context_layer.cli", *argv], cwd=REPO,
+        return subprocess.run([sys.executable, "-m", "paracortex.cli", *argv], cwd=REPO,
                               capture_output=True, text=True, env=self.env)
 
     def test_each_missing_step_names_the_next_command(self):
         before = self.cli("search", str(self.vault), "--prompt", "drip line")
         self.assertEqual(before.returncode, 1)
         self.assertEqual(json.loads(before.stdout)["status"], "ERROR")
-        self.assertIn("context-layer init", before.stderr)
+        self.assertIn("paracortex init", before.stderr)
         self.assertNotIn("Errno", before.stdout + before.stderr)
         self.assertNotIn(str(self.vault), before.stderr)
         self.assertEqual(len(before.stderr.strip().splitlines()), 1)
@@ -447,7 +447,7 @@ class FirstRun(unittest.TestCase):
         self.cli("init", str(self.vault))
         no_index = self.cli("search", str(self.vault), "--prompt", "drip line")
         self.assertEqual(no_index.returncode, 1)
-        self.assertIn("context-layer index", json.loads(no_index.stdout)["error"])
+        self.assertIn("paracortex index", json.loads(no_index.stdout)["error"])
         self.assertNotIn("unable to open database", no_index.stdout)
 
         built = self.cli("index", str(self.vault))
@@ -469,7 +469,7 @@ class FirstRun(unittest.TestCase):
         notes = [line for line in built.stderr.splitlines() if "routes.json" in line]
         self.assertEqual(len(notes), 1, built.stderr)
         self.assertIn("no exclusions", notes[0])
-        self.assertIn("`context-layer init <vault>`", notes[0])
+        self.assertIn("`paracortex init <vault>`", notes[0])
         self.assertNotIn(str(self.vault), built.stderr)
         self.cli("init", str(self.vault))   # exit 1 here: no route inferred, file written
         self.assertTrue((self.vault / ".context" / "routes.json").is_file())
@@ -484,7 +484,7 @@ class FirstRun(unittest.TestCase):
 
     def test_graph_step_uses_a_custom_index_path(self):
         # B-25: the link graph is built from the index `--out` names, in both spellings.
-        from context_layer import graph
+        from paracortex import graph
         self.cli("init", str(self.vault))
         (self.vault / "notes" / "pump.md").write_text("# Pump\nSee [[garden]].\n")
         spaced = Path(self.temp.name).resolve() / "spaced.sqlite"
@@ -531,7 +531,7 @@ class ProtocolNegotiation(Vault):
     # is 2026-07-28 (no initialize: per-request _meta); the two before it are 2025-11-25 and
     # 2025-06-18. initialize answers with the latest initialize-era revision it implements.
     def test_supported_versions_are_echoed_and_others_get_the_latest(self):
-        from context_layer import mcp_server
+        from paracortex import mcp_server
         self.assertEqual(mcp_server.SUPPORTED_PROTOCOLS[:3],
                          ("2026-07-28", "2025-11-25", "2025-06-18"))
         for asked, expected in (("2099-01-01", "2025-11-25"), ("1999-01-01", "2025-11-25"),
@@ -548,7 +548,7 @@ class ProtocolNegotiation(Vault):
         self.assertEqual(handshake["result"]["protocolVersion"], "2025-11-25")
 
     def test_server_log_names_no_absolute_path(self):
-        done = subprocess.run([sys.executable, "-m", "context_layer.cli", "mcp", "--vault",
+        done = subprocess.run([sys.executable, "-m", "paracortex.cli", "mcp", "--vault",
                                str(self.vault)], cwd=REPO, env=self.env, text=True,
                               capture_output=True, input="")
         self.assertEqual(done.returncode, 0, done.stderr)
@@ -584,7 +584,7 @@ class HookFraming(Vault):
     def test_hook_fails_with_its_own_message_before_the_host_timeout(self):
         # Retrieval runs inside the hook process; a retrieval slower than HOOK_TIMEOUT is
         # abandoned on its thread and the hook answers at once with its own message.
-        from context_layer import mcp_server
+        from paracortex import mcp_server
         self.assertLess(mcp_server.HOOK_TIMEOUT, 30)
         args = argparse.Namespace(vault=str(self.vault), rest=[], top_k=3, budget=6000,
                                   per_source=2000, budget_tokens=None, method="fts",
@@ -626,7 +626,7 @@ class HookFraming(Vault):
     def test_in_process_retrieval_never_swaps_sys_stdout(self):
         # F1: retrieve.run() must not redirect the process-wide sys.stdout; threads that
         # search at once all get their packet and leave sys.stdout as it was.
-        from context_layer import mcp_server
+        from paracortex import mcp_server
         before = sys.stdout
         argv = ["--vault", str(self.vault), "--method", "fts"]
         expected = mcp_server.run_in_process(argv, "alpha secret")[1]
@@ -655,7 +655,7 @@ class HookFraming(Vault):
 
     def test_a_timed_out_in_process_retrieval_leaves_stdout_alone(self):
         # F2: after a timeout the abandoned retrieval must not own the caller's stdout.
-        from context_layer import mcp_server
+        from paracortex import mcp_server
         release = threading.Event()
         self.addCleanup(release.set)
         real = mcp_server.retrieve_module()
@@ -676,7 +676,7 @@ class HookFraming(Vault):
         # The abandoned retrieval thread is a daemon: the hook process ends with exit 1
         # right after its message, it does not wait for the retrieval.
         script = ("import io, json, sys, threading\n"
-                  "from context_layer import cli, mcp_server\n"
+                  "from paracortex import cli, mcp_server\n"
                   "class Slow:\n"
                   "    @staticmethod\n"
                   "    def run(argv, prompt):\n"
@@ -719,7 +719,7 @@ class MemoryOverMcp(Vault):
 
 class SubAgentContext(unittest.TestCase):
     def test_prompt_does_not_claim_to_be_the_whole_context(self):
-        from context_layer import tasks
+        from paracortex import tasks
         task = {"id": "t1", "goal": "g", "output_dir": ".context/tasks/t1/out"}
         packet = {"evidence": [{"source_path": "a.md", "source_sha256": "0" * 64,
                                 "content": "x"}]}
@@ -729,7 +729,7 @@ class SubAgentContext(unittest.TestCase):
         self.assertIn("may also load its own instruction", text)
 
     def test_claude_argv_carries_the_requested_host_context(self):
-        from context_layer import backends
+        from paracortex import backends
         common = dict(prompt_file=Path("p.txt"), prompt_text="p", out_dir=Path("out"))
         inherit = backends.plan("claude", **common)
         self.assertNotIn("--safe-mode", inherit.argv)
@@ -918,13 +918,13 @@ class FormatVersions(Vault):
         packet = json.loads(done.stdout)
         self.assertEqual(packet["status"], "PARTIAL")
         self.assertEqual(packet["synapse"]["decision"], "graph_unreadable")
-        self.assertIn("context-layer index", " ".join(packet["synapse"].get("notes", [])))
+        self.assertIn("paracortex index", " ".join(packet["synapse"].get("notes", [])))
         self.assertNotIn("sqlite", (done.stdout + done.stderr).lower().replace("graph.sqlite", ""))
         self.assertEqual(self.search(prompt="alpha lantern").returncode, 0)
 
 
     def test_future_memory_record_format_is_refused(self):
-        from context_layer import memory
+        from paracortex import memory
         memory.record(self.vault, kind="note", text="first")
         records = self.ctx / "memory" / "records.jsonl"
         with records.open("a", encoding="utf-8") as handle:
@@ -934,17 +934,17 @@ class FormatVersions(Vault):
             memory.load(self.vault)
         _, results = self.mcp(("memory_resume", {}))
         self.assertTrue(results[0][0])
-        self.assertIn("upgrade context-layer", results[0][1])
+        self.assertIn("upgrade paracortex", results[0][1])
 
     def test_future_task_pin_format_is_refused(self):
-        from context_layer import tasks
+        from paracortex import tasks
         pins = self.vault / tasks.PINS_DIR
         pins.mkdir(parents=True)
         (pins / "t1.json").write_text(json.dumps({"schema": "context-layer-task-pin-v2",
                                                   "id": "t1", "task": {"id": "t1"}}))
         task, problems = tasks._pinned(self.vault, self.root, "t1")
         self.assertIsNone(task)
-        self.assertIn("upgrade context-layer", problems[0])
+        self.assertIn("upgrade paracortex", problems[0])
 
 
 # ---------------------------------------------------------------------------
@@ -1018,9 +1018,9 @@ class LazyCommandParser(unittest.TestCase):
 
     def test_the_table_matches_every_register(self):
         import importlib
-        from context_layer import cli
+        from paracortex import cli
         for name, commands in cli.COMPONENT_COMMANDS.items():
-            module = importlib.import_module(f"context_layer.{name}")
+            module = importlib.import_module(f"paracortex.{name}")
             sub = argparse.ArgumentParser().add_subparsers()
             module.register(sub)
             self.assertEqual(sorted(sub.choices), sorted(commands), name)
@@ -1030,17 +1030,17 @@ class LazyCommandParser(unittest.TestCase):
         self.assertTrue(listed <= set(names.choices))
 
     def test_version_and_a_builtin_command_import_no_component(self):
-        code = ("import sys; from context_layer import cli; cli.main(['--version']); "
+        code = ("import sys; from paracortex import cli; cli.main(['--version']); "
                 "cli.build_parser('index'); "
-                "print(sorted(n for n in cli.COMPONENTS if 'context_layer.' + n in sys.modules))")
+                "print(sorted(n for n in cli.COMPONENTS if 'paracortex.' + n in sys.modules))")
         done = subprocess.run([sys.executable, "-c", code], cwd=REPO, capture_output=True,
                               text=True, env=dict(os.environ, PYTHONUTF8="1"))
         self.assertEqual(done.returncode, 0, done.stderr)
-        self.assertEqual(done.stdout.splitlines(), [f"context-layer {_version()}", "[]"])
+        self.assertEqual(done.stdout.splitlines(), [f"paracortex {_version()}", "[]"])
 
 
 def _version() -> str:
-    from context_layer import __version__
+    from paracortex import __version__
     return __version__
 
 if __name__ == "__main__":

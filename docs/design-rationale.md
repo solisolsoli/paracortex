@@ -1,6 +1,6 @@
 # Design rationale
 
-This document explains why context-layer is built the way it is. Each section says what we decided, why we decided it, and which public sources back the reasoning. The decisions describe the intended design; this text was written for 0.3.0 and revised for 0.4.0. What a given release actually does is recorded in [CHANGELOG.md](../CHANGELOG.md). What the tests actually cover is recorded in the test suite. Where this document and the code disagree, the code is the fact and this document is the bug.
+This document explains why paracortex is built the way it is. Each section says what we decided, why we decided it, and which public sources back the reasoning. The decisions describe the intended design; this text was written for 0.3.0 and revised for 0.4.0. What a given release actually does is recorded in [CHANGELOG.md](../CHANGELOG.md). What the tests actually cover is recorded in the test suite. Where this document and the code disagree, the code is the fact and this document is the bug.
 
 ## 1. Deliver verbatim, hash-pinned evidence, not generated citations
 

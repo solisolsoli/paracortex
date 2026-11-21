@@ -1,4 +1,4 @@
-"""Tests for context_layer.session_show - `context-layer session show|list`.
+"""Tests for paracortex.session_show - `paracortex session show|list`.
 
 Runnable as `python3 tests/test_session_show.py`. The vault is synthetic and
 fictional: two sessions, built with the components' own writers (the delivery
@@ -23,8 +23,8 @@ REPO = Path(os.environ.get("TEST_REPO_HOME", Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from context_layer import memory, orchestrate, session_evidence as se  # noqa: E402
-from context_layer import session_show as ss  # noqa: E402
+from paracortex import memory, orchestrate, session_evidence as se  # noqa: E402
+from paracortex import session_show as ss  # noqa: E402
 
 PACKET = "ab" * 32                       # a shared packet id (64 hex)
 NOW_A = datetime(2026, 1, 15, 14, 30, 0, tzinfo=timezone.utc)
@@ -65,7 +65,7 @@ class Base(unittest.TestCase):
         patcher = mock.patch.dict(os.environ, isolated_home_env(os.environ, str(self.home)))
         patcher.start()
         self.addCleanup(patcher.stop)
-        for name in ("CLAUDE_CODE_SESSION_ID", "CONTEXT_LAYER_SESSION", "CONTEXT_LAYER_TOOL"):
+        for name in ("CLAUDE_CODE_SESSION_ID", "PARACORTEX_SESSION", "PARACORTEX_TOOL"):
             os.environ.pop(name, None)
         self.vault = self.root / "vault"
         for name, text in NOTES.items():
@@ -83,7 +83,7 @@ class Base(unittest.TestCase):
     # -- fixture -------------------------------------------------------------
 
     def in_session(self, session):
-        return mock.patch.dict(os.environ, {"CONTEXT_LAYER_SESSION": session})
+        return mock.patch.dict(os.environ, {"PARACORTEX_SESSION": session})
 
     def task_dir(self, task_id, state, packet=None, ledger=None, job=None):
         folder = self.vault / ".context" / "tasks" / task_id
@@ -129,7 +129,7 @@ class Base(unittest.TestCase):
                 "event": "record", "task_id": TASK_1, "memory_id": self.decision["id"],
                 "cites": self.line["sha256"], "verdict": "verified"})
         # A ledger line of another session, and one of no session.
-        with mock.patch.dict(os.environ, {"CONTEXT_LAYER_SESSION": "sess-b"}):
+        with mock.patch.dict(os.environ, {"PARACORTEX_SESSION": "sess-b"}):
             orchestrate.ledger_append(self.vault, {"event": "verify", "task_id": "other-task",
                                                    "verdict": "rejected"})
         self.task_dir(TASK_1, "verified", packet=PACKET,
@@ -149,7 +149,7 @@ class Base(unittest.TestCase):
 
     def run_cli(self, *argv):
         environment = isolated_home_env(os.environ, self.home)
-        return subprocess.run([sys.executable, "-m", "context_layer.cli", "session", *argv],
+        return subprocess.run([sys.executable, "-m", "paracortex.cli", "session", *argv],
                               cwd=REPO, capture_output=True, text=True, env=environment)
 
 

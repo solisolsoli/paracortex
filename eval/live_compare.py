@@ -2,8 +2,8 @@
 """Phase A6 live runner: one host, one model, three arms, held-out cases.
 
 `baseline` is the host alone on a copy of the vault with its own file tools.
-`candidate` is the same host with no file tools and only the context-layer MCP
-tools. `hook` is baseline's tool set plus the context-layer UserPromptSubmit
+`candidate` is the same host with no file tools and only the paracortex MCP
+tools. `hook` is baseline's tool set plus the paracortex UserPromptSubmit
 hook, so evidence arrives with the prompt instead of being searched for. Every
 arm gets the same prompt, model, turn cap and budget, and every arm is launched
 headless from the vault directory.
@@ -44,8 +44,8 @@ import unicodedata
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
-from context_layer import install  # noqa: E402
-from context_layer.platform_support import managed_process_tree  # noqa: E402
+from paracortex import install  # noqa: E402
+from paracortex.platform_support import managed_process_tree  # noqa: E402
 
 SCHEMA = "context-layer-live-compare-v1"
 ARMS = ("baseline", "candidate", "hook")
@@ -165,7 +165,7 @@ def system_prompt(arm: str, vault: Path) -> str:
                 "file tools (Read, Grep, Glob) only for what they do not cover. Cite the "
                 "vault-relative path of every source you used. If the vault does not "
                 f"contain the answer, reply with exactly {ABSTAIN} and nothing else.")
-    return ("Answer only from the context-layer tools "
+    return ("Answer only from the paracortex tools "
             f"(mcp__{install.SERVER_NAME}__search_vault and "
             f"mcp__{install.SERVER_NAME}__read_source). "
             "You have no file tools and must not guess from memory. Cite the source_path "
@@ -506,7 +506,7 @@ def render_report(summary: dict) -> str:
         lines.append("| " + " | ".join(cell(row[key]) for key in
                      ("id", "category", "arm", "delivered", "abstained", "is_error",
                       "total_tokens", "cost_usd", "duration_ms", "num_turns", "judge")) + " |")
-    lines += ["", "The hook arm installs the context-layer UserPromptSubmit hook in the vault",
+    lines += ["", "The hook arm installs the paracortex UserPromptSubmit hook in the vault",
               "copy's project settings for its own runs and restores them afterwards; each row",
               "records what it wrote and put back.",
               "", "Token, cost, turn and duration means exclude rows recorded with an error.",

@@ -81,7 +81,7 @@ class IntegrityCLI(unittest.TestCase):
     def route(self, *flags, cli=False, save=False, prompt="alpha marker"):
         base = [sys.executable, str(REPO / "router/context_router.py"), "--vault", str(self.vault)]
         if cli:
-            base = [sys.executable, "-m", "context_layer.cli", "route", str(self.vault)]
+            base = [sys.executable, "-m", "paracortex.cli", "route", str(self.vault)]
         return subprocess.run(base + ["--prompt", prompt] + ([] if save else ["--no-save"])
                               + list(flags), cwd=REPO, capture_output=True)
 
@@ -222,7 +222,7 @@ class IntegrityCLI(unittest.TestCase):
     # server, the hook and tasks use), not only the router's own entry point.
 
     def search(self, method, prompt="alpha marker"):
-        return subprocess.run([sys.executable, "-m", "context_layer.cli", "search",
+        return subprocess.run([sys.executable, "-m", "paracortex.cli", "search",
                                str(self.vault), "--method", method, "--prompt", prompt],
                               cwd=REPO, capture_output=True)
 
@@ -382,7 +382,7 @@ class FoldingContract(unittest.TestCase):
                 self.assertEqual(textfold._token_char[c], textfold.is_term_char(c))
 
     def test_one_fold_for_retrieve_router_and_scanner(self):
-        from context_layer import vault_scan
+        from paracortex import vault_scan
         tricky = ["Straße STRASSE", "İzmir", "ﬁle Ｆｕｌｌ", "cafe\u0301", "e-mail don't",
                   "Λόγος ΛΌΓΟΣ", "100\u20bf", "a  b\tc"]
         for text in tricky:
@@ -544,7 +544,7 @@ class DeliveredEvidence(unittest.TestCase):
                 self.assertEqual((code, hit["status"]), (0, "NOT_FOUND"))
                 self.assertEqual(hit["withheld"], [{
                     "source_path": "notes/pier.md", "reason": "symlink since indexing",
-                    "next": "context-layer index <vault>"}])
+                    "next": "paracortex index <vault>"}])
                 self.assertEqual(hit["reason"], "matching notes could not be delivered")
                 self.assertNotIn("pier schedule", json.dumps(hit["evidence"]))
 

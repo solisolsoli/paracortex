@@ -342,8 +342,8 @@ class LiveCompare(unittest.TestCase):
     def test_arms_get_their_own_tools_and_the_candidate_gets_mcp_config(self):
         self.compare("--only", "H01", "--max-turns", "5", "--budget-usd", "0.25")
         config = json.loads((self.out / "mcp.json").read_text())
-        self.assertIn("context-layer", config["mcpServers"])
-        self.assertIn("command", config["mcpServers"]["context-layer"])
+        self.assertIn("paracortex", config["mcpServers"])
+        self.assertIn("command", config["mcpServers"]["paracortex"])
         calls = {call["arm"]: call for call in self.host_calls()}
         self.assertEqual(set(calls), {"baseline", "candidate", "hook"})
         for arm, call in calls.items():
@@ -365,7 +365,7 @@ class LiveCompare(unittest.TestCase):
         self.assertNotIn("--add-dir", candidate)
         self.assertEqual(candidate[candidate.index("--mcp-config") + 1], str(self.out / "mcp.json"))
         self.assertEqual(candidate[candidate.index("--allowedTools") + 1],
-                         "mcp__context-layer__search_vault,mcp__context-layer__read_source")
+                         "mcp__paracortex__search_vault,mcp__paracortex__read_source")
         self.assertIn("Read,Grep,Glob", candidate[candidate.index("--disallowedTools") + 1])
         # the hook arm is baseline's tool set plus the hook, never the MCP config
         hook = calls["hook"]["argv"]
@@ -392,7 +392,7 @@ class LiveCompare(unittest.TestCase):
     def test_fake_host_detects_an_encoded_windows_hook(self):
         import base64
 
-        script = "& 'python.exe' 'context_layer.cli' 'hook' 'claude-code'"
+        script = "& 'python.exe' 'paracortex.cli' 'hook' 'claude-code'"
         encoded = base64.b64encode(script.encode("utf-16le")).decode("ascii")
         command = ("powershell.exe -NoLogo -NoProfile -NonInteractive -EncodedCommand "
                    + encoded)

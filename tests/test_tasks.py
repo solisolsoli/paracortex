@@ -1,4 +1,4 @@
-"""Phase tests for context_layer.tasks — every test owns a disposable synthetic vault.
+"""Phase tests for paracortex.tasks — every test owns a disposable synthetic vault.
 
 The agent is always a script this file writes (or a test shim named `claude` or
 `codex` on a temporary PATH): no model call, no network, no real home and no real
@@ -25,9 +25,9 @@ from unittest import mock
 import test_integrity as fixture
 
 sys.path.insert(0, str(fixture.REPO))
-from context_layer import cli as cli_module  # noqa: E402  (after the repo path is set)
-from context_layer import orchestrate  # noqa: E402
-from context_layer import tasks as module  # noqa: E402
+from paracortex import cli as cli_module  # noqa: E402  (after the repo path is set)
+from paracortex import orchestrate  # noqa: E402
+from paracortex import tasks as module  # noqa: E402
 
 POLICY = "# Release policy\nalpha marker: releases follow semantic versioning.\n"
 PRIVATE = "# Private\nalpha marker: the salary budget numbers live here.\n"
@@ -40,7 +40,7 @@ USAGE = ('"usage": {"input_tokens": 100, "output_tokens": 20, '
 SUCCESS = '''#!/usr/bin/env python3
 import json, os, pathlib, sys
 prompt = sys.stdin.read()
-out = pathlib.Path(os.environ["CONTEXT_LAYER_OUT_DIR"])
+out = pathlib.Path(os.environ["PARACORTEX_OUT_DIR"])
 out.mkdir(parents=True, exist_ok=True)
 (out / "answer.md").write_text("cited %d sources\\n" % prompt.count("source_sha256"))
 print(json.dumps({"result": "wrote answer.md", "is_error": False, @USAGE@}))
@@ -59,7 +59,7 @@ sys.exit(3)
 STRAY = '''#!/usr/bin/env python3
 import json, os, pathlib, sys
 sys.stdin.read()
-out = pathlib.Path(os.environ["CONTEXT_LAYER_OUT_DIR"])
+out = pathlib.Path(os.environ["PARACORTEX_OUT_DIR"])
 out.mkdir(parents=True, exist_ok=True)
 (out / "answer.md").write_text("an answer\\n")
 pathlib.Path(r"@VAULT@", "stray.md").write_text("written where it may not write\\n")
@@ -83,7 +83,7 @@ WINDOW = '''#!/usr/bin/env python3
 import json, os, pathlib, sys, time
 sys.stdin.read()
 start = time.time()
-out = pathlib.Path(os.environ["CONTEXT_LAYER_OUT_DIR"])
+out = pathlib.Path(os.environ["PARACORTEX_OUT_DIR"])
 time.sleep(1.5)   # both children are alive at the midpoint, even on a slow runner
 out.mkdir(parents=True, exist_ok=True)
 (out / "midpoint.txt").write_text("written while the sibling task runs")
@@ -96,7 +96,7 @@ print(json.dumps({"result": "ran", "is_error": False, @USAGE@}))
 TAMPER = '''#!/usr/bin/env python3
 import json, os, pathlib, sys
 sys.stdin.read()
-task_dir = pathlib.Path(os.environ["CONTEXT_LAYER_TASK_DIR"])
+task_dir = pathlib.Path(os.environ["PARACORTEX_TASK_DIR"])
 spec = json.loads((task_dir / "task.json").read_text())
 spec["output_dir"] = "@TARGET@"
 (task_dir / "task.json").write_text(json.dumps(spec))
@@ -106,7 +106,7 @@ print(json.dumps({"result": "produced nothing, moved the goalposts", "is_error":
 TAMPER_PIN = '''#!/usr/bin/env python3
 import hashlib, json, os, pathlib, sys
 sys.stdin.read()
-task_dir = pathlib.Path(os.environ["CONTEXT_LAYER_TASK_DIR"])
+task_dir = pathlib.Path(os.environ["PARACORTEX_TASK_DIR"])
 spec = json.loads((task_dir / "task.json").read_text())
 spec["output_dir"] = "notes"
 (task_dir / "task.json").write_text(json.dumps(spec))
@@ -125,7 +125,7 @@ print(json.dumps({"result": "rewrote the spec and its pin", "is_error": False, @
 APPEND = '''#!/usr/bin/env python3
 import json, os, pathlib, sys
 sys.stdin.read()
-out = pathlib.Path(os.environ["CONTEXT_LAYER_OUT_DIR"])
+out = pathlib.Path(os.environ["PARACORTEX_OUT_DIR"])
 with open(out / "policy.md", "a") as handle:
     handle.write("appended by the agent\\n")
 print(json.dumps({"result": "edited policy.md", "is_error": False, @USAGE@}))
@@ -145,7 +145,7 @@ print("a plain answer for %d characters of prompt" % len(prompt))
 SWAP_OUT = '''#!/usr/bin/env python3
 import json, os, pathlib, shutil, sys
 sys.stdin.read()
-out = pathlib.Path(os.environ["CONTEXT_LAYER_OUT_DIR"])
+out = pathlib.Path(os.environ["PARACORTEX_OUT_DIR"])
 shutil.rmtree(out)
 out.symlink_to(pathlib.Path(r"@VAULT@", "notes"), target_is_directory=True)
 print(json.dumps({"result": "the output directory now IS notes/", "is_error": False, @USAGE@}))
@@ -154,7 +154,7 @@ print(json.dumps({"result": "the output directory now IS notes/", "is_error": Fa
 LINKED_SUBDIR = '''#!/usr/bin/env python3
 import json, os, pathlib, sys
 sys.stdin.read()
-out = pathlib.Path(os.environ["CONTEXT_LAYER_OUT_DIR"])
+out = pathlib.Path(os.environ["PARACORTEX_OUT_DIR"])
 (out / "answer.md").write_text("see linked\\n")
 (out / "linked").symlink_to(pathlib.Path(r"@VAULT@", "notes"), target_is_directory=True)
 print(json.dumps({"result": "wrote a link", "is_error": False, @USAGE@}))
@@ -163,7 +163,7 @@ print(json.dumps({"result": "wrote a link", "is_error": False, @USAGE@}))
 HARD_LINK = '''#!/usr/bin/env python3
 import json, os, pathlib, sys
 sys.stdin.read()
-out = pathlib.Path(os.environ["CONTEXT_LAYER_OUT_DIR"])
+out = pathlib.Path(os.environ["PARACORTEX_OUT_DIR"])
 os.link(pathlib.Path(r"@VAULT@", "notes", "policy.md"), out / "answer.md")
 print(json.dumps({"result": "linked a note in", "is_error": False, @USAGE@}))
 '''
@@ -171,7 +171,7 @@ print(json.dumps({"result": "linked a note in", "is_error": False, @USAGE@}))
 DELETER = '''#!/usr/bin/env python3
 import json, os, pathlib, sys
 sys.stdin.read()
-out = pathlib.Path(os.environ["CONTEXT_LAYER_OUT_DIR"])
+out = pathlib.Path(os.environ["PARACORTEX_OUT_DIR"])
 (out / "old.md").unlink()
 (out / "new.md").write_text("a fresh report\\n")
 print(json.dumps({"result": "replaced old.md", "is_error": False, @USAGE@}))
@@ -182,13 +182,13 @@ print(json.dumps({"result": "replaced old.md", "is_error": False, @USAGE@}))
 LOGGER = '''#!/usr/bin/env python3
 import json, os, pathlib, sys, time, uuid
 sys.stdin.read()
-task_id = pathlib.Path(os.environ["CONTEXT_LAYER_OUT_DIR"]).parent.name
+task_id = pathlib.Path(os.environ["PARACORTEX_OUT_DIR"]).parent.name
 calls = pathlib.Path(r"@LOG@")
 calls.mkdir(parents=True, exist_ok=True)
 with (calls / (task_id + "." + uuid.uuid4().hex + ".called")).open("x") as handle:
     handle.write(task_id)
 time.sleep(@SECONDS@)
-out = pathlib.Path(os.environ["CONTEXT_LAYER_OUT_DIR"])
+out = pathlib.Path(os.environ["PARACORTEX_OUT_DIR"])
 (out / ("answer-%d.md" % os.getpid())).write_text("x\\n")
 print(json.dumps({"result": "ok", "is_error": False, @USAGE@}))
 '''
@@ -198,7 +198,7 @@ print(json.dumps({"result": "ok", "is_error": False, @USAGE@}))
 PRINTS = '''#!/usr/bin/env python3
 import os, pathlib, sys
 sys.stdin.read()
-out = pathlib.Path(os.environ["CONTEXT_LAYER_OUT_DIR"])
+out = pathlib.Path(os.environ["PARACORTEX_OUT_DIR"])
 (out / "a.md").write_text("x\\n")
 print(@PAYLOAD@)
 '''
@@ -208,7 +208,7 @@ print(@PAYLOAD@)
 WIPE_MEMORY = '''#!/usr/bin/env python3
 import json, os, pathlib, sys
 sys.stdin.read()
-pathlib.Path(os.environ["CONTEXT_LAYER_OUT_DIR"], "answer.md").write_text("an answer")
+pathlib.Path(os.environ["PARACORTEX_OUT_DIR"], "answer.md").write_text("an answer")
 pathlib.Path(r"@VAULT@", ".context", "memory", "records.jsonl").write_text("")
 print(json.dumps({"result": "emptied the memory store", "is_error": False, @USAGE@}))
 '''
@@ -220,7 +220,7 @@ import json, os, pathlib, sys, time
 sys.stdin.read()
 time.sleep(3)
 pathlib.Path(r"@MARKER@").write_text("the child outlived its runner\\n")
-out = pathlib.Path(os.environ["CONTEXT_LAYER_OUT_DIR"])
+out = pathlib.Path(os.environ["PARACORTEX_OUT_DIR"])
 (out / "late.md").write_text("written after the runner died\\n")
 print(json.dumps({"result": "ok", "is_error": False}))
 '''
@@ -242,7 +242,7 @@ prompt = sys.stdin.read()
 cwd = pathlib.Path.cwd().resolve()
 record = {"argv": argv, "cwd": str(cwd), "prompt_head": prompt[:40],
           "prompt_has_evidence": "## Evidence" in prompt,
-          "task_dir_env": os.environ.get("CONTEXT_LAYER_TASK_DIR"),
+          "task_dir_env": os.environ.get("PARACORTEX_TASK_DIR"),
           "workspace_files": sorted(p.name for p in cwd.iterdir())}
 with open(r"@LOG@", "a") as handle:
     handle.write(json.dumps(record) + "\\n")
@@ -331,19 +331,19 @@ class TaskBase(unittest.TestCase):
     def environment(self, backend=None, path=None):
         environment = dict(os.environ)
         environment.update(isolated_home_env(environment, self.home))
-        environment["CONTEXT_LAYER_FAKE_BACKEND"] = backend or self.script_path
+        environment["PARACORTEX_FAKE_BACKEND"] = backend or self.script_path
         if path is not None:
             environment["PATH"] = path
         return environment
 
     def cli(self, *argv, backend=None, path=None, group="tasks"):
-        return subprocess.run([sys.executable, "-m", "context_layer.cli", group, *argv],
+        return subprocess.run([sys.executable, "-m", "paracortex.cli", group, *argv],
                               cwd=str(fixture.REPO), capture_output=True,
                               env=self.environment(backend, path))
 
     def spawn(self, *argv, backend=None):
         runner = subprocess.Popen(
-            [sys.executable, "-m", "context_layer.cli", "tasks", *argv],
+            [sys.executable, "-m", "paracortex.cli", "tasks", *argv],
             cwd=str(fixture.REPO), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             env=self.environment(backend))
         self.addCleanup(lambda: runner.poll() is None and runner.kill())
@@ -669,7 +669,7 @@ class TaskCLI(TaskBase):
         empty_path = str(self.bin / "nothing-here")
         Path(empty_path).mkdir()
         for flags in (("--backend", "claude", "--model", "sonnet", "--max-turns", "4"),
-                      ("--backend", "cmd", "--cmd", "context-layer-no-such-agent {prompt_file}")):
+                      ("--backend", "cmd", "--cmd", "paracortex-no-such-agent {prompt_file}")):
             with self.subTest(flags=flags):
                 task = self.new(*flags)
                 run = self.cli("run", str(self.vault), task["id"], path=empty_path)
@@ -876,7 +876,7 @@ class TaskCLI(TaskBase):
             with self.subTest(argv=done.args[3:5]):
                 self.assert_no_absolute_path(done)
         verbose = subprocess.run(
-            [sys.executable, "-m", "context_layer.cli", "--verbose", "tasks", "list",
+            [sys.executable, "-m", "paracortex.cli", "--verbose", "tasks", "list",
              str(self.root / "missing")], cwd=str(fixture.REPO), capture_output=True,
             env=self.environment())
         self.assertIn(str(self.root).encode(), verbose.stderr)
@@ -1227,14 +1227,14 @@ class ConcurrentWriters(TaskBase):
                             backend=self.script("slow.py", SLEEPER.replace(
                                 "time.sleep(@SECONDS@)",
                                 "time.sleep(3)\nimport os, pathlib\n"
-                                "pathlib.Path(os.environ['CONTEXT_LAYER_OUT_DIR'], 'a.md')"
+                                "pathlib.Path(os.environ['PARACORTEX_OUT_DIR'], 'a.md')"
                                 ".write_text('ok')")))
         self.assertTrue(self.wait_for(task["id"], "running"))
         time.sleep(0.5)
         added = self.cli("add", str(self.vault), "--kind", "decision", "--text",
                          "coordinator note", group="memory")
         self.assertEqual(added.returncode, 0, added.stderr)
-        indexed = subprocess.run([sys.executable, "-m", "context_layer.cli", "index",
+        indexed = subprocess.run([sys.executable, "-m", "paracortex.cli", "index",
                                   str(self.vault)], cwd=str(fixture.REPO), capture_output=True,
                                  env=self.environment())
         self.assertEqual(indexed.returncode, 0, indexed.stderr)

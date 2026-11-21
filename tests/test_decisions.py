@@ -12,7 +12,7 @@ import sys
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from context_layer import decisions
+from paracortex import decisions
 
 
 class DecisionsCommandTests(unittest.TestCase):
@@ -147,8 +147,8 @@ class DecisionsCommandTests(unittest.TestCase):
                      patch.object(decisions.decisions_client, "create_decision") as call:
                     self.assertEqual(decisions.cmd_assess(args), 2)
                 self.assertIn(error.getvalue(), (
-                    "context-layer decisions: input_json_invalid\n",
-                    "context-layer decisions: unknown task or invalid JSON object\n"))
+                    "paracortex decisions: input_json_invalid\n",
+                    "paracortex decisions: unknown task or invalid JSON object\n"))
                 call.assert_not_called()
 
     def test_invalid_fields_secrets_unicode_and_send_type_stay_local(self):

@@ -14,7 +14,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from context_layer.platform_support import (
+from paracortex.platform_support import (
     LockTimeout,
     atomic_write,
     file_lock,
@@ -25,7 +25,7 @@ from context_layer.platform_support import (
     set_private_path,
     verify_private_path,
 )
-from context_layer import backends, install, platform_support
+from paracortex import backends, install, platform_support
 
 
 def _python_env():
@@ -45,7 +45,7 @@ class PlatformSupport(unittest.TestCase):
         lock = self.root / "shared.lock"
         ready = self.root / "ready"
         script = (
-            "import pathlib,sys,time; from context_layer.platform_support import file_lock; "
+            "import pathlib,sys,time; from paracortex.platform_support import file_lock; "
             "exec('with file_lock(sys.argv[1]):\\n "
             "pathlib.Path(sys.argv[2]).write_text(\"held\")\\n time.sleep(.35)')"
         )
@@ -70,7 +70,7 @@ class PlatformSupport(unittest.TestCase):
         lock = self.root / "crash.lock"
         ready = self.root / "ready"
         script = (
-            "import os,pathlib,sys; from context_layer.platform_support import file_lock; "
+            "import os,pathlib,sys; from paracortex.platform_support import file_lock; "
             "exec('with file_lock(sys.argv[1]):\\n "
             "pathlib.Path(sys.argv[2]).write_text(\"held\")\\n os._exit(0)')"
         )
@@ -112,17 +112,17 @@ class PlatformSupport(unittest.TestCase):
         with self.assertRaises(OSError):
             set_private_path(junction, directory=True)
 
-    def test_encoded_hook_ownership_requires_the_context_layer_launcher(self):
+    def test_encoded_hook_ownership_requires_the_paracortex_launcher(self):
         def command(script):
             encoded = base64.b64encode(script.encode("utf-16le")).decode("ascii")
             return ("powershell.exe -NoLogo -NoProfile -NonInteractive "
                     f"-EncodedCommand {encoded}")
 
-        ours = command("& 'C:\\Python\\python.exe' '-m' 'context_layer.cli' "
+        ours = command("& 'C:\\Python\\python.exe' '-m' 'paracortex.cli' "
                        "'hook' 'claude-code' '--vault' 'C:\\vault'; exit $LASTEXITCODE")
-        embedded_text_only = command("& 'echo' 'context_layer' 'hook' 'claude-code'; "
+        embedded_text_only = command("& 'echo' 'paracortex' 'hook' 'claude-code'; "
                                      "exit $LASTEXITCODE")
-        nested_hook_words = command("& 'C:\\Program Files\\context-layer.exe' "
+        nested_hook_words = command("& 'C:\\Program Files\\paracortex.exe' "
                                    "'github-sources' 'hook' 'claude-code'; "
                                    "exit $LASTEXITCODE")
         self.assertTrue(install.is_ours(ours))

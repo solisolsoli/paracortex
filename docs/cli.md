@@ -1,7 +1,7 @@
 # CLI conventions: exit codes, error packets, output and format versions
 
-This page is the reference for how every `context-layer` command reports its
-outcome. It describes the behaviour of 0.5.0; numbers were not renumbered from
+This page is the reference for how every `paracortex` command reports its
+outcome. It describes the behaviour of 0.6.0; numbers were not renumbered from
 0.2, so scripts written against 0.2 keep working.
 
 ## Exit codes
@@ -42,7 +42,7 @@ not `--prompt`).
 
 ## `session show`: one session's joined report
 
-`context-layer session show VAULT [SESSION_ID] [--json] [--limit N] [--max-bytes N]`
+`paracortex session show VAULT [SESSION_ID] [--json] [--limit N] [--max-bytes N]`
 joins, for one agent session, files that other commands already wrote: the
 evidence delivered (`.context/session-evidence/<id>.jsonl`), the memory records
 whose `session` is the id (`.context/memory/records.jsonl`) and the opt-in session
@@ -62,7 +62,7 @@ non-JSON line, a symbolic link, an over-long line or more bytes than `--max-byte
 Sections show at most `--limit` rows (default 50) and say how many were not
 shown. Two things are joined by convention, not by proof: the evidence ledger's id
 comes from the host (`CLAUDE_CODE_SESSION_ID` or the hook input) while memory
-and the task ledger use `CONTEXT_LAYER_SESSION` or `--session`, so they meet only
+and the task ledger use `PARACORTEX_SESSION` or `--session`, so they meet only
 when the same id was used. A task that was never verified under the id, and was not
 dispatched from a delivered packet, cannot be found. Without an id, `show` takes
 the session with the newest timestamp and says so on stderr; `session list` prints
@@ -121,7 +121,7 @@ something was withheld):
 
 ```json
 "withheld": [{"source_path": "notes/a.md", "reason": "changed since indexing",
-              "next": "context-layer index <vault>"}]
+              "next": "paracortex index <vault>"}]
 ```
 
 `reason` is `changed since indexing`, `deleted since indexing`, `symlink since
@@ -130,9 +130,9 @@ followed) or `unreadable since indexing` (for example its permissions changed).
 `status` is
 computed from the evidence that remains (`PARTIAL`, or `NOT_FOUND` when every
 hit was withheld) and the exit code follows the status (0). The withheld slot is
-not back-filled with a lower-ranked note, so after `context-layer index` the
+not back-filled with a lower-ranked note, so after `paracortex index` the
 packet is the one a fresh index gives. `search` and the hook also print one
-stderr line naming the withheld paths and `context-layer index <vault>`; the
+stderr line naming the withheld paths and `paracortex index <vault>`; the
 hook adds the same line to the context it injects. The default synaptic mode
 carries the same `withheld` list for its fts part; passages the link graph
 would have added from a changed note are reported separately under
@@ -182,7 +182,7 @@ which says what was searched. It never names a path and stays small:
 | Field | Meaning |
 | --- | --- |
 | `indexed_notes` | Notes in the index this query read. A note excluded after the last `index` is counted here but never searched. |
-| `index_sha256` | SHA-256 of the index file this query read, hashed through a handle opened on that same file (a replacement written meanwhile by `context-layer index` is not hashed instead). |
+| `index_sha256` | SHA-256 of the index file this query read, hashed through a handle opened on that same file (a replacement written meanwhile by `paracortex index` is not hashed instead). |
 | `query_terms` | The terms sent to FTS5, as the prompt spelled them (at most 64; `query_terms_omitted` counts the rest). |
 | `match_expression` | The exact FTS5 MATCH string (the terms, quoted, joined by `OR`), cut at 4,096 characters with `match_expression_truncated: true`; `null` when there are no terms and for `grep`, which matches substrings instead. |
 | `skipped_by_reason` | Files the index build skipped, counted by reason (`oversize`, `unreadable`, `unsupported_name`, `not_utf8`); `null` for an index built before skips were recorded. |
@@ -207,14 +207,14 @@ say `ERROR`, and so does `eval/retrieve.py` run directly.
 Every search path (CLI `search`, MCP `search_vault`, the hook, `packet build`)
 checks, before it reads a note:
 
-1. `.context/routes.json` exists → otherwise: run `context-layer init <vault>`.
+1. `.context/routes.json` exists → otherwise: run `paracortex init <vault>`.
 2. It is a valid config (see below) → otherwise: the problem, and how to fix it.
 3. `.context/index.sqlite` exists, has a format this version reads, and its
    full-text table agrees with the stored records → otherwise: run
-   `context-layer index <vault>`.
+   `paracortex index <vault>`.
 4. For `--method synaptic`, a `graph.sqlite` that cannot be read (damaged, or a
    newer layout) is not an error: the packet is built without it, with
-   `synapse.decision: "graph_unreadable"` and a note naming `context-layer index <vault>`.
+   `synapse.decision: "graph_unreadable"` and a note naming `paracortex index <vault>`.
 
 Each failure is one line naming the next command, never a raw `Errno` or SQLite
 message.
@@ -259,17 +259,17 @@ reason, and in the file's `_exclusions_not_written` note.
 
 A missing `routes.json` means "no exclusions" for `index` and `status`; search
 needs one (run `init`). `index` says so in one stderr line naming
-`context-layer init <vault>` and still exits 0.
+`paracortex init <vault>` and still exits 0.
 
 ## Format versions
 
 | Artifact | Where the version is | Current | Missing means | Newer than current |
 | --- | --- | --- | --- | --- |
-| `.context/routes.json` | `schema_version` | 1 | 1 (legacy) | refused: upgrade context-layer |
-| `.context/index.sqlite` | `PRAGMA user_version`, and `format_version` in `index_meta` | 1 | 1 (an index from 0.2) | refused: upgrade, or rebuild with `context-layer index` |
+| `.context/routes.json` | `schema_version` | 1 | 1 (legacy) | refused: upgrade paracortex |
+| `.context/index.sqlite` | `PRAGMA user_version`, and `format_version` in `index_meta` | 1 | 1 (an index from 0.2) | refused: upgrade, or rebuild with `paracortex index` |
 | `.context/graph.sqlite` | `schema_version` in `graph_meta` | 1 | 1 | not used: the synaptic packet degrades to the fts packet with `decision: "graph_unreadable"` |
-| `.context/memory/records.jsonl` | `format_version` per record | 2 (format 1 records carry no key and stay readable) | 1 | refused: upgrade context-layer |
-| `.context/task-pins/<id>.json` | `schema` (`context-layer-task-pin-v1`) | v1 | the pin is malformed | the task is blocked: upgrade context-layer |
+| `.context/memory/records.jsonl` | `format_version` per record | 2 (format 1 records carry no key and stay readable) | 1 | refused: upgrade paracortex |
+| `.context/task-pins/<id>.json` | `schema` (`context-layer-task-pin-v1`) | v1 | the pin is malformed | the task is blocked: upgrade paracortex |
 | `.context/activation.json` | `version` | 1 | ignored by the Obsidian plugin | ignored by the plugin |
 
 ## Index integrity

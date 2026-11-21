@@ -6,6 +6,7 @@ overview; [QUICKSTART.md](../QUICKSTART.md) is the same ground as commands, and
 
 | Document | Component | Commands it covers |
 | --- | --- | --- |
+| [RENAME.md](RENAME.md) | Upgrading from 0.5: Context Layer is now Paracortex; what keeps working and how to migrate | — |
 | [migration-0.5.md](migration-0.5.md) | Upgrading from 0.4.0: removed Jev interfaces and explicit API previews | — |
 | [host-integration.md](host-integration.md) | A2 — connecting an AI host | `mcp`, `hook`, `install`, `install print`, `uninstall`, `doctor` |
 | [memory.md](memory.md) | A3 — shared memory across sessions and tools | `memory add`, `list`, `resume`, `verify`, `repair`, `rebind`, `mirror`, `session` |

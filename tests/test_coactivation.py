@@ -21,7 +21,7 @@ from unittest import mock
 REPO = Path(os.environ.get("TEST_REPO_HOME", Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(REPO))
 
-from context_layer import coactivation  # noqa: E402
+from paracortex import coactivation  # noqa: E402
 
 _spec = importlib.util.spec_from_file_location("retrieve_under_test", REPO / "eval" / "retrieve.py")
 retrieve = importlib.util.module_from_spec(_spec)
@@ -65,7 +65,7 @@ class Case(unittest.TestCase):
         self.routes({**ROUTES, "record_usage": True})
 
     def cli(self, *argv):
-        return subprocess.run([sys.executable, "-m", "context_layer.cli", *argv], cwd=REPO,
+        return subprocess.run([sys.executable, "-m", "paracortex.cli", *argv], cwd=REPO,
                               capture_output=True, text=True, env=self.env)
 
     def search(self, prompt, method="fts", *extra):
@@ -231,9 +231,9 @@ class NeverReadByRetrieval(Case):
         self.assertEqual(first, second)
 
     def test_only_the_ledger_module_and_its_two_callers_name_the_ledger(self):
-        allowed = {"context_layer/coactivation.py", "eval/retrieve.py", "context_layer/graph.py"}
+        allowed = {"paracortex/coactivation.py", "eval/retrieve.py", "paracortex/graph.py"}
         found = set()
-        for folder in ("context_layer", "eval", "router"):
+        for folder in ("paracortex", "eval", "router"):
             for path in (REPO / folder).rglob("*.py"):
                 text = path.read_text(encoding="utf-8")
                 if "usage-ledger" in text or "coactivation" in text or "usage_ledger" in text:
@@ -346,7 +346,7 @@ class Suggest(Case):
         (self.vault / ".context" / "graph.sqlite").unlink()
         done = self.cli("graph", "suggest", str(self.vault))
         self.assertEqual(done.returncode, 1)
-        self.assertIn("context-layer index", done.stderr)
+        self.assertIn("paracortex index", done.stderr)
 
     def test_min_count_and_limit(self):
         self.plant([self.row(["alpha.md", "gamma.md"])] * 3 + [self.row(["gamma.md", "delta.md"])] * 2)

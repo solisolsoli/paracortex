@@ -3,7 +3,7 @@
 
     export SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)
     python3 -m build
-    python3 scripts/normalize_sdist.py dist/context_layer-*.tar.gz
+    python3 scripts/normalize_sdist.py dist/paracortex-*.tar.gz
 
 setuptools writes each file's own modification time, the build time into the
 gzip header, and the builder's local user and group names into every tar

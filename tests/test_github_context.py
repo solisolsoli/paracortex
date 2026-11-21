@@ -10,7 +10,7 @@ from pathlib import Path
 from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from context_layer import github_context as gh  # noqa: E402
+from paracortex import github_context as gh  # noqa: E402
 
 COMMIT = "b" * 40
 TEXT = "# Fictional project\nThe harbor keeper checks every lamp at dusk.\nA second line records the repair.\n"
@@ -171,7 +171,7 @@ class GitHubContextTests(unittest.TestCase):
 
     @unittest.skipUnless(os.name == "nt", "Windows junction boundary regression")
     def test_context_junction_to_external_config_is_rejected_without_network(self):
-        from context_layer import github_sources
+        from paracortex import github_sources
 
         outside = self.vault / "external-config"
         outside.mkdir()

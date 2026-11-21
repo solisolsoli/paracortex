@@ -1,6 +1,6 @@
 'use strict';
 
-// Contract test against traces written by the real context-layer writer:
+// Contract test against traces written by the real paracortex writer:
 // tests/fixtures/writer-trace-*.json were produced by
 // tests/fixtures/make_writer_traces.py (fictional dev vault, real CLI).
 // Run that script with --check to see whether the writer's format drifted.

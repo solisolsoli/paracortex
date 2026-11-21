@@ -46,7 +46,7 @@ def run(vault: Path, method: str, question: str, extra: list[str]) -> dict:
 
 def hook_text(packet: dict, method: str) -> str:
     sys.path.insert(0, str(REPO))
-    from context_layer import mcp_server
+    from paracortex import mcp_server
     context, _, _ = mcp_server.hook_context(packet, "fts" if method == "fts" else "synaptic")
     return context or ""
 
@@ -74,7 +74,7 @@ def evaluate(methods: list[str], extra: list[str], delivery: str | None = None,
         if paragraph:
             add_paragraph(vault)
         for step in (["init", str(vault)], ["index", str(vault)]):
-            subprocess.run([sys.executable, "-m", "context_layer.cli", *step], cwd=REPO,
+            subprocess.run([sys.executable, "-m", "paracortex.cli", *step], cwd=REPO,
                            capture_output=True, check=True)
         results: dict = {}
         for method in methods:

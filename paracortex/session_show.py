@@ -1,6 +1,6 @@
-"""context_layer.session_show - one agent session's bill of materials, joined read-only.
+"""paracortex.session_show - one agent session's bill of materials, joined read-only.
 
-`context-layer session show VAULT [SESSION_ID]` reads files that other components
+`paracortex session show VAULT [SESSION_ID]` reads files that other components
 already wrote and joins them on the session id. It writes nothing, calls no
 model and opens no network connection. Every row names the file and the line (or
 the record or task id) it came from; a source that is missing, torn or larger than
@@ -13,10 +13,10 @@ Sources (formats are owned by the modules named here; nothing is invented):
   memory records   `.context/memory/records.jsonl` (memory.py): records whose
                    `session` field is the id; never their text.
   session record  `.context/sessions/<id>.jsonl`, `session-bom/v1` (memory.py,
-                   written only while CONTEXT_LAYER_SESSION is set).
+                   written only while PARACORTEX_SESSION is set).
   task ledger      `.context/tasks/LEDGER.jsonl`, `context-layer-ledger/v1`
                    (orchestrate.py): lines whose `session` field is the id, i.e.
-                   the verdicts and memory records made while CONTEXT_LAYER_SESSION
+                   the verdicts and memory records made while PARACORTEX_SESSION
                    was set; joined to `.context/tasks/<task>/task.json` and
                    `result.json`, with the ledger attestation status that
                    `tasks list` computes.
@@ -29,7 +29,7 @@ Sources (formats are owned by the modules named here; nothing is invented):
 
 The two id spaces differ by design: the evidence ledger's session id comes from
 the host (CLAUDE_CODE_SESSION_ID or the hook input), the others from
-CONTEXT_LAYER_SESSION or `--session`. They join only when the same id was used.
+PARACORTEX_SESSION or `--session`. They join only when the same id was used.
 
 Python 3.10+; standard library only.
 """
@@ -511,7 +511,7 @@ def build(vault, session: str, limit: int = DEFAULT_LIMIT,
             or mem_rows or led_rows):
         raise ShowError(f"unknown session id {session!r}: no evidence ledger, session record, "
                         "memory record or task-ledger line carries it "
-                        "(`context-layer session list` shows the ids)")
+                        "(`paracortex session list` shows the ids)")
 
     delivered = {(r["path"], r["sha256"]) for r in ev_rows}
     have_ledger = ev_info["status"] != "missing"
@@ -757,7 +757,7 @@ def _positive(value: str) -> int:
 def _unexpected(args: argparse.Namespace, command: str) -> bool:
     extra = [token for token in getattr(args, "rest", []) or [] if token]
     if extra:
-        print(f"context-layer session {command}: unrecognised arguments: {' '.join(extra)}",
+        print(f"paracortex session {command}: unrecognised arguments: {' '.join(extra)}",
               file=sys.stderr)
         return True
     return False
@@ -772,19 +772,19 @@ def cmd_show(args: argparse.Namespace) -> int:
         if session is None:
             session, count = latest_session(args.vault, args.max_bytes)
             if session is None:
-                print("context-layer session show: no sessions found in this vault",
+                print("paracortex session show: no sessions found in this vault",
                       file=sys.stderr)
                 return 1
             chosen = f"no session id given: showing the most recent of {count} session(s)"
         elif not str(session).strip():
-            print("context-layer session show: the session id is empty", file=sys.stderr)
+            print("paracortex session show: the session id is empty", file=sys.stderr)
             return 2
         report = build(args.vault, session, args.limit, args.max_bytes)
     except ShowError as exc:
-        print(f"context-layer session show: {exc}", file=sys.stderr)
+        print(f"paracortex session show: {exc}", file=sys.stderr)
         return 1
     if chosen:
-        print(f"context-layer session show: {chosen}", file=sys.stderr)
+        print(f"paracortex session show: {chosen}", file=sys.stderr)
     if args.as_json:
         print(json.dumps(report, ensure_ascii=False, indent=2))
     else:
@@ -798,7 +798,7 @@ def cmd_list(args: argparse.Namespace) -> int:
     try:
         listing = list_sessions(args.vault, args.limit, args.max_bytes)
     except ShowError as exc:
-        print(f"context-layer session list: {exc}", file=sys.stderr)
+        print(f"paracortex session list: {exc}", file=sys.stderr)
         return 1
     if args.as_json:
         print(json.dumps(listing, ensure_ascii=False, indent=2))

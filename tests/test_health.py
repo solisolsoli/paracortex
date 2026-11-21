@@ -23,7 +23,7 @@ from _portable_helpers import sqlite_connection
 REPO = Path(os.environ.get("TEST_REPO_HOME", Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(REPO))
 
-from context_layer import health  # noqa: E402
+from paracortex import health  # noqa: E402
 
 HOOK = REPO / "retrieval-patches" / "hook-visible-error.example.sh"
 
@@ -79,7 +79,7 @@ class VaultFixture(unittest.TestCase):
         return result
 
     def cli(self, *argv):
-        return subprocess.run([sys.executable, "-m", "context_layer.cli", *argv],
+        return subprocess.run([sys.executable, "-m", "paracortex.cli", *argv],
                               cwd=REPO, capture_output=True, text=True, env=self.env())
 
     def index(self, *flags):
@@ -148,14 +148,14 @@ class StatusReport(VaultFixture):
         self.assertNotIn("canonical.md", [e["source_path"] for e in packet["evidence"]])
         self.assertEqual(packet["withheld"], [{"source_path": "canonical.md",
                                                "reason": "changed since indexing",
-                                               "next": "context-layer index <vault>"}])
+                                               "next": "paracortex index <vault>"}])
         self.assertNotIn(b"gamma", search.stdout)
 
         route = self.script("router/context_router.py", "--vault", str(self.vault),
                             "--prompt", "alpha marker", "--no-save", "--stdout")
         self.assertEqual(route.returncode, 1, route.stdout)
         self.assertIn(b"index_source_hash_mismatch", route.stdout)
-        self.assertIn(b"context-layer index <vault>", route.stdout)
+        self.assertIn(b"paracortex index <vault>", route.stdout)
         self.assertIn(b"Evidence packet withheld", route.stdout)
         self.assertNotIn(b"## Verbatim evidence", route.stdout)
         self.assertNotIn(b"gamma", route.stdout)
@@ -664,7 +664,7 @@ class HookVisibleError(unittest.TestCase):
 
     def test_missing_helper_is_reported_rather_than_swallowed(self):
         environment = dict(isolated_home_env(os.environ, self.temp.name),
-                           CONTEXT_HELPER="context-layer-helper-does-not-exist",
+                           CONTEXT_HELPER="paracortex-helper-does-not-exist",
                            CONTEXT_PYTHON=self._shell_path(sys.executable))
         result = subprocess.run([self.shell, str(HOOK)], capture_output=True, env=environment)
         self.assertEqual(result.returncode, 1)

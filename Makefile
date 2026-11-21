@@ -24,7 +24,7 @@ setup:  ## Create .venv and install this package in editable mode
 	$(BIN)/pip install -e .
 	@echo
 	@echo "Done. Activate with:  source $(VENV)/bin/activate"
-	@echo "Then:                 context-layer --help"
+	@echo "Then:                 paracortex --help"
 
 test:  ## Run all router, scanner, integrity, hardening and evaluation regressions
 	$(PYTHON) router/build_index.py --vault router/example-vault
@@ -69,19 +69,20 @@ test:  ## Run all router, scanner, integrity, hardening and evaluation regressio
 	$(PYTHON) tests/test_github_cache.py
 	$(PYTHON) tests/test_github_integration.py
 	$(PYTHON) tests/test_platform_support.py
+	$(PYTHON) tests/test_rename.py
 
 demo:  ## End-to-end: init + index + one packet, on a throwaway copy of the fixture vault
 	@rm -rf .demo-vault
 	@cp -R eval/fixtures/docs .demo-vault
-	$(PYTHON) -m context_layer.cli init .demo-vault
-	$(PYTHON) -m context_layer.cli index .demo-vault
-	$(PYTHON) -m context_layer.cli search .demo-vault \
+	$(PYTHON) -m paracortex.cli init .demo-vault
+	$(PYTHON) -m paracortex.cli index .demo-vault
+	$(PYTHON) -m paracortex.cli search .demo-vault \
 	  --prompt "What does the style guide say about summaries?"
 	@echo
 	@echo "Demo vault left at .demo-vault/ so you can inspect .context/routes.json."
 	@echo "Remove it with: make clean"
 
-LINT_PATHS = context_layer router eval tests scripts bench obsidian-plugin/build.py
+LINT_PATHS = paracortex context_layer router eval tests scripts bench obsidian-plugin/build.py
 
 lint:  ## Byte-compile every Python file and run pyflakes (required in CI, optional locally)
 	$(PYTHON) -m compileall -q $(LINT_PATHS)

@@ -62,7 +62,7 @@ ALLOWED_LETTERS = (
     ("CHANGELOG.md", "\u00df\u0130", "the case-folding fixes name their example words"),
     ("docs/cli.md", "\u00df\u0130", "the case-folding examples"),
     ("router/textfold.py", "\u00df\u0130", "comments naming the folded example words"),
-    ("context_layer/synapse.py", "\u0130", "a comment on the dotted capital I"),
+    ("paracortex/synapse.py", "\u0130", "a comment on the dotted capital I"),
     ("tests/test_harden.py", "\u0130", "the dotted capital I fixture"),
     ("tests/test_synapse.py", "\u00e9\u00ef\u0130", "byte-preservation and case-folding fixtures"),
     ("tests/test_boundaries.py", "\u00ef\u00e9", "a byte-preservation fixture"),
@@ -73,6 +73,11 @@ ALLOWED_LETTERS = (
      "\u00df\u00e9\u00ef\u0130\u038c\u0393\u039b\u039f\u03a3\u03b3\u03bf\u03c2\u03cc\u1e9e\u1f80"
      "\u3131\ufb01\uff21\uff26\uff4c\uff55\uff76",
      "tokenizer fixtures: ligatures, full-width forms, Greek, Hangul, dotted capital I"),
+)
+# Paths that exist only in earlier commits: 0.6 moved context_layer/ to paracortex/. The
+# history audit still reads those blobs; the tree check does not apply to these entries.
+RENAMED_LETTERS = (
+    ("context_layer/synapse.py", "\u0130", "a comment on the dotted capital I (before 0.6)"),
 )
 
 HOME_RE = re.compile(r"(?<![\w/])(?:/Users/|/home/|[A-Za-z]:\\+Users\\+)([A-Za-z0-9._-]+)")
@@ -127,7 +132,8 @@ def placeholder_domain(domain: str) -> bool:
 
 
 def allowed_letters(path: str) -> str:
-    return "".join(letters for pattern, letters, _ in ALLOWED_LETTERS if fnmatch.fnmatch(path, pattern))
+    return "".join(letters for pattern, letters, _ in ALLOWED_LETTERS + RENAMED_LETTERS
+                   if fnmatch.fnmatch(path, pattern))
 
 
 def mask(text: str) -> str:

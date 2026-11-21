@@ -1,4 +1,4 @@
-# Bounded sub-agent tasks (`context-layer tasks`)
+# Bounded sub-agent tasks (`paracortex tasks`)
 
 A task sends one goal and a bounded evidence packet to a local agent command,
 records what every attempt cost, and keeps the result **unverified** until a
@@ -57,7 +57,7 @@ rejected, 2 when the task is not pending.
 ## Spec
 
 ```
-context-layer tasks new VAULT --goal TEXT [--source GLOB]... [--output-dir REL]
+paracortex tasks new VAULT --goal TEXT [--source GLOB]... [--output-dir REL]
     [--backend fake|claude|codex|cmd] [--model M] [--max-turns N] [--max-cost-usd USD]
     [--host-context inherit|safe-mode|bare]
     [--max-attempts N] [--timeout S] [--cmd TEMPLATE]
@@ -103,7 +103,7 @@ The task id is a short UTC timestamp plus six hex characters, e.g.
 ## How the bounded context is built
 
 1. `eval/retrieve.py --method fts` runs against the vault index — the same
-   search `context-layer search` uses, with the same evidence contract
+   search `paracortex search` uses, with the same evidence contract
    (`source_path`, `source_sha256`, verbatim `content`).
 2. The first search fetches six candidates more than `top_k`. When `--source`
    limits the task and fewer than `top_k` of its own sources are in that
@@ -118,7 +118,7 @@ The task id is a short UTC timestamp plus six hex characters, e.g.
    is `dropped_outside_spec_total`).
 4. What survives is re-bounded to the task's `top_k`, `budget` and `per_source`
    and written to `packet.json`. A source that changed since indexing and that
-   the task could deliver refuses `new` (run `context-layer index` first).
+   the task could deliver refuses `new` (run `paracortex index` first).
 5. `prompt.txt` is the goal, the hard rules and that packet — nothing else. The
    rules state that the agent may write only under the allowed output
    directory (and may not replace it or put links in it), must cite
@@ -147,7 +147,7 @@ stdout. The expected output is one claude-style JSON object:
 
 | Backend | Command | Status |
 | --- | --- | --- |
-| `fake` | the script in `CONTEXT_LAYER_FAKE_BACKEND`, prompt on stdin, run in the task directory | **Verified by tests.** This is how `tests/test_tasks.py` drives every path. |
+| `fake` | the script in `PARACORTEX_FAKE_BACKEND`, prompt on stdin, run in the task directory | **Verified by tests.** This is how `tests/test_tasks.py` drives every path. |
 | `claude` | `claude -p "<fixed one-line instruction>" --output-format json [--model M] [--max-turns N] [--max-budget-usd X] --add-dir <out> --permission-mode acceptEdits --no-session-persistence --strict-mcp-config --settings '{"permissions":{"blockReadsOutsideWorkingDirectories":true}}' --disallowedTools WebFetch,WebSearch [--safe-mode \| --bare]`, with `prompt.txt` on stdin, run in a temporary workspace outside the vault | **Unverified here.** Every flag is in the public Claude Code documentation (CLI reference, headless, permissions and MCP pages, read 2026-09-28) except `--safe-mode`, which `claude --help` lists (2.1.282) but the CLI reference does not. `tests/test_tasks.py` checks the exact argv, the workspace, stdin and the output parsing against a shim named `claude`; no test runs a real `claude`. |
 | `codex` | `codex exec --sandbox workspace-write --skip-git-repo-check --json --ephemeral --add-dir <out> [--model M] -`, with `prompt.txt` on stdin, run in a temporary workspace outside the vault | **Unverified: never run here.** Written from the public Codex documentation (non-interactive mode and the CLI reference, read 2026-09-28): `exec` is read-only by default, needs a Git repository unless `--skip-git-repo-check`, reads the prompt from stdin with `-`, and `--json` prints JSON Lines whose `turn.completed` event carries the usage. The argv and the usage parsing are checked against a shim named `codex`. |
 | `cmd` | the user's `--cmd` template, with `{prompt_file}` and `{out_dir}` substituted, run in the task directory | Template handling and the missing-binary path are tested; the agent itself is whatever the user supplies. |
@@ -178,8 +178,8 @@ around the vault:
   - `--host-context safe-mode` adds `claude --safe-mode`, which `claude --help`
     lists but the CLI reference does not document; its effect is unverified.
 - `fake` and `cmd` children run in the task directory inside the vault.
-- Every child gets `CONTEXT_LAYER_OUT_DIR` (the output directory) and
-  `CONTEXT_LAYER_TASK_DIR` (its working directory) in its environment. The vault
+- Every child gets `PARACORTEX_OUT_DIR` (the output directory) and
+  `PARACORTEX_TASK_DIR` (its working directory) in its environment. The vault
   path is not exported by name, but it can be derived from those paths; hiding
   it is not a protection.
 - None of this is a sandbox (see Limits). An agent that runs shell commands as
@@ -203,8 +203,8 @@ Notes worth knowing before trusting a backend:
 
 ## Verification
 
-`context-layer tasks verify VAULT ID [--record]` (or `ID` alone with `--vault`
-or `CONTEXT_LAYER_VAULT`) rejects when:
+`paracortex tasks verify VAULT ID [--record]` (or `ID` alone with `--vault`
+or `PARACORTEX_VAULT`) rejects when:
 
 - the task definition changed after dispatch: `task.json`, `packet.json` or
   `prompt.txt` no longer matches the SHA-256 recorded in its dispatch pin, or
@@ -264,7 +264,7 @@ vault, without following links (a symlink, to a file or a directory, is
 recorded as its target), and diffs it. Excluded from the manifest is the tool's
 own derived state, which other commands rewrite while a task runs: the index
 and the link graph (`.context/index*`, `.context/graph.sqlite*`, rewritten by
-`context-layer index`), `.context-runs`, the activation trace, shared packets,
+`paracortex index`), `.context-runs`, the activation trace, shared packets,
 the memory store's lock, mirror and staging files, and the whole
 `.context/tasks/` area — the last as a whole, so tasks running side by side do
 not report each other's bookkeeping.
@@ -300,7 +300,7 @@ SHA-256 of the previous line's bytes). `verify` appends a `verify` line with the
 task id, the pin's definition hash, the packet id and the SHA-256 of
 `packet.json`, the produced files and their hashes, the SHA-256 of the handback
 check (job tasks) and of the problem list, the verdict, the tool and session
-(`CONTEXT_LAYER_TOOL`, `CONTEXT_LAYER_SESSION`) and the time.
+(`PARACORTEX_TOOL`, `PARACORTEX_SESSION`) and the time.
 `handback check --record` appends a `handback` line (evidence hash, seed,
 sampled ids, verdict); `verify --record` a `record` line.
 
@@ -309,7 +309,7 @@ sampled ids, verdict); `verify --record` a `record` line.
   latest line says otherwise, or when the chain is broken. A `result.json`
   rewritten by some other process (for example an agent's leftover child) shows
   up this way.
-- `context-layer tasks ledger VAULT [--replay] [--json]` checks the chain and
+- `paracortex tasks ledger VAULT [--replay] [--json]` checks the chain and
   prints the head. `--replay` recomputes each task's latest verdict from the
   current files and compares it (verdict, produced files, definition) with its
   ledger line; exit 1 when the chain is broken or a verdict no longer
@@ -335,12 +335,12 @@ impossible. To anchor it, keep the head hash somewhere the agent cannot rewrite
 - `--jobs N` runs up to N tasks at once in one process; their output
   directories cannot overlap (see "The output directory").
 - A runner updates its heartbeat about once a second during an attempt.
-- `context-layer tasks cancel VAULT ID` writes a `cancel` flag. A queued task is
+- `paracortex tasks cancel VAULT ID` writes a `cancel` flag. A queued task is
   claimed and becomes `cancelled` at once. For a running task, a live runner
   stops the child and records `cancelled`; if the runner is gone (killed), cancel
   stops the recorded child process group itself, counts the interrupted attempt
   and ends the task `cancelled` with the reason.
-- `context-layer tasks recover VAULT [ID...] [--json]` checks every queued or
+- `paracortex tasks recover VAULT [ID...] [--json]` checks every queued or
   running task that a runner claimed: a runner on this host that is no longer
   alive (`kill(pid, 0)`) has its child process group stopped (SIGTERM, then
   SIGKILL), its interrupted attempt counted from whatever its stdout holds, and
@@ -350,7 +350,7 @@ impossible. To anchor it, keep the head hash somewhere the agent cannot rewrite
 
 ## Cost accounting
 
-`context-layer tasks cost VAULT [ID] [--coordinator-usage FILE] [--json]` sums,
+`paracortex tasks cost VAULT [ID] [--coordinator-usage FILE] [--json]` sums,
 across **every attempt including retries**: input, output, cache-creation and
 cache-read tokens, the cost, and wall-clock seconds, per task and in total.
 

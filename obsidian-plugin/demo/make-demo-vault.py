@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Create a small fictional vault for trying Context Layer Brain View.
+"""Create a small fictional vault for trying Paracortex Brain View.
 
     python3 make-demo-vault.py DEMO_DIR [--notes 400] [--seed 7] [--no-trace]
 
 Writes Markdown notes with wikilinks and tags into DEMO_DIR (all names are
 generated), a sample `.context/activation.json` stamped with the current time
 so the overlay shows immediately, and installs nothing. The sample trace has
-the fields context-layer writes (status PARTIAL, mode superset). Open
+the fields paracortex writes (status PARTIAL, mode superset). Open
 DEMO_DIR as a vault in Obsidian, copy the plugin files into
-DEMO_DIR/.obsidian/plugins/context-layer-brain/, and enable the plugin.
+DEMO_DIR/.obsidian/plugins/paracortex-brain/, and enable the plugin.
 
 The target directory must be empty or a vault this script created before
 (it contains `.demo-vault`); anything else is refused.

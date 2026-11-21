@@ -137,7 +137,7 @@ class BoundaryTests(unittest.TestCase):
         for method in ('fts', 'synaptic', 'grep'):
             with self.subTest(method=method):
                 result = fixture.subprocess.run(
-                    [fixture.sys.executable, '-m', 'context_layer.cli', 'search', str(self.vault),
+                    [fixture.sys.executable, '-m', 'paracortex.cli', 'search', str(self.vault),
                      '--method', method, '--prompt', 'SECRET-SENTINEL'],
                     cwd=fixture.REPO, capture_output=True)
                 self.assertEqual(result.returncode, 1)

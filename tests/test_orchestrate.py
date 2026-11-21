@@ -20,7 +20,7 @@ from _portable_helpers import assert_private_path, isolated_home_env
 REPO = Path(os.environ.get("TEST_REPO_HOME", Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(REPO))
 
-from context_layer import mcp_server, orchestrate as orch  # noqa: E402
+from paracortex import mcp_server, orchestrate as orch  # noqa: E402
 
 FORM_FEED, LINE_SEP, PARA_SEP, NEXT_LINE = chr(12), chr(0x2028), chr(0x2029), chr(0x85)
 
@@ -58,7 +58,7 @@ def make_vault(root: Path, notes: dict, index: bool = True) -> Path:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(text.encode("utf-8"))
     if index:
-        done = subprocess.run([sys.executable, "-m", "context_layer.cli", "index", str(vault)],
+        done = subprocess.run([sys.executable, "-m", "paracortex.cli", "index", str(vault)],
                               cwd=REPO, capture_output=True, text=True,
                               env=isolated_home_env(os.environ, vault.parent))
         assert done.returncode == 0, done.stderr
@@ -73,7 +73,7 @@ class VaultCase(unittest.TestCase):
         self.vault = make_vault(Path(self.temp.name), NOTES)
 
     def cli(self, *argv):
-        return subprocess.run([sys.executable, "-m", "context_layer.cli", *argv], cwd=REPO,
+        return subprocess.run([sys.executable, "-m", "paracortex.cli", *argv], cwd=REPO,
                               capture_output=True, text=True,
                               env=isolated_home_env(os.environ, str(self.vault.parent)))
 
@@ -1004,7 +1004,7 @@ class Estimator(unittest.TestCase):
             orch.estimate(root_read=1, reread=1.5, price_ratio=0.2, startup=0, verify=0)
 
     def test_cli_prints_verdict_arithmetic_and_checklist(self):
-        done = subprocess.run([sys.executable, "-m", "context_layer.cli", "job", "estimate",
+        done = subprocess.run([sys.executable, "-m", "paracortex.cli", "job", "estimate",
                                "--root-read-tokens", "40000", "--reread-fraction", "0.9",
                                "--worker-price-ratio", "0.2", "--startup-tokens", "5000",
                                "--verify-tokens", "2000"], cwd=REPO, capture_output=True,
@@ -1108,7 +1108,7 @@ class NoAbsolutePaths(HandbackBase):
 WORKER = '''#!/usr/bin/env python3
 import json, os, pathlib, sys
 sys.stdin.read()
-out = pathlib.Path(os.environ["CONTEXT_LAYER_OUT_DIR"])
+out = pathlib.Path(os.environ["PARACORTEX_OUT_DIR"])
 out.mkdir(parents=True, exist_ok=True)
 records = json.loads(@RECORDS@)
 (out / "evidence.jsonl").write_text("".join(json.dumps(r) + "\\n" for r in records))
@@ -1136,8 +1136,8 @@ class TasksIntegration(HandbackBase):
         return str(script)
 
     def tasks(self, script, *argv):
-        env = dict(isolated_home_env(os.environ, str(self.vault.parent)), CONTEXT_LAYER_FAKE_BACKEND=script)
-        return subprocess.run([sys.executable, "-m", "context_layer.cli", "tasks", *argv],
+        env = dict(isolated_home_env(os.environ, str(self.vault.parent)), PARACORTEX_FAKE_BACKEND=script)
+        return subprocess.run([sys.executable, "-m", "paracortex.cli", "tasks", *argv],
                               cwd=REPO, capture_output=True, text=True, env=env)
 
     def dispatch(self, job_path, script):
@@ -1149,7 +1149,7 @@ class TasksIntegration(HandbackBase):
         return task_id, self.tasks(script, "verify", str(self.vault), task_id)
 
     def test_the_integration_is_wired(self):
-        from context_layer import tasks
+        from paracortex import tasks
         self.assertTrue(callable(getattr(tasks.orchestrate, "task_job", None)))
         self.assertTrue(callable(getattr(tasks.orchestrate, "task_handback", None)))
 

@@ -1,4 +1,4 @@
-"""context_layer.install — connect a host to the MCP server, and disconnect it again.
+"""paracortex.install — connect a host to the MCP server, and disconnect it again.
 
 Dry run is the default: every command prints a unified diff of what it would do
 and writes nothing. `--apply` writes, after copying the previous file to
@@ -38,7 +38,11 @@ if sys.version_info >= (3, 11):
 else:                                   # Python 3.10: a table-header scan instead
     tomllib = None
 
-SERVER_NAME = "context-layer"
+SERVER_NAME = "paracortex"
+# What 0.5 (Context Layer) wrote. install replaces these entries, uninstall removes them,
+# and only when they launch this tool (docs/RENAME.md).
+LEGACY_SERVER_NAME = "context-layer"
+LAUNCHER_WORDS = ("paracortex", "context-layer", "context_layer")
 HOSTS = ("claude-code", "codex", "generic")
 SCOPES = ("project", "local", "user")
 HOOK_EVENT = "UserPromptSubmit"
@@ -48,15 +52,18 @@ HOOK_EVENT = "UserPromptSubmit"
 # host's even if that default changes.
 HOOK_TIMEOUT_S = 30
 HOOK_METHODS = ("fts", "synaptic")
-START = "# >>> context-layer >>>"
-END = "# <<< context-layer <<<"
-CODEX_TABLE = "mcp_servers.context_layer"
+START = "# >>> paracortex >>>"
+END = "# <<< paracortex <<<"
+CODEX_TABLE = "mcp_servers.paracortex"
+LEGACY_START = "# >>> context-layer >>>"
+LEGACY_END = "# <<< context-layer <<<"
 # Codex's documented tool_timeout_sec default is 60 s (learn.chatgpt.com/docs/extend/mcp);
 # one search may take up to mcp_server.SEARCH_TIMEOUT (120 s), so the block allows more.
 CODEX_TOOL_TIMEOUT_S = 180
 UNVERIFIED = ("codex: expected but unverified: the file follows the Codex docs, but no Codex "
               "CLI ran on the reference machine")
-PLAN_MARKER = "context-layer.plan-default.json"
+PLAN_MARKER = "paracortex.plan-default.json"
+LEGACY_PLAN_MARKER = "context-layer.plan-default.json"
 RULES_EVENTS = {"SessionStart": "session-start", "Stop": "stop"}
 ATTRIBUTION_EVENT = "PostToolUse"
 ATTRIBUTION_MATCHER = "Write|Edit|MultiEdit|NotebookEdit"
@@ -99,7 +106,7 @@ class Change:
 def cli_argv(vault: Path, *tail: str) -> list[str]:
     """How a host launches us: the installed script if there is one, else this interpreter."""
     script = shutil.which(SERVER_NAME)
-    base = [script] if script else [sys.executable, "-m", "context_layer.cli"]
+    base = [script] if script else [sys.executable, "-m", "paracortex.cli"]
     return [*base, *tail, "--vault", str(vault)]
 
 
@@ -109,7 +116,7 @@ def launch_env() -> dict:
     PYTHONUTF8=1 always: a host may start the command under a non-UTF-8 locale, and
     UTF-8 mode makes the standard streams UTF-8 whatever the locale says (file I/O
     already names its encoding). Hosts also start the server from their own cwd, where
-    `-m context_layer.cli` only imports if the checkout root is on PYTHONPATH; an
+    `-m paracortex.cli` only imports if the checkout root is on PYTHONPATH; an
     installed console script needs no PYTHONPATH.
     """
     env = {}
@@ -218,12 +225,12 @@ def is_ours(command: str) -> bool:
     parsed = parse_powershell_hook(command)
     if parsed is not None:
         _env, argv = parsed
-        tail = _context_layer_tail(argv)
+        tail = _paracortex_tail(argv)
         return tail is not None and tail[:2] in (["hook", "claude-code"],
                                                  ["hook", "codex"])
     text = command
-    return ("hook claude-code" in text or "hook codex" in text) and (
-        "context-layer" in text or "context_layer" in text)
+    return ("hook claude-code" in text or "hook codex" in text) and any(
+        word in text for word in LAUNCHER_WORDS)
 
 
 def is_ours_rules(command: str) -> bool:
@@ -231,22 +238,22 @@ def is_ours_rules(command: str) -> bool:
     parsed = parse_powershell_hook(command)
     if parsed is not None:
         _env, argv = parsed
-        tail = _context_layer_tail(argv)
+        tail = _paracortex_tail(argv)
         return tail is not None and tail[:2] == ["rules", "hook"]
     text = command
-    return "rules hook " in text and ("context-layer" in text
-                                      or "context_layer" in text)
+    return "rules hook " in text and any(word in text for word in LAUNCHER_WORDS)
 
 
-def _context_layer_tail(argv: list[str]) -> list[str] | None:
-    """Return hook arguments only for this package's console or Python launcher."""
+def _paracortex_tail(argv: list[str]) -> list[str] | None:
+    """Return hook arguments only for this package's console or Python launcher (the 0.5
+    names `context-layer` and `-m context_layer.cli` included)."""
     if not argv:
         return None
     executable = argv[0].replace("\\", "/").rsplit("/", 1)[-1].lower()
-    if executable in ("context-layer", "context-layer.exe"):
+    if executable in ("paracortex", "paracortex.exe", "context-layer", "context-layer.exe"):
         return argv[1:]
     if (executable.startswith("python") and executable.endswith(".exe")
-            and argv[1:3] == ["-m", "context_layer.cli"]):
+            and argv[1:3] in (["-m", "paracortex.cli"], ["-m", "context_layer.cli"])):
         return argv[3:]
     return None
 
@@ -472,16 +479,38 @@ def emit(changes: list[Change], apply_now: bool, project: "Path | None" = None) 
 # Claude Code
 # ---------------------------------------------------------------------------
 
+def legacy_entry_is_ours(entry) -> bool:
+    """Is a 0.5 `context-layer` MCP entry one this tool wrote: does it launch
+    `context-layer mcp` or `python -m context_layer.cli mcp`? Anything else under that
+    name belongs to the user and is left alone."""
+    if not isinstance(entry, dict) or not isinstance(entry.get("command"), str):
+        return False
+    args = entry.get("args") or []
+    if not isinstance(args, list) or "mcp" not in args:
+        return False
+    return _paracortex_tail([entry["command"], *map(str, args)]) is not None or (
+        args[:2] == ["-m", "context_layer.cli"])
+
+
 def claude_mcp_change(project: Path, vault: Path, removing: bool,
                       session_evidence: bool = False) -> Change:
-    """The project-scoped MCP entry in <project>/.mcp.json; every other key is kept."""
+    """The project-scoped MCP entry in <project>/.mcp.json; every other key is kept.
+    A 0.5 `context-layer` entry this tool wrote is replaced (install) or removed
+    (uninstall), so the host never lists the same tools twice."""
     path = project / ".mcp.json"
     old, data = read_json(path)
     servers = data.get("mcpServers", {})
     if not isinstance(servers, dict):
         raise ValueError(f"{path}: mcpServers must be an object")
-    others = {name: entry for name, entry in servers.items() if name != SERVER_NAME}
+    legacy = legacy_entry_is_ours(servers.get(LEGACY_SERVER_NAME))
+    ours = {SERVER_NAME, LEGACY_SERVER_NAME} if legacy else {SERVER_NAME}
+    others = {name: entry for name, entry in servers.items() if name not in ours}
     servers = dict(servers)
+    if legacy:
+        servers.pop(LEGACY_SERVER_NAME)
+        print(f"note: {path}: the 0.5 entry `{LEGACY_SERVER_NAME}` is "
+              f"{'removed' if removing else f'replaced by `{SERVER_NAME}`'}",
+              file=sys.stderr)
     if removing:
         servers.pop(SERVER_NAME, None)
     else:
@@ -538,12 +567,15 @@ def strip_ours(data: dict, path: Path) -> dict:
 
 
 def plan_marker(project: Path) -> Path:
-    """Records that `install --plan-default` set defaultMode, so uninstall removes only that."""
-    return project / ".claude" / PLAN_MARKER
+    """Records that `install --plan-default` set defaultMode, so uninstall removes only that.
+    A marker 0.5 wrote under its own name is still the one in force, and is used in place."""
+    current = project / ".claude" / PLAN_MARKER
+    legacy = project / ".claude" / LEGACY_PLAN_MARKER
+    return legacy if legacy.is_file() and not current.is_file() else current
 
 
 def plan_marker_text(settings_name: str) -> str:
-    return render_json({"set_by": "context-layer install --plan-default",
+    return render_json({"set_by": "paracortex install --plan-default",
                         "key": "permissions.defaultMode", "value": "plan",
                         "file": settings_name})
 
@@ -655,6 +687,10 @@ def claude_cli_scope(vault: Path, removing: bool, apply_now: bool, scope: str, p
                      "--", *argv])
     claude = shutil.which("claude")
     where = str(project) if scope == "local" else None
+    # The host keeps this scope's servers in its own file, which this tool does not read;
+    # a 0.5 entry there is named, not removed (removing an absent one is an error).
+    print(f"note: if 0.5 added `{LEGACY_SERVER_NAME}` at {scope} scope, remove it as well: "
+          f"claude mcp remove --scope {scope} {LEGACY_SERVER_NAME}", file=sys.stderr)
     if apply_now and claude:
         print("+ " + shlex.join(command), file=sys.stderr)
         return subprocess.call([claude, *command[1:]], cwd=where)
@@ -693,7 +729,7 @@ def codex_block(vault: Path, session_evidence: bool = False) -> str:
     argv = cli_argv(vault, "mcp")
     args = ", ".join(toml_string(token) for token in argv[1:])
     lines = [START,
-             "# Written by context-layer. Only the lines between these markers are touched.",
+             "# Written by paracortex. Only the lines between these markers are touched.",
              f"[{CODEX_TABLE}]",
              f"command = {toml_string(argv[0])}",
              f"args = [{args}]",
@@ -715,7 +751,7 @@ def _dotted(key: str) -> str:
 
 def _declares_our_table(text: str) -> bool:
     """Header scan (Python 3.10, or a file tomllib cannot read): does the text declare
-    mcp_servers.context_layer as a table, a dotted key or a key of [mcp_servers]?"""
+    mcp_servers.paracortex as a table, a dotted key or a key of [mcp_servers]?"""
     table = ""
     for raw in text.splitlines():
         line = raw.split("#", 1)[0].strip()
@@ -749,19 +785,26 @@ def codex_change(vault: Path, removing: bool, session_evidence: bool = False) ->
     """Our marker block in $CODEX_HOME/config.toml; the rest of the file is copied through.
 
     Before writing, the result is checked: the file without our block must not already
-    declare [mcp_servers.context_layer] (`codex mcp add` writes that table), and file and
+    declare [mcp_servers.paracortex] (`codex mcp add` writes that table), and file and
     candidate must parse as TOML (3.11+). Either problem refuses, naming it; nothing is
-    written."""
+    written. A 0.5 block (`# >>> context-layer >>>`, table mcp_servers.context_layer) is
+    taken out too, so Codex never starts the server twice."""
     path = codex_home() / "config.toml"
     old = read_file(path)
     body = old or ""
-    start = body.find(START)
-    if start != -1:
-        end = body.find(END, start)
+    for start_mark, end_mark in ((START, END), (LEGACY_START, LEGACY_END)):
+        start = body.find(start_mark)
+        if start == -1:
+            continue
+        end = body.find(end_mark, start)
         if end == -1:
-            raise ValueError(f"{path}: {START} has no matching {END}; fix the file by hand")
+            raise ValueError(f"{path}: {start_mark} has no matching {end_mark}; fix the file "
+                             "by hand")
         line_end = body.find("\n", end)
         body = body[:start] + (body[line_end + 1:] if line_end != -1 else "")
+        if start_mark == LEGACY_START:
+            print(f"note: {path}: the 0.5 block {LEGACY_START} is "
+                  f"{'removed' if removing else 'replaced'}", file=sys.stderr)
     own = old is not None and not body.strip()
     if not removing:
         problem = toml_problem(body)
@@ -770,14 +813,14 @@ def codex_change(vault: Path, removing: bool, session_evidence: bool = False) ->
                              "Nothing was written")
         if _declares_our_table(body) or _parsed_has_table(body):
             raise ValueError(f"{path} already declares [{CODEX_TABLE}] outside the "
-                             "context-layer markers (for example from `codex mcp add`); remove "
+                             "paracortex markers (for example from `codex mcp add`); remove "
                              "that table, then re-run. Nothing was written")
         if body and not body.endswith("\n"):
             body += "\n"
         body += codex_block(vault, session_evidence)
         problem = toml_problem(body)
         if problem:
-            raise ValueError(f"{path} would not be valid TOML with the context-layer block "
+            raise ValueError(f"{path} would not be valid TOML with the paracortex block "
                              f"({problem}). Nothing was written")
     return Change(path, old, body or None, own)
 
@@ -790,7 +833,7 @@ def _parsed_has_table(text: str) -> bool:
     except tomllib.TOMLDecodeError:
         return False
     servers = data.get("mcp_servers")
-    return isinstance(servers, dict) and "context_layer" in servers
+    return isinstance(servers, dict) and "paracortex" in servers
 
 
 def codex_hooks_change(project: Path, vault: Path, removing: bool, prompt_hook: bool,
@@ -891,7 +934,7 @@ def print_config(host: str, vault: Path, project: Path, want_hook: bool,
 # ---------------------------------------------------------------------------
 
 def usage(label: str, message: str) -> int:
-    print(f"context-layer {label}: {message}", file=sys.stderr)
+    print(f"paracortex {label}: {message}", file=sys.stderr)
     return 2
 
 
@@ -921,7 +964,7 @@ def run(args: argparse.Namespace, removing: bool) -> int:
             return usage(label + " print", f"name a host: {' | '.join(HOSTS)}")
     vault = Path(args.vault).expanduser().resolve()
     if not vault.is_dir():
-        print(f"context-layer {label}: vault not found: {vault}", file=sys.stderr)
+        print(f"paracortex {label}: vault not found: {vault}", file=sys.stderr)
         return 1
     project = Path(args.project).expanduser().resolve() if args.project else vault
     method = getattr(args, "method", None)
@@ -1018,7 +1061,7 @@ def run(args: argparse.Namespace, removing: bool) -> int:
                       "changed hook runs only after you review it in /hooks", file=sys.stderr)
         return status
     except (OSError, ValueError) as exc:  # includes json.JSONDecodeError
-        print(f"context-layer {label}: {mcp_server.one_line(exc)}", file=sys.stderr)
+        print(f"paracortex {label}: {mcp_server.one_line(exc)}", file=sys.stderr)
         return 1
 
 
@@ -1035,7 +1078,7 @@ def register(sub: argparse._SubParsersAction) -> None:
     p_install = sub.add_parser(
         "install",
         help="Connect a host to this vault's MCP server (dry run unless --apply).",
-        description="Writes the host config that launches `context-layer mcp` over stdio. "
+        description="Writes the host config that launches `paracortex mcp` over stdio. "
                     "claude-code: <project>/.mcp.json, plus optional hooks in "
                     "<project>/.claude/settings.json (settings.local.json with --scope local). "
                     "codex: a marker block in $CODEX_HOME/config.toml (default ~/.codex), plus "
@@ -1049,7 +1092,7 @@ def register(sub: argparse._SubParsersAction) -> None:
     p_uninstall = sub.add_parser(
         "uninstall",
         help="Remove this tool's host config entries (dry run unless --apply).",
-        description="Removes only the context-layer MCP entry, hooks and marker block, "
+        description="Removes only the paracortex MCP entry, hooks and marker block, "
                     "backs up any file that also holds someone else's content, leaves a file "
                     "nothing else changed at its pre-install bytes, and removes a file or "
                     ".claude/ or .codex/ folder that held only this tool's entries.",
@@ -1105,7 +1148,7 @@ def register(sub: argparse._SubParsersAction) -> None:
                             help="Also install the rule-record hooks: SessionStart and Stop "
                                  "(claude-code, codex), and PostToolUse attribution when the "
                                  "rules module supports it (claude-code). See "
-                                 "`context-layer rules`.")
+                                 "`paracortex rules`.")
         parser.add_argument("--plan-default", action="store_true",
                             help="Also set permissions.defaultMode to \"plan\" in the "
                                  "project's Claude Code settings (claude-code).")

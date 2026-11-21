@@ -57,7 +57,7 @@ def run(*argv, cwd=REPO):
     home = tempfile.mkdtemp(prefix="cl-doc-claims-")
     try:
         env = dict(isolated_home_env(os.environ, home), PYTHONHASHSEED="0")
-        env.pop("CONTEXT_LAYER_HOME", None)
+        env.pop("PARACORTEX_HOME", None)
         done = subprocess.run([sys.executable, *argv], cwd=cwd, env=env, capture_output=True,
                               text=True, encoding="utf-8", timeout=600)
     finally:
@@ -480,15 +480,15 @@ class RepositoryRules(unittest.TestCase):
         recipe = section(read("Makefile"), "\ndemo:", "\nlint")
         source = re.search(r"cp -R (\S+) \.demo-vault", recipe).group(1)
         prompt = re.search(r'--prompt "([^"]+)"', recipe).group(1)
-        for step in ("context_layer.cli init .demo-vault", "context_layer.cli index .demo-vault",
-                     "context_layer.cli search .demo-vault"):
+        for step in ("paracortex.cli init .demo-vault", "paracortex.cli index .demo-vault",
+                     "paracortex.cli search .demo-vault"):
             self.assertIn(step, recipe)
         with tempfile.TemporaryDirectory() as tmp:
             vault = Path(tmp) / "demo-vault"
             shutil.copytree(REPO / source, vault)
-            run("-m", "context_layer.cli", "init", str(vault))
-            run("-m", "context_layer.cli", "index", str(vault))
-            packet = json.loads(run("-m", "context_layer.cli", "search", str(vault), "--prompt", prompt))
+            run("-m", "paracortex.cli", "init", str(vault))
+            run("-m", "paracortex.cli", "index", str(vault))
+            packet = json.loads(run("-m", "paracortex.cli", "search", str(vault), "--prompt", prompt))
             self.assertEqual((packet["operation_status"], packet["status"]), ("ok", "PARTIAL"))
             self.assertTrue(packet["evidence"])
             for item in packet["evidence"]:
@@ -500,8 +500,8 @@ class RepositoryRules(unittest.TestCase):
         help_text = run("eval/retrieve.py", "--help")
         flags = set(re.findall(r"(?<![\w-])(--[a-z][a-z0-9-]*)", help_text)) - {"--help", "--vault"}
         flags |= {"--prompt", "--method"}
-        table = section(read("eval/README.md"), "## Flags of `context-layer search`",
-                        "`context-layer eval` defines")
+        table = section(read("eval/README.md"), "## Flags of `paracortex search`",
+                        "`paracortex eval` defines")
         documented = set(re.findall(r"^\| `(--[a-z0-9-]+)", table, re.M))
         missing = sorted(flags - documented)
         self.assertEqual(missing, [], "add a row for each to the search flag table in eval/README.md")

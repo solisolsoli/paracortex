@@ -9,11 +9,11 @@ Nothing in this document installs, registers or promotes anything to a live
 host. The hook example at the end is a lab candidate for review, not a feature
 of this package.
 
-## `context-layer status <vault>`
+## `paracortex status <vault>`
 
 ```sh
-context-layer status /path/to/vault          # human report
-context-layer status /path/to/vault --json   # same facts, machine-readable
+paracortex status /path/to/vault          # human report
+paracortex status /path/to/vault --json   # same facts, machine-readable
 ```
 
 `status_summary(vault) -> dict` is the same report as an importable function,
@@ -108,11 +108,11 @@ extensions as `added`.
 ## Rebuild and rollback
 
 ```sh
-context-layer index /path/to/vault           # rebuild; keeps the replaced index
-context-layer status /path/to/vault          # confirm it is ok again
-context-layer rollback /path/to/vault --dry-run
-context-layer rollback /path/to/vault        # restore the previous index and link graph
-context-layer rollback /path/to/vault --index-only   # when the graph cannot move with it
+paracortex index /path/to/vault           # rebuild; keeps the replaced index
+paracortex status /path/to/vault          # confirm it is ok again
+paracortex rollback /path/to/vault --dry-run
+paracortex rollback /path/to/vault        # restore the previous index and link graph
+paracortex rollback /path/to/vault --index-only   # when the graph cannot move with it
 ```
 
 A successful build writes two extra plain files next to the index in
@@ -124,7 +124,7 @@ A successful build writes two extra plain files next to the index in
   deletable without this tool; `status` falls back to the index rows when it is
   absent, so an older index still works.
 - `index.sqlite.prev` and `index-manifest.json.prev` — the index and manifest
-  that this build replaced; `context-layer index` also keeps `graph.sqlite.prev`,
+  that this build replaced; `paracortex index` also keeps `graph.sqlite.prev`,
   the link graph that belongs with them.
 
 A build that fails writes neither: it stages into a temporary file and only
@@ -133,9 +133,9 @@ survive a failed rebuild untouched.
 
 ### Incremental update (the default) and `--full`
 
-`context-layer index` reads and hashes every in-scope file, as `status` does, and
+`paracortex index` reads and hashes every in-scope file, as `status` does, and
 then writes only what differs from the previous index: the notes whose bytes
-changed, that were added, or that are gone. `context-layer index --full` always
+changed, that were added, or that are gone. `paracortex index --full` always
 rebuilds everything from the sources. The update works on a copy of the previous
 index and publishes it exactly like a full build (FTS5 integrity check first,
 then an atomic replace, `.prev` kept), so an interrupted update leaves the old
@@ -199,7 +199,7 @@ not built from the `.prev` index (its notes or their hashes differ, as after two
 a graph of another build, and `--dry-run` refuses the same way.
 `rollback --index-only` then restores the index and its manifest alone and
 leaves the graph as it is; `status` reports it as another generation
-(`graph.matches_index: false`) until `context-layer index` rebuilds both. It is
+(`graph.matches_index: false`) until `paracortex index` rebuilds both. It is
 its own undo — the replaced index becomes the new `.prev` — and it refuses with
 an explicit message when there is no `.prev` to restore, which is the case for a
 vault that has only ever been indexed once. If the restored index predates
@@ -216,12 +216,12 @@ After a rollback the index is, by construction, older than the sources.
 ## Note names, aliases and headings (opt-in)
 
 By default a note is found only by its text (its frontmatter and headings are part of
-that text; its file name is not). `context-layer index <vault> --name-fields` also
+that text; its file name is not). `paracortex index <vault> --name-fields` also
 writes a second full-text table, `names_fts`, with one row per indexed file: the file
 name without its folder and extension, the `aliases:`/`alias:` values of a leading
 frontmatter block (an inline list, a scalar or a `- item` list; no other YAML is
 read), and the Markdown headings outside fenced code (at most 100 and 4,000
-characters per note). `context-layer search <vault> --prompt "..." --name-fields`
+characters per note). `paracortex search <vault> --prompt "..." --name-fields`
 (or `eval/retrieve.py --name-fields`) then fuses two rankings by reciprocal rank
 (k = 60): the usual content ranking and the notes whose name, aliases or headings
 match any query term, ordered by bm25 with column weights 10 (name), 8 (aliases)
@@ -250,7 +250,7 @@ in the note's text), so they show no gain. A dev-set result, not a benchmark cla
 
 ## What the index skips
 
-`context-layer index` (router/build_index.py) never fails and never goes silent
+`paracortex index` (router/build_index.py) never fails and never goes silent
 because of one file. A file in scope that it cannot index is skipped, printed
 and listed in `index-manifest.json` under `skipped`, with one reason:
 
@@ -295,14 +295,14 @@ emitted the retriever re-reads the source and compares:
   hook) leaves that one source out and lists it under `withheld` with
   `reason: "changed since indexing"` (or `"deleted since indexing"`,
   `"symlink since indexing"`, `"unreadable since indexing"`) and
-  `next: "context-layer index <vault>"`. The other hits are still delivered;
+  `next: "paracortex index <vault>"`. The other hits are still delivered;
   the status comes from what remains, so a packet whose only hit changed is
   `NOT_FOUND` with the reason attached. The symlink and vault-boundary checks
   run on each note just before it is read, and only on the notes read (at most
   `--top-k` for fts), so a symlink elsewhere in the vault no longer fails
   unrelated searches. See [cli.md](cli.md#withheld-sources).
 - `router/context_router.py` (experimental) raises
-  ``index_source_hash_mismatch: <path>; run `context-layer index <vault>` `` and
+  ``index_source_hash_mismatch: <path>; run `paracortex index <vault>` `` and
   prints `Evidence packet withheld; status: ERROR`, exit 1.
 
 Neither emits the new bytes. A packet that silently mixed a stale hash with

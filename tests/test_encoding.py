@@ -2,7 +2,7 @@
 """Runtime text I/O names its encoding (audit E-17).
 
 Every `open(...)`, `Path.read_text` and `Path.write_text` call in the runtime code
-(`context_layer/`, `router/` except its tests, `eval/`, `scripts/`) either opens the file
+(`paracortex/`, `router/` except its tests, `eval/`, `scripts/`) either opens the file
 in binary mode or passes `encoding=`. A call that relies on the locale encoding fails
 this test and is named, with its file and line. The scan is syntactic (`ast`), so it
 needs no locale, no vault and no network.
@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from router.textio import configure_stdout
 
 REPO = Path(__file__).resolve().parent.parent
-ROOTS = ("context_layer", "router", "eval", "scripts")
+ROOTS = ("paracortex", "router", "eval", "scripts")
 
 
 def is_test_file(path: Path) -> bool:

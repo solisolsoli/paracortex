@@ -2,7 +2,7 @@ include README.md LICENSE THIRD_PARTY.md Makefile QUICKSTART.md CONTRIBUTING.md 
 include SCOPE.md SECURITY.md CODE_OF_CONDUCT.md
 recursive-include discipline *.md
 recursive-include templates *.md *.json
-recursive-include context_layer/data *.md
+recursive-include paracortex/data *.md
 include CREDITS.md
 recursive-include docs *.md *.png
 recursive-include retrieval-patches *.patch *.md *.txt *.json *.sh

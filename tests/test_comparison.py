@@ -47,7 +47,7 @@ class ComparisonTests(unittest.TestCase):
         self.assertEqual(json.loads(run.stdout)['evidence'],[])
 
     def test_search_command_is_fts_by_default(self):
-        run=subprocess.run([sys.executable,'-m','context_layer.cli','search',str(self.vault),
+        run=subprocess.run([sys.executable,'-m','paracortex.cli','search',str(self.vault),
             '--prompt','alpha marker'],cwd=fixture.REPO,capture_output=True)
         self.assertEqual(run.returncode,0,run.stderr)
         self.assertEqual(json.loads(run.stdout),json.loads(self.adapter('fts').stdout))
@@ -78,7 +78,7 @@ class ComparisonTests(unittest.TestCase):
                 self.assertEqual(run.stdout,b'')
                 self.assertEqual(len(run.stderr.strip().splitlines()),1)
                 self.assertIn(says.encode(),run.stderr)
-        cli=subprocess.run([sys.executable,'-m','context_layer.cli','search',str(self.vault),'--method','fts',
+        cli=subprocess.run([sys.executable,'-m','paracortex.cli','search',str(self.vault),'--method','fts',
             '--budget-tokens','400','--compact','--prompt','alpha marker'],cwd=fixture.REPO,capture_output=True)
         self.assertEqual(cli.returncode,2)
         self.assertIn(b'--compact applies only to --method synaptic',cli.stderr)

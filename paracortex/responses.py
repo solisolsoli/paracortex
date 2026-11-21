@@ -98,10 +98,10 @@ def cmd_run(args: argparse.Namespace) -> int:
                      max_output_tokens=args.max_output_tokens, timeout=args.timeout,
                      web_search=args.web_search, send=args.send)
     except OSError:
-        print("context-layer responses: input_read_failed", file=sys.stderr)
+        print("paracortex responses: input_read_failed", file=sys.stderr)
         return 2
     except (InvalidResponseInput, responses_client.ResponsesError) as exc:
-        print(f"context-layer responses: {exc}", file=sys.stderr)
+        print(f"paracortex responses: {exc}", file=sys.stderr)
         return 2 if isinstance(exc, InvalidResponseInput) else 1
     print(json.dumps(result, ensure_ascii=True, separators=(",", ":")))
     return 0

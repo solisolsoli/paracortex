@@ -1,8 +1,9 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
-title: "Context Layer"
+title: "Paracortex"
 type: software
-version: "0.4.0"
+version: "0.6.0"
+repository-code: "https://github.com/solisolsoli/paracortex"
 license: MIT
 authors:
   - alias: "solisolsoli"

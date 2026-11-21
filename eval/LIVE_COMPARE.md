@@ -2,8 +2,8 @@
 
 `live_compare.py` runs a held-out question set against the same AI host three
 ways: with the host's own file tools on the vault (**baseline**), with no file
-tools and only the context-layer MCP tools (**candidate**), and with baseline's
-file tools plus the context-layer `UserPromptSubmit` hook (**hook**). It records
+tools and only the paracortex MCP tools (**candidate**), and with baseline's
+file tools plus the paracortex `UserPromptSubmit` hook (**hook**). It records
 what the host reported for each call and writes a report a person can check.
 
 The third arm exists because the first two do not separate *having* the evidence
@@ -28,10 +28,10 @@ never waits on a terminal.
 | | baseline | candidate | hook |
 |---|---|---|---|
 | Vault access | `--add-dir <vault>` | none | `--add-dir <vault>` |
-| Allowed tools | `Read,Grep,Glob` | `mcp__context-layer__search_vault,mcp__context-layer__read_source` | `Read,Grep,Glob` |
+| Allowed tools | `Read,Grep,Glob` | `mcp__paracortex__search_vault,mcp__paracortex__read_source` | `Read,Grep,Glob` |
 | Denied tools | `Bash,WebSearch,WebFetch,Edit,Write,Task` | `Read,Grep,Glob,Bash,WebSearch,WebFetch,Edit,Write,Task` | same as baseline |
 | MCP | `--strict-mcp-config` with no config: no servers | `--mcp-config <out>/mcp.json`, from `install.mcp_snippet(vault)` | none, same as baseline |
-| Context layer | not connected | called as tools, when the host chooses to | runs on every prompt, before the host answers |
+| Paracortex | not connected | called as tools, when the host chooses to | runs on every prompt, before the host answers |
 | Told to cite | the vault-relative path of every source used | `source_path` and `sha256` of every source used | the vault-relative path of every source used |
 | Told to abstain | exactly `NOT_FOUND` when the vault does not contain the answer | exactly `NOT_FOUND` when the tools return no evidence | exactly `NOT_FOUND` when the vault does not contain the answer |
 
@@ -49,7 +49,7 @@ vault copy for the duration of its own runs. Before each hook call the runner
 writes `<vault>/.claude/settings.json`:
 
 ```json
-{"hooks": {"UserPromptSubmit": [{"hooks": [<context_layer.install.hook_entry(vault)>]}]}}
+{"hooks": {"UserPromptSubmit": [{"hooks": [<paracortex.install.hook_entry(vault)>]}]}}
 ```
 
 If that file already exists, the group is appended to whatever

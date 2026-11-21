@@ -8,7 +8,7 @@ import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from context_layer import claim_checks
+from paracortex import claim_checks
 
 
 ROUTES = {"record_type_allowlist": ["verbatim_text_file"],

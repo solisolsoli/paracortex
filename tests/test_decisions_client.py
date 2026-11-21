@@ -10,7 +10,7 @@ from unittest.mock import patch
 import urllib.error
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from context_layer import decisions_client as client
+from paracortex import decisions_client as client
 
 
 PREDICATE = {"type": "predicate", "name": "useful", "instructions": "Would this public guide help?"}

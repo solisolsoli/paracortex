@@ -1,9 +1,9 @@
-"""context_layer.session_evidence - what context-layer delivered in one host session.
+"""paracortex.session_evidence - what paracortex delivered in one host session.
 
 The ledger (schema `session-evidence/v1`)
 -----------------------------------------
 `<vault>/.context/session-evidence/<session>.jsonl` holds one JSON object per
-evidence item that context-layer delivered to the host in that session:
+evidence item that paracortex delivered to the host in that session:
 
     {"path": "notes/release.md", "sha256": "<64 hex>", "packet_id": "<id or null>",
      "at": "2026-01-15T14:30:00Z"}
@@ -29,8 +29,8 @@ The citation check
 `check()` compares the citations in the host's final answer with the ledger:
 vault paths the answer names, and SHA-256 prefixes (8 to 64 hex) that it
 presents as hashes. It reports only what was cited but never delivered by
-context-layer in the session. It never blocks, never judges whether the answer
-is right, and never calls a model. The Stop hook (`context-layer rules hook
+paracortex in the session. It never blocks, never judges whether the answer
+is right, and never calls a model. The Stop hook (`paracortex rules hook
 stop --check-citations`) turns the result into one non-blocking line.
 
 The answer comes from the Stop input's `last_assistant_message`, which the
@@ -531,7 +531,7 @@ def message_line(result: dict) -> str | None:
     shown = ", ".join(named[:MAX_LISTED])
     if len(named) > MAX_LISTED:
         shown += f" and {len(named) - MAX_LISTED} more"
-    line = ("context-layer: cited in the last answer but not delivered by context-layer in "
+    line = ("paracortex: cited in the last answer but not delivered by paracortex in "
             f"this session: {shown}. Check them at the source before relying on them.")
     if not result["ledger_present"]:
         line += " (No delivery was recorded for this session.)"

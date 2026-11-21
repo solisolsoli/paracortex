@@ -1,14 +1,14 @@
 # Maintainer update and release checklist
 
 This checklist covers updates to the existing
-[Context Layer repository](https://github.com/solisolsoli/context-layer).
+[Paracortex repository](https://github.com/solisolsoli/paracortex).
 See [CONTRIBUTING.md](../CONTRIBUTING.md) for development and validation.
 Use the existing public history and `main` branch. Updating documentation or
 pushing a commit does not create a release, publish to PyPI, or authorize
 installation into anyone's live vault.
 
-The package and plugin versions are 0.5.0. The [0.5 changelog](../CHANGELOG.md#050)
-and [migration guide](migration-0.5.md) describe the candidate update; metadata
+The package and plugin versions are 0.6.0. The [0.6 changelog](../CHANGELOG.md#060)
+and [rename guide](RENAME.md) describe the candidate update; metadata
 alone does not establish a published release. Subsequent changes belong under
 [Unreleased](../CHANGELOG.md#unreleased). Do not move or recreate an existing tag.
 
@@ -46,7 +46,7 @@ python3 obsidian-plugin/build.py --check
 make plugin-test                       # Node 24
 make bench-check
 make dist                              # requires the Python build frontend
-python3 scripts/check_distribution.py dist/context_layer-*.whl
+python3 scripts/check_distribution.py dist/paracortex-*.whl
 ```
 
 Pin the build tools to the versions in the CI workflow. `make dist` replaces
@@ -140,7 +140,7 @@ change which runtime was measured. CI does not prove live-host behavior.
 
 After a new version is chosen and its release is authorized:
 
-1. Align `pyproject.toml`, `context_layer/__init__.py`, the plugin manifest and
+1. Align `pyproject.toml`, `paracortex/__init__.py`, the plugin manifest and
    the new changelog entry. Run the applicable full gate for that revision.
 2. Create a new version tag on the accepted commit. Never reuse an existing version tag for
    later work. Push only that named tag.

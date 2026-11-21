@@ -12,12 +12,12 @@ below use fictional coordinates: replace them with a public repository and
 documentation relevant to your project.
 
 ```sh
-context-layer github-sources add ~/MyVault --id project-docs \
+paracortex github-sources add ~/MyVault --id project-docs \
   --repo example/project --ref main --path README.md --path docs/setup.md \
   --keyword "project setup" --keyword "project protocol"
 # Review the result, then apply using its full resolved SHA as --ref.
 # Keep the same --id, --repo, --path and --keyword arguments.
-context-layer github-sources list ~/MyVault
+paracortex github-sources list ~/MyVault
 ```
 
 `add` resolves a branch, tag or commit through GitHub's public API and records a
@@ -57,9 +57,9 @@ Set `enabled` to `false`, or remove the file, to disable fetching. Existing
 vaults and host settings are not changed by installing this release.
 
 ```sh
-context-layer github-sources disable ~/MyVault --apply
-context-layer github-sources enable ~/MyVault --apply
-context-layer github-sources remove ~/MyVault --id project-docs --apply
+paracortex github-sources disable ~/MyVault --apply
+paracortex github-sources enable ~/MyVault --apply
+paracortex github-sources remove ~/MyVault --id project-docs --apply
 ```
 
 Omit `--apply` to preview any of these changes. `list` is read-only.
@@ -71,10 +71,10 @@ instead of `~`, quote paths, and keep each command on one line; see the
 
 ```sh
 # Local retrieval first. Only a clean, empty NOT_FOUND can trigger GitHub.
-context-layer search ~/MyVault --prompt "project setup" --github
+paracortex search ~/MyVault --prompt "project setup" --github
 
 # The host can also identify a semantic gap in otherwise nonempty local results.
-context-layer github-context ~/MyVault --prompt "project setup" --source project-docs
+paracortex github-context ~/MyVault --prompt "project setup" --source project-docs
 ```
 
 `--no-github` overrides `--github`. Without `--github`, local search remains
@@ -114,15 +114,15 @@ at `.context/github-cache.json.bak`. Files are keyed by repository, commit
 and path, so changing a pin cannot reuse an older version's evidence.
 
 ```sh
-context-layer github-cache enable ~/MyVault           # preview
-context-layer github-cache enable ~/MyVault --apply
-context-layer github-cache status ~/MyVault
-context-layer github-context ~/MyVault --prompt "project setup" --source project-docs
-context-layer github-context ~/MyVault --prompt "project setup" --source project-docs --offline
-context-layer github-context ~/MyVault --prompt "project setup" --source project-docs --refresh
-context-layer github-cache disable ~/MyVault --apply
-context-layer github-cache purge ~/MyVault           # preview
-context-layer github-cache purge ~/MyVault --apply
+paracortex github-cache enable ~/MyVault           # preview
+paracortex github-cache enable ~/MyVault --apply
+paracortex github-cache status ~/MyVault
+paracortex github-context ~/MyVault --prompt "project setup" --source project-docs
+paracortex github-context ~/MyVault --prompt "project setup" --source project-docs --offline
+paracortex github-context ~/MyVault --prompt "project setup" --source project-docs --refresh
+paracortex github-cache disable ~/MyVault --apply
+paracortex github-cache purge ~/MyVault           # preview
+paracortex github-cache purge ~/MyVault --apply
 ```
 
 Normal retrieval uses an existing cache entry or fetches and caches a missing
@@ -144,9 +144,9 @@ state is excluded from version control and ordinary local evidence indexing.
 ## Review a newer source version
 
 ```sh
-context-layer github-sources check ~/MyVault --id project-docs --ref main
+paracortex github-sources check ~/MyVault --id project-docs --ref main
 # Use the branch/tag you intend to follow, especially if add used a pinned SHA.
-context-layer github-sources update ~/MyVault --id project-docs \
+paracortex github-sources update ~/MyVault --id project-docs \
   --expected-commit 1111111111111111111111111111111111111111 \
   --commit 2222222222222222222222222222222222222222
 # Repeat the update with --apply only after reviewing the actual SHA and diff.
@@ -177,20 +177,20 @@ All commands are single lines, so no POSIX line-continuation syntax is needed.
 
 ```powershell
 $contextVault = Join-Path $env:USERPROFILE "MyVault"
-context-layer github-sources add "$contextVault" --id project-docs --repo example/project --ref main --path README.md --keyword "project setup"
+paracortex github-sources add "$contextVault" --id project-docs --repo example/project --ref main --path README.md --keyword "project setup"
 # Copy the resolved full SHA from the preview before applying.
 $reviewedCommit = "1111111111111111111111111111111111111111"
-context-layer github-sources add "$contextVault" --id project-docs --repo example/project --ref $reviewedCommit --path README.md --keyword "project setup" --apply
-context-layer github-sources list "$contextVault"
-context-layer github-cache enable "$contextVault"
-context-layer github-cache enable "$contextVault" --apply
-context-layer github-context "$contextVault" --prompt "project setup" --source project-docs
-context-layer github-context "$contextVault" --prompt "project setup" --source project-docs --offline
-context-layer github-sources check "$contextVault" --id project-docs --ref main
+paracortex github-sources add "$contextVault" --id project-docs --repo example/project --ref $reviewedCommit --path README.md --keyword "project setup" --apply
+paracortex github-sources list "$contextVault"
+paracortex github-cache enable "$contextVault"
+paracortex github-cache enable "$contextVault" --apply
+paracortex github-context "$contextVault" --prompt "project setup" --source project-docs
+paracortex github-context "$contextVault" --prompt "project setup" --source project-docs --offline
+paracortex github-sources check "$contextVault" --id project-docs --ref main
 # Use the reviewed new SHA from check; preview before adding --apply.
 $newCommit = "2222222222222222222222222222222222222222"
-context-layer github-sources update "$contextVault" --id project-docs --expected-commit $reviewedCommit --commit $newCommit
-context-layer github-sources update "$contextVault" --id project-docs --expected-commit $reviewedCommit --commit $newCommit --apply
+paracortex github-sources update "$contextVault" --id project-docs --expected-commit $reviewedCommit --commit $newCommit
+paracortex github-sources update "$contextVault" --id project-docs --expected-commit $reviewedCommit --commit $newCommit --apply
 ```
 
 The [CLI host setup](host-integration.md) is needed only for automatic host

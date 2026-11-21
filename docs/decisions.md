@@ -1,6 +1,6 @@
 # Manual Decisions API assessment
 
-`context-layer decisions assess` is an optional, manual call for **public or
+`paracortex decisions assess` is an optional, manual call for **public or
 synthetic text**. It is separate from vault search, MCP, the prompt hook, memory
 records and live Beyin. It does not read a vault, choose sources, write memory,
 or change a retrieval packet. Importing the transport makes no network call.
@@ -22,7 +22,7 @@ with a fictional public guide:
 ```
 
 ```sh
-context-layer decisions assess --task relevance --data-scope public --input example.json
+paracortex decisions assess --task relevance --data-scope public --input example.json
 ```
 
 The default is a local preview: it reports the model, question name, input
@@ -31,7 +31,7 @@ After checking that **every field** is public or synthetic, set
 `OPENAI_API_KEY` in your environment and add `--send`:
 
 ```sh
-context-layer decisions assess --task relevance --data-scope public --input example.json --send
+paracortex decisions assess --task relevance --data-scope public --input example.json --send
 ```
 
 `--data-scope` is a caller assertion, not an automatic privacy detector. Do not

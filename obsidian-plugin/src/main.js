@@ -17,7 +17,7 @@ const Regions = require('./regions');
 const LAYOUT_VERSION = 2;
 const PERSIST_DELAY_MS = 3000;
 
-class ContextLayerBrainPlugin extends Plugin {
+class ParacortexBrainPlugin extends Plugin {
   async onload() {
     let data = null;
     try { data = await this.loadData(); } catch (_) { data = null; }
@@ -28,14 +28,14 @@ class ContextLayerBrainPlugin extends Plugin {
     this.dismissedKey = null;
 
     this.registerView(VIEW_TYPE, leaf => new BrainView(leaf, this));
-    this.addRibbonIcon('brain', 'Open Context Layer Brain View', () => { this.activateView(); });
+    this.addRibbonIcon('brain', 'Open Paracortex Brain View', () => { this.activateView(); });
     this.addCommand({ id: 'open-view', name: 'Open view', callback: () => { this.activateView(); } });
     this.addCommand({ id: 'focus-last-retrieval', name: 'Focus last retrieval', callback: () => { this.withView(view => view.focusLastRetrieval(), { open: true, reveal: true }); } });
     this.addCommand({ id: 'clear-activation', name: 'Clear activation', callback: () => { this.withView(view => view.clearActivation(), { open: false, reveal: false }); } });
     this.addSettingTab(new BrainSettingTab(this.app, this));
 
     if (this.settings.openOnStartup) {
-      this.app.workspace.onLayoutReady(() => { this.activateView().catch(err => console.error('[context-layer-brain] open on startup', err)); });
+      this.app.workspace.onLayoutReady(() => { this.activateView().catch(err => console.error('[paracortex-brain] open on startup', err)); });
     }
   }
 
@@ -71,10 +71,10 @@ class ContextLayerBrainPlugin extends Plugin {
       if (leaf && reveal) await workspace.revealLeaf(leaf);
       else if (leaf && !(leaf.view instanceof BrainView) && typeof leaf.loadIfDeferred === 'function') await leaf.loadIfDeferred();
       const view = leaf && leaf.view;
-      if (!(view instanceof BrainView)) { if (!open) new Notice('Context Layer Brain View is not open.'); return; }
+      if (!(view instanceof BrainView)) { if (!open) new Notice('Paracortex Brain View is not open.'); return; }
       await view.ready;
       await fn(view);
-    } catch (err) { console.error('[context-layer-brain] command failed', err); }
+    } catch (err) { console.error('[paracortex-brain] command failed', err); }
   }
 
   async saveSettings() {
@@ -119,5 +119,5 @@ class ContextLayerBrainPlugin extends Plugin {
   }
 }
 
-module.exports = ContextLayerBrainPlugin;
-module.exports.default = ContextLayerBrainPlugin;
+module.exports = ParacortexBrainPlugin;
+module.exports.default = ParacortexBrainPlugin;

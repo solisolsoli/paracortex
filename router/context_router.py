@@ -859,13 +859,13 @@ def materialize_candidate(
     raw = absolute.read_bytes()
     current_sha = sha256_bytes(raw)
     if not candidate.source_sha256 or current_sha != candidate.source_sha256:
-        raise EvidenceError(f"index_source_hash_mismatch: {candidate.source_path}; run `context-layer index <vault>`")
+        raise EvidenceError(f"index_source_hash_mismatch: {candidate.source_path}; run `paracortex index <vault>`")
     if sha256_bytes(candidate.content.encode("utf-8")) != candidate.content_sha256:
         raise EvidenceError(f"indexed_content_hash_mismatch: {candidate.source_path}")
     source_state = "verified"
     text = raw.decode("utf-8") if absolute.suffix.lower() in TEXT_EXTENSIONS else ""
     if candidate.record_type == "verbatim_text_file" and candidate.content not in text:
-        raise EvidenceError(f"indexed_content_not_in_source: {candidate.source_path}; run `context-layer index <vault>`")
+        raise EvidenceError(f"indexed_content_not_in_source: {candidate.source_path}; run `paracortex index <vault>`")
 
     if candidate.record_type == "conversation_message":
         # Already the full visible message body.
@@ -1551,7 +1551,7 @@ def run(args: argparse.Namespace, resources: ExitStack) -> int:
     config = load_config(config_path, required=True)
     if not database.is_file():
         raise FileNotFoundError(f"Index not found ({database.name}); run "
-                                "`context-layer index <vault>` first")
+                                "`paracortex index <vault>` first")
     if not isinstance(config.get("routes"), dict):
         raise ValueError("Config requires a routes object")
     for name in ("max_sources", "max_per_source"):

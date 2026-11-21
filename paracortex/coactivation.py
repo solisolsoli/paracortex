@@ -1,4 +1,4 @@
-"""context_layer.coactivation - a usage ledger of notes delivered together, and the link
+"""paracortex.coactivation - a usage ledger of notes delivered together, and the link
 suggestions a person can read from it.
 
 Opt-in and one-way. With `"record_usage": true` in `.context/routes.json`, every fts or
@@ -227,7 +227,7 @@ def suggest(vault, min_count: int = MIN_COUNT, limit: int = SUGGEST_LIMIT) -> di
     except graphs.GraphUnreadable as exc:
         raise ValueError(str(exc)) from None
     if link_graph is None:
-        raise ValueError("no link graph (.context/graph.sqlite); run `context-layer index "
+        raise ValueError("no link graph (.context/graph.sqlite); run `paracortex index "
                          "<vault>` to build it")
     min_count, limit = max(1, int(min_count)), max(1, int(limit))
     ledger = read_ledger(root)
@@ -324,27 +324,27 @@ def render(report: dict) -> str:
         lines.append("  ... more pairs; raise --limit to list them.")
     lines.append("")
     lines.append("A frequently delivered note pairs with many others: check the two totals before "
-                 "adding a link. Add links by hand; run `context-layer index` afterwards.")
+                 "adding a link. Add links by hand; run `paracortex index` afterwards.")
     return "\n".join(lines)
 
 
 def cmd_suggest(args) -> int:
     if getattr(args, "rest", None):
-        print(f"context-layer graph suggest: unrecognised arguments: {' '.join(args.rest)}",
+        print(f"paracortex graph suggest: unrecognised arguments: {' '.join(args.rest)}",
               file=sys.stderr)
         return 2
     vault = Path(args.vault).expanduser()
     if not vault.is_dir():
-        print(f"context-layer graph suggest: vault not found: {args.vault}", file=sys.stderr)
+        print(f"paracortex graph suggest: vault not found: {args.vault}", file=sys.stderr)
         return 1
     if args.min_count < 1 or args.limit < 1:
-        print("context-layer graph suggest: --min-count and --limit must be at least 1",
+        print("paracortex graph suggest: --min-count and --limit must be at least 1",
               file=sys.stderr)
         return 2
     try:
         report = suggest(vault, args.min_count, args.limit)
     except ValueError as exc:
-        print(f"context-layer graph suggest: {exc}", file=sys.stderr)
+        print(f"paracortex graph suggest: {exc}", file=sys.stderr)
         return 1
     print(json.dumps(report, ensure_ascii=False, indent=1) if args.as_json else render(report))
     return 0

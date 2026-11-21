@@ -107,7 +107,7 @@ class BrainSettingTab extends PluginSettingTab {
     new Setting(containerEl).setName('Retrieval activation').setHeading();
 
     new Setting(containerEl).setName('Show activation overlay')
-      .setDesc('Highlight the notes and links used by the last context-layer synaptic retrieval.')
+      .setDesc('Highlight the notes and links used by the last paracortex synaptic retrieval.')
       .addToggle(t => t.setValue(s.activationOverlay).onChange(v => save('activationOverlay', v)));
 
     new Setting(containerEl).setName('Activation file')

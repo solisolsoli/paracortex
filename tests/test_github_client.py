@@ -9,7 +9,7 @@ import urllib.error
 
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from context_layer import github_client  # noqa: E402
+from paracortex import github_client  # noqa: E402
 
 COMMIT = "a" * 40
 BODY = b"# Project\nA fictional keeper checks every lamp at dusk.\n"

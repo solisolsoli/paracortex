@@ -1,6 +1,6 @@
 'use strict';
 
-// Reads the activation trace that `context-layer` writes after a synaptic
+// Reads the activation trace that `paracortex` writes after a synaptic
 // retrieval (<vault>/.context/activation.json, format version 1) and turns it
 // into display state for the overlay. Everything here is defensive: a
 // missing, partial, oversized, stale or malformed file is ignored without

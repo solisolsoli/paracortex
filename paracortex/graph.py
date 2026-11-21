@@ -1,6 +1,6 @@
-"""context_layer.graph — the vault's explicit link graph, source-anchored.
+"""paracortex.graph — the vault's explicit link graph, source-anchored.
 
-Built at `context-layer index` time, after the lexical index, from the notes
+Built at `paracortex index` time, after the lexical index, from the notes
 that index covers. Every edge records its kind, its source and target note, the
 1-based line it sits on and the SHA-256 of the source file at extraction, so a
 retrieval can tell whether the edge still describes the bytes on disk.
@@ -24,7 +24,7 @@ docs/synapse.md §1 lists them with their sources.
 
 Line numbers count "\\n" only, as editors and `grep -n` do. The graph lives in
 `<vault>/.context/graph.sqlite` and is rebuilt atomically (staging file +
-os.replace). `context-layer graph health` reports on it, read-only.
+os.replace). `paracortex graph health` reports on it, read-only.
 
 Python 3.10+; standard library only.
 """
@@ -60,8 +60,8 @@ NOTE_SUFFIX = ".md"
 LINK_REASONS = ("missing", "ambiguous", "not_indexed", "attachment", "excluded")
 UNREACHED = ("missing", "ambiguous", "not_indexed")
 UNREADABLE = ("the link graph (.context/graph.sqlite) cannot be read; rebuild it with "
-              "`context-layer index <vault>`")
-REBUILD = "run `context-layer index <vault>`"
+              "`paracortex index <vault>`")
+REBUILD = "run `paracortex index <vault>`"
 
 SCHEMA = """
 CREATE TABLE notes (
@@ -869,7 +869,7 @@ def _skipped_line(skipped: dict[str, str], excluded_notes: int) -> str | None:
                        "them as they are")
     if excluded_notes:
         parts.append(f"left out {excluded_notes} indexed note(s) that routes.json now excludes")
-    return "context-layer index: link graph " + "; ".join(parts)
+    return "paracortex index: link graph " + "; ".join(parts)
 
 
 # The parse of a note depends only on its bytes and on this module's code, so the
@@ -1525,7 +1525,7 @@ def open_graph(vault: Path) -> Graph | None:
 
 
 # ---------------------------------------------------------------------------
-# Health (read-only report; `context-layer graph health`)
+# Health (read-only report; `paracortex graph health`)
 # ---------------------------------------------------------------------------
 
 HEALTH_LIMIT = 50
@@ -1589,7 +1589,7 @@ def health(vault: Path, limit: int = HEALTH_LIMIT) -> dict:
     prefixes = exclude_prefixes(vault)
     graph = open_graph(vault)
     if graph is None:
-        raise ValueError("no link graph (.context/graph.sqlite); run `context-layer index "
+        raise ValueError("no link graph (.context/graph.sqlite); run `paracortex index "
                          "<vault>` to build it")
     limit = max(1, limit)
     truncated = False
@@ -1772,17 +1772,17 @@ def render_health(report: dict) -> str:
 
 def cmd_health(args: argparse.Namespace) -> int:
     if getattr(args, "rest", None):
-        print(f"context-layer graph health: unrecognised arguments: {' '.join(args.rest)}",
+        print(f"paracortex graph health: unrecognised arguments: {' '.join(args.rest)}",
               file=sys.stderr)
         return 2
     vault = Path(args.vault).expanduser()
     if not vault.is_dir():
-        print(f"context-layer graph health: vault not found: {args.vault}", file=sys.stderr)
+        print(f"paracortex graph health: vault not found: {args.vault}", file=sys.stderr)
         return 1
     try:
         report = health(vault, args.limit)
     except ValueError as exc:
-        print(f"context-layer graph health: {exc}", file=sys.stderr)
+        print(f"paracortex graph health: {exc}", file=sys.stderr)
         return 1
     if args.as_json:
         print(json.dumps(report, ensure_ascii=False, indent=1))
@@ -1796,7 +1796,7 @@ def register(sub: argparse._SubParsersAction) -> None:
     parser = sub.add_parser(
         "graph", help="Inspect the vault's link graph (read-only).",
         description="Reports on <vault>/.context/graph.sqlite, the explicit-link graph "
-                    "`context-layer index` builds. Nothing is written.")
+                    "`paracortex index` builds. Nothing is written.")
     inner = parser.add_subparsers(dest="graph_command", required=True)
     p_health = inner.add_parser(
         "health", help="Orphans, broken and ambiguous links, links into excluded paths, "

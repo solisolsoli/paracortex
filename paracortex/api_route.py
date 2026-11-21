@@ -1,4 +1,4 @@
-"""Offline routing suggestions for bounded Context Layer API work.
+"""Offline routing suggestions for bounded Paracortex API work.
 
 This planner never receives task text, reads a vault, loads credentials, calls an
 API, starts a process, or authorizes an action. A route is only a suggestion.
@@ -59,7 +59,7 @@ def plan(need: str, data_scope: str, model: str | None = None) -> dict:
             "reason": "local_need_requested",
             "endpoint_kind": "local_retrieval",
             "next_cli_argv_template": [
-                "context-layer", "search", "<VAULT>", "--prompt", "<QUERY>"
+                "paracortex", "search", "<VAULT>", "--prompt", "<QUERY>"
             ],
         }
     if data_scope == "private":
@@ -73,7 +73,7 @@ def plan(need: str, data_scope: str, model: str | None = None) -> dict:
             "reason": "fixed_advisory_evaluation_task",
             "endpoint_kind": "decisions_api",
             "next_cli_argv_template": [
-                "context-layer", "decisions", "assess", "--task", task,
+                "paracortex", "decisions", "assess", "--task", task,
                 "--data-scope", scope, "--input", "<JSON_FILE>",
             ],
             "send_requires_explicit_flag": True,
@@ -89,7 +89,7 @@ def plan(need: str, data_scope: str, model: str | None = None) -> dict:
             "model": model,
             "send_requires_explicit_flag": True,
             "next_cli_argv_template": [
-                "context-layer", "responses", "run", "--input-file", "<INPUT_FILE>",
+                "paracortex", "responses", "run", "--input-file", "<INPUT_FILE>",
                 "--data-scope", data_scope, "--model", model,
             ],
         }
@@ -100,7 +100,7 @@ def cmd_plan(args: argparse.Namespace) -> int:
     try:
         result = plan(args.need, args.data_scope, args.model)
     except RouteInputError as exc:
-        print(f"context-layer api plan: {exc}", file=sys.stderr)
+        print(f"paracortex api plan: {exc}", file=sys.stderr)
         return 2
     print(json.dumps(result, ensure_ascii=False, separators=(",", ":")))
     return 0

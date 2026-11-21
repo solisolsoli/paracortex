@@ -5,7 +5,7 @@ MIT copyright Avenox. The exact upstream notice is in [LICENSE.upstream.txt](LIC
 MIT is a licence, not an absence of copyright: the diff hunks carry verbatim
 upstream context lines, so that notice travels with them. The full component
 inventory is in [THIRD_PARTY.md](../THIRD_PARTY.md).
-They are optional reference patches; installing context-layer applies none of them.
+They are optional reference patches; installing paracortex applies none of them.
 
 ## Pinned source
 
@@ -23,10 +23,10 @@ Copy that exact engine to a disposable directory as `beyin_v3.py`; retain the
 upstream license. From that directory, with patch paths made absolute:
 
 ```sh
-patch --dry-run -p1 < /path/to/context-layer/retrieval-patches/01-ranking.patch
-patch -p1 < /path/to/context-layer/retrieval-patches/01-ranking.patch
-patch -p1 < /path/to/context-layer/retrieval-patches/02-cache.patch
-patch -p1 < /path/to/context-layer/retrieval-patches/03-strict-source-hash.patch
+patch --dry-run -p1 < /path/to/paracortex/retrieval-patches/01-ranking.patch
+patch -p1 < /path/to/paracortex/retrieval-patches/01-ranking.patch
+patch -p1 < /path/to/paracortex/retrieval-patches/02-cache.patch
+patch -p1 < /path/to/paracortex/retrieval-patches/03-strict-source-hash.patch
 python3 -m py_compile beyin_v3.py
 ```
 
@@ -48,9 +48,9 @@ own independent adoption gate passes. No host hooks are installed here.
 ## Roll back
 
 ```sh
-patch -R -p1 < /path/to/context-layer/retrieval-patches/03-strict-source-hash.patch
-patch -R -p1 < /path/to/context-layer/retrieval-patches/02-cache.patch
-patch -R -p1 < /path/to/context-layer/retrieval-patches/01-ranking.patch
+patch -R -p1 < /path/to/paracortex/retrieval-patches/03-strict-source-hash.patch
+patch -R -p1 < /path/to/paracortex/retrieval-patches/02-cache.patch
+patch -R -p1 < /path/to/paracortex/retrieval-patches/01-ranking.patch
 ```
 
 The final engine must match the original SHA-256 in compatibility.json. Test the
@@ -75,7 +75,7 @@ and tested in
 [docs/source-lifecycle.md](../docs/source-lifecycle.md#lab-candidate-2-retrieval-patcheshook-visible-errorexamplesh)
 (`tests/test_health.py`). Copy it into a wrapper you own, after your own review.
 
-Note that `context-layer hook claude-code` is a different thing: a supported
+Note that `paracortex hook claude-code` is a different thing: a supported
 command of this package, documented in
 [docs/host-integration.md](../docs/host-integration.md). The file here is a
 generic shell example for hosts this package does not implement.

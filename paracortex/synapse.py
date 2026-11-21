@@ -1,7 +1,7 @@
-"""context_layer.synapse — synaptic retrieval (experimental, opt-in).
+"""paracortex.synapse — synaptic retrieval (experimental, opt-in).
 
 "Synaptic" is a name for a literal mechanism: the vault's explicit link graph
-(context_layer.graph) is used for bounded spreading activation. FTS hits (plus
+(paracortex.graph) is used for bounded spreading activation. FTS hits (plus
 notes the prompt names by title or alias) are the seeds; activation spreads
 along source-anchored edges for a bounded number of hops; passages are chosen
 inside the activated notes and packed into a token budget.
@@ -785,7 +785,7 @@ def retrieve(vault: Path, prompt: str, query: list[str], rows, allowed: set[str]
 def _graph_unreadable(packet: dict, problem: str) -> dict:
     """Label a packet built without the link graph because graph.sqlite exists but
     could not be read: decision `graph_unreadable`, and the problem as the first
-    note (one line naming `context-layer index`, never raw SQLite text)."""
+    note (one line naming `paracortex index`, never raw SQLite text)."""
     meta = packet["synapse"]
     meta["decision"] = "graph_unreadable"
     meta["graph"].update({"present": True, "readable": False})
@@ -1028,11 +1028,11 @@ def _packet(vault, prompt, query, options, seeds, state: Spread, packer: Packer,
     notes = []
     if state.stale:
         notes.append("links from sources changed since the graph was built were not used; "
-                     "run `context-layer index <vault>` to rebuild")
+                     "run `paracortex index <vault>` to rebuild")
     if withheld:
         notes.append("sources changed since the index was built were withheld")
     if not graph_present:
-        notes.append("no graph.sqlite: run `context-layer index` to build the link graph")
+        notes.append("no graph.sqlite: run `paracortex index` to build the link graph")
     selected = {item["source_path"] for item in evidence}
     hidden = set(state.stale) | withheld
     trace_path, trace_error = _emit_trace(vault, prompt, options, state, selected, len(evidence),
@@ -1292,11 +1292,11 @@ def _extend(vault, prompt, query, rows, base, allowed, sources, graph, options) 
     notes = []
     if state.stale:
         notes.append("links from sources changed since the graph was built were not used; "
-                     "run `context-layer index <vault>` to rebuild")
+                     "run `paracortex index <vault>` to rebuild")
     if withheld:
         notes.append("sources changed since the index was built were withheld")
     if graph is None:
-        notes.append("no graph.sqlite: run `context-layer index` to build the link graph")
+        notes.append("no graph.sqlite: run `paracortex index` to build the link graph")
     selected = {item["source_path"] for item in evidence}
     trace_path, trace_error = _emit_trace(vault, prompt, options, state, selected,
                                           len(evidence), fts_tokens + extra_tokens, status,
@@ -1405,7 +1405,7 @@ def neighbors(vault: Path, path: str, prefixes: list[str], policy,
     limit = max(1, min(limit, NEIGHBOR_CAP))
     graph = graphs.open_graph(vault)
     if graph is None:
-        raise ValueError("No link graph: run `context-layer index` to build .context/graph.sqlite")
+        raise ValueError("No link graph: run `paracortex index` to build .context/graph.sqlite")
     try:
         row = graph.note(name)
         if row is None:
@@ -1442,6 +1442,6 @@ def neighbors(vault: Path, path: str, prefixes: list[str], policy,
                 "unresolved_links": graph.unresolved_count(name),
                 "stale_sources": sorted(stale_sources),
                 "note": ("links out of this note are withheld: it changed since the graph was "
-                         "built; run `context-layer index`") if not fresh else None}
+                         "built; run `paracortex index`") if not fresh else None}
     finally:
         graph.close()

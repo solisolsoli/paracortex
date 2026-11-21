@@ -4,7 +4,7 @@ Dated, append-only record of what was actually done. New entries go at the end.
 
 - One entry per meaningful work step: what was done and why, files changed,
   how it was verified, what remains, and links to the detail.
-- `context-layer rules record` appends entries here and a short copy to
+- `paracortex rules record` appends entries here and a short copy to
   CLAUDE.md and AGENTS.md in the same run.
 - Never rewrite a past entry. A correction is a new entry that names the entry
   it corrects and links the source that shows why.

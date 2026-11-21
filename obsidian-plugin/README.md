@@ -1,15 +1,15 @@
-# Context Layer Brain View
+# Paracortex Brain View
 
-Context Layer Brain View is an Obsidian plugin that draws a 3D view of your
+Paracortex Brain View is an Obsidian plugin that draws a 3D view of your
 vault's explicit link graph and, on top of it, the activation trace of the last
-`context-layer` synaptic retrieval: which notes the retrieval started from,
+`paracortex` synaptic retrieval: which notes the retrieval started from,
 which linked notes it reached, which links it followed, and which notes ended
 up in the evidence packet.
 
 The brain words are names, not a mechanism. A "neuron" in this view is a note,
 a "synapse" is an explicit link between two notes (a wikilink, embed, Markdown
 link or frontmatter link that Obsidian resolved), and "synaptic" is the name of
-a `context-layer` retrieval method: full-text search picks seed notes, then a
+a `paracortex` retrieval method: full-text search picks seed notes, then a
 bounded spreading-activation step follows explicit links a few hops out and
 gives each reached note an activation score. Nothing in this plugin is a
 learned model, and no model runs inside it. The view shows the link graph and
@@ -51,7 +51,7 @@ retrieval touched, not whether that was the right evidence for your question.
   as wide as the point for a note with one link. Linked notes are drawn at 55%
   opacity, unlinked notes in the outer shell at 12%, links as ribbons 1.5
   pixels wide whose colour runs between the colours of their two notes. The
-  title is a quiet, light, widely spaced line (CONTEXT LAYER BRAIN VIEW) with a
+  title is a quiet, light, widely spaced line (PARACORTEX BRAIN VIEW) with a
   monospace line under it that counts notes, links and unlinked notes; both
   use local font stacks (SF Pro, Helvetica Neue, SF Mono, Menlo, then
   Obsidian's own fonts). The scale is fixed by `tests/look.test.js`.
@@ -68,13 +68,20 @@ retrieval touched, not whether that was the right evidence for your question.
 
 The plugin is not in the community plugin list. Install it manually:
 
-1. Create the folder `<your vault>/.obsidian/plugins/context-layer-brain/`.
+1. Create the folder `<your vault>/.obsidian/plugins/paracortex-brain/`.
 2. Copy three files into it: `dist/main.js` (as `main.js`), `manifest.json` and
    `styles.css`.
 3. In Obsidian, open Settings, Community plugins, turn off Restricted mode if
-   needed, and enable **Context Layer Brain View**.
+   needed, and enable **Paracortex Brain View**.
 4. Open it from the ribbon (brain icon) or the command palette:
-   **Context Layer Brain View: Open view**.
+   **Paracortex Brain View: Open view**.
+
+**Upgrading from 0.5 or earlier**, when the plugin was called Context Layer
+Brain View: its id changed from `context-layer-brain` to `paracortex-brain`,
+so Obsidian sees a new plugin. Install it as above, then disable the old one and
+delete `.obsidian/plugins/context-layer-brain/`. To keep your settings and
+remembered layout, copy that folder's `data.json` into the new folder before
+the first start (see [the rename guide](../docs/RENAME.md)).
 
 A BRAT-style install works the same way if a release attaches those three
 files (`main.js`, `manifest.json`, `styles.css`) as assets.
@@ -87,13 +94,13 @@ repository root. Replace `MyBrain` with your vault's location. If you already
 installed this plugin, back up its three installed files before replacing them.
 
 ```powershell
-$contextLayerPlugin = Join-Path $env:USERPROFILE "MyBrain\.obsidian\plugins\context-layer-brain"
-New-Item -ItemType Directory -Force -Path $contextLayerPlugin | Out-Null
-Copy-Item -LiteralPath .\obsidian-plugin\dist\main.js -Destination (Join-Path $contextLayerPlugin "main.js")
-Copy-Item -LiteralPath .\obsidian-plugin\manifest.json, .\obsidian-plugin\styles.css -Destination $contextLayerPlugin
+$paracortexPlugin = Join-Path $env:USERPROFILE "MyBrain\.obsidian\plugins\paracortex-brain"
+New-Item -ItemType Directory -Force -Path $paracortexPlugin | Out-Null
+Copy-Item -LiteralPath .\obsidian-plugin\dist\main.js -Destination (Join-Path $paracortexPlugin "main.js")
+Copy-Item -LiteralPath .\obsidian-plugin\manifest.json, .\obsidian-plugin\styles.css -Destination $paracortexPlugin
 ```
 
-Then enable **Context Layer Brain View** in Obsidian as described above. Native
+Then enable **Paracortex Brain View** in Obsidian as described above. Native
 Windows CLI/package tests do not certify a live Windows Obsidian rendering;
 see the [support boundaries](../SCOPE.md).
 
@@ -117,11 +124,11 @@ see the [support boundaries](../SCOPE.md).
 
 ## The activation overlay
 
-After a synaptic retrieval, `context-layer` writes one small file,
+After a synaptic retrieval, `paracortex` writes one small file,
 `<vault>/.context/activation.json`. That happens for
-`context-layer search --method synaptic`, for the MCP `search_vault` tool with
+`paracortex search --method synaptic`, for the MCP `search_vault` tool with
 method `synaptic`, and for the prompt hook when it uses the synaptic method. See
-the `context-layer` documentation for how to run those.
+the `paracortex` documentation for how to run those.
 
 The plugin notices the new file within about a second and, while the trace is
 fresh (by default generated in the last 10 minutes):
@@ -166,7 +173,7 @@ says which one applies:
 
 - the trace lists no notes (for example `NOT_FOUND`);
 - none of the trace's notes is in this vault (`0 of <n> notes are in this
-  vault`), for example because `context-layer` indexed a different folder than
+  vault`), for example because `paracortex` indexed a different folder than
   the one Obsidian opened;
 - the trace is older than the freshness window (`stale`);
 - you cleared it (`cleared`).
@@ -232,14 +239,14 @@ What the plugin reads:
   the edge fields `from`, `to`, `kind`, `weight` and `hop` (or `depth`),
   `packet.passages`, `packet.est_tokens` and `packet.status`. `budget_tokens` is parsed
   but not shown.
-- Query text: `context-layer` writes `"query": null` by default, so the file
+- Query text: `paracortex` writes `"query": null` by default, so the file
   does not contain your prompt unless you opted in to recording it. Even when a
   query (or a query hash) is present, the plugin ignores it and never displays
   it.
 
 What the plugin writes: nothing in your notes and nothing in `.context/`. The
 only file it writes is its own Obsidian plugin data file,
-`.obsidian/plugins/context-layer-brain/data.json`, which holds the settings and,
+`.obsidian/plugins/paracortex-brain/data.json`, which holds the settings and,
 with **Remember layout** on, the 3D position of each linked note keyed by the
 note's path, with a 32-bit hash of the note's neighbour paths for settled
 positions. Turn **Remember layout** off to keep note paths out of that file.
@@ -290,9 +297,9 @@ lights up notes in Obsidian's 2D graph as Claude Code reads them. The layout
 uses well-known techniques: force-directed placement with Barnes-Hut
 repulsion, and a Hilbert curve for the starting placement (see
 [THIRD_PARTY.md](THIRD_PARTY.md)). What this plugin adds is narrower: it draws
-the activation trace that a `context-layer` retrieval wrote (seeds, hops,
+the activation trace that a `paracortex` retrieval wrote (seeds, hops,
 traversed explicit links, packet membership and token estimate) for evidence
-that `context-layer` pins by content hash, in its own 3D view.
+that `paracortex` pins by content hash, in its own 3D view.
 
 ## Limitations
 
@@ -335,7 +342,7 @@ python3 build.py --check    # fail if dist/main.js is out of date
 node tests/run-all.js       # all tests, non-zero exit on failure
 ```
 
-`tests/contract.test.js` reads traces written by the real `context-layer`
+`tests/contract.test.js` reads traces written by the real `paracortex`
 writer on the fictional development vault. From the repository root,
 `python3 obsidian-plugin/tests/fixtures/make_writer_traces.py` regenerates
 them, and `--check` fails when the writer's trace format has changed.

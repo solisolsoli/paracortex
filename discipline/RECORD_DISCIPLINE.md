@@ -9,7 +9,7 @@ Everything lives in the shared store, not in chat scrollback and not in a harnes
 session memory. If it is only in the conversation, the other agent cannot see it and
 neither can you tomorrow.
 
-In a vault set up with `context-layer rules init`, the files are `LOG.md` (the record
+In a vault set up with `paracortex rules init`, the files are `LOG.md` (the record
 book), `BACKLOG.md` (the backlog) and the two identical rule files `CLAUDE.md` and
 `AGENTS.md`, whose "Work records" section carries a short copy of every recent entry.
 The template is [templates/vault/CLAUDE.md](../templates/vault/CLAUDE.md).
@@ -19,7 +19,7 @@ The template is [templates/vault/CLAUDE.md](../templates/vault/CLAUDE.md).
 One short dated entry goes into both rule files, identically — what was done and why,
 files changed, the verification result, what remains or the next step, and a link to
 the detail — and a longer dated entry goes to the end of `LOG.md`.
-`context-layer rules record` writes all three under one lock and re-checks parity, so
+`paracortex rules record` writes all three under one lock and re-checks parity, so
 there is one command to comply with. The rule files keep only the most recent entries
 (ten by default, `--keep`) so they stay short enough to load every session; `LOG.md`
 keeps every entry.
@@ -28,7 +28,7 @@ keeps every entry.
 
 A single dated log of **what was actually done**.
 
-- New entries go at the end. `context-layer rules record` writes them as
+- New entries go at the end. `paracortex rules record` writes them as
   `## <date> - <summary>`, followed by a `Record` line that carries the record id
   the short entry in the rule files links to.
 - Body is 2–6 sentences: what was done, the verified result, the limit or open question,
@@ -75,7 +75,7 @@ happened, where we stopped, the next concrete step, and the traps proven today.
 - It is a convenience, not a rule source.
 - **If it contradicts the record book, the record book wins.** The continuation note is
   written fast at the end of a session, when it is most likely to be wrong.
-- `context-layer brief` prints a mechanical counterpart that cannot drift from the
+- `paracortex brief` prints a mechanical counterpart that cannot drift from the
   files: the last records, open backlog rows and the index state, each line quoted
   from a named file with its hash prefix, nothing summarised.
 
@@ -93,13 +93,13 @@ host expands imports, one file can instead import the other (`rules init
 - Any rule added or changed in one is written to the other **in the same work session**,
   with the same wording.
 - Verify with a checksum comparison of the two files after editing. They must match:
-  `context-layer rules check <vault>` compares their SHA-256 and exits non-zero when
+  `paracortex rules check <vault>` compares their SHA-256 and exits non-zero when
   they differ.
 - If a rule change is made in one harness and not written to the other, **the work is
   unfinished** and goes into the backlog as such.
 - Harness-specific machinery (hooks, settings, scripts) is genuinely different and stays
   separate. The rule text and its work-records section are mirrored; nothing else is.
-- In Claude Code, a `Stop` hook (`context-layer rules hook stop`) asks the agent to
+- In Claude Code, a `Stop` hook (`paracortex rules hook stop`) asks the agent to
   record when files the agent itself wrote (seen by a `PostToolUse` hook on its file
   tools) changed without a new record, or when parity is broken. It asks at most once
   per path in a session, never in plan mode, and reports other changes, such as the

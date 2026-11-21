@@ -56,9 +56,9 @@ Default mode:
             evidence-delivery-v1 packet  +  .context/activation.json (trace)
 ```
 
-## 1. The link graph (`context-layer index`)
+## 1. The link graph (`paracortex index`)
 
-`context-layer index <vault>` builds the lexical index as before
+`paracortex index <vault>` builds the lexical index as before
 (`router/build_index.py`). It then extracts links from every Markdown note
 that index covers into `<vault>/.context/graph.sqlite`. `--no-graph` skips the
 link extraction.
@@ -159,7 +159,7 @@ quotes", <https://obsidian.md/help/properties>). Aliases come from `aliases`
   printed on stderr with its reason, and recorded in the table `skipped`. It
   stays a link target. Its own links are left out and its recorded SHA-256 is
   empty, so it is never fresh and shows under `stale_sources` until the next
-  `context-layer index`.
+  `paracortex index`.
 - **Atomic rebuild.** The graph is written to a staging file and moved into
   place with `os.replace`.
 - **Reuse.** A note whose bytes did not change reuses its stored parse (table
@@ -172,8 +172,8 @@ quotes", <https://obsidian.md/help/properties>). Aliases come from `aliases`
   table, a damaged file, a newer layout), synaptic retrieval goes on without
   it: default mode delivers exactly the fts packet and compact mode the
   lexical packet, with `synapse.decision: "graph_unreadable"` and a note
-  naming `context-layer index <vault>`. No raw SQLite message is shown.
-- **Health.** `context-layer graph health <vault> [--json]` is read-only. It
+  naming `paracortex index <vault>`. No raw SQLite message is shown.
+- **Health.** `paracortex graph health <vault> [--json]` is read-only. It
   reports orphans, broken links by reason (a `missing` link that matches an
   alias names that note), ambiguous links with their candidates, links into
   excluded paths (by source line only), notes changed since the build, notes
@@ -183,7 +183,7 @@ quotes", <https://obsidian.md/help/properties>). Aliases come from `aliases`
 **Staleness.** A note counts as fresh when its size and mtime still equal the
 values recorded at build time. Otherwise its SHA-256 is compared with the
 recorded one.
-- Links **from** a changed note are not used until the next `context-layer
+- Links **from** a changed note are not used until the next `paracortex
   index`.
 - Passages whose bytes no longer match the lexical index are withheld.
 - The packet names both, under `synapse.graph.stale_sources` and
@@ -385,7 +385,7 @@ writers never collide. The payload has these fields:
 
 ## 5. Hosts
 
-- **CLI:** `context-layer search <vault> --prompt "..." --method synaptic
+- **CLI:** `paracortex search <vault> --prompt "..." --method synaptic
   [--extra-tokens N] [--max-hops 1|2] [--record-query]`, plus
   `[--compact --budget-tokens N]` for compact mode.
 - **MCP:** `search_vault` accepts `method: "synaptic"`, `extra_tokens`,
@@ -394,12 +394,12 @@ writers never collide. The payload has these fields:
   `graph_neighbors {path, limit}` lists outgoing ("links to") and incoming
   ("linked from") links, with kinds and line anchors. It returns paths only,
   and skips excluded and changed notes.
-- **Graph health:** `context-layer graph health <vault> [--json] [--limit N]`
+- **Graph health:** `paracortex graph health <vault> [--json] [--limit N]`
   (read-only, §1). Exit code 0 when the report is printed, 1 when there is no
   usable graph or routes.json, 2 on a usage error.
-- **Link suggestions:** `context-layer graph suggest <vault> [--min-count N] [--limit N]
+- **Link suggestions:** `paracortex graph suggest <vault> [--min-count N] [--limit N]
   [--json]` (read-only, §11, opt-in ledger).
-- **Hook:** `context-layer hook claude-code --vault V --method synaptic
+- **Hook:** `paracortex hook claude-code --vault V --method synaptic
   [--extra-tokens N]`, or add `--compact --budget-tokens N`.
   - Each item sits between `<<evidence N nonce path=… lines=… sha256=… hop=…>>`
     and `<<end N nonce>>`. The nonce is random per packet, so text inside a
@@ -428,7 +428,7 @@ keeping the vault's exclusions tight.
 | `--max-hops` | 1 (2 is the hard maximum) | CLI (`eval/retrieve.py`) |
 | `--top-k` (FTS seeds) | 3 | CLI, MCP, hook |
 | `--budget`, `--per-source` (characters) | 6000, 2000 | the fts part in default mode; also enforced in compact |
-| `NODE_CAP`, `ADJACENCY_CAP` | 64 notes, 24 neighbours | `context_layer/synapse.py` |
+| `NODE_CAP`, `ADJACENCY_CAP` | 64 notes, 24 neighbours | `paracortex/synapse.py` |
 | `DECAY`, `BACKLINK_FACTOR`, `MIN_ACTIVATION`, `LINK_REL_WEIGHT` | 0.5, 0.8, 0.005, 2.0 | same |
 | `RESERVE_NOTES`, `RESERVE_TOKENS`, `RESERVE_SHARE`, `RESERVE_REL_RATIO` | 4, 200, 0.6, 0.6 | same |
 | `NAME_SEEDS`, `NAME_MIN_CHARS` | 3, 4 | same |
@@ -491,8 +491,8 @@ within the same noise.
 | Step, synthetic vault | Median | Fastest |
 | --- | --- | --- |
 | `graph.build` (in-process, no start-up) | 0.80 s | 0.63 s |
-| `context-layer index` | 2.10 s | 1.26 s |
-| `context-layer index --no-graph` | 0.98 s | 0.70 s |
+| `paracortex index` | 2.10 s | 1.26 s |
+| `paracortex index --no-graph` | 0.98 s | 0.70 s |
 | `eval/retrieve.py --method fts` | 0.53 s | 0.39 s |
 | `--method synaptic` (default mode) | 0.56 s | 0.44 s |
 | `--method synaptic --max-hops 2` | 0.62 s | 0.46 s |
@@ -533,7 +533,7 @@ for i in range(n):
     (folder / f"note-{i}.md").write_text("\n".join(body), encoding="utf-8")
 ```
 
-Then run `context-layer init synthetic-vault && context-layer index synthetic-vault`.
+Then run `paracortex init synthetic-vault && paracortex index synthetic-vault`.
 
 ## 9. What is and is not claimed
 
@@ -629,7 +629,7 @@ Then run `context-layer init synthetic-vault && context-layer index synthetic-va
 
 ## 11. Link suggestions from usage (opt-in)
 
-`context-layer graph suggest <vault>` lists pairs of notes that retrievals
+`paracortex graph suggest <vault>` lists pairs of notes that retrievals
 delivered together but that no explicit link joins, so that a person can decide
 to write a link. It is a report for a human; it changes nothing.
 

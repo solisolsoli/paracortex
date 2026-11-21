@@ -134,7 +134,7 @@ test('the HUD keeps the quiet uppercase letter-spaced title and the monospace co
   assert.match(css, /--nb-hud-mono: "SF Mono", Menlo, var\(--font-monospace, monospace\), monospace;/);
   assert.ok(!/https?:\/\//.test(css), 'local font stacks only');
   const view = read('src/view.js');
-  assert.match(view, /text: 'CONTEXT LAYER BRAIN VIEW'/, 'the title is the plugin name, written in capitals');
+  assert.match(view, /text: 'PARACORTEX BRAIN VIEW'/, 'the title is the plugin name, written in capitals');
 });
 
 run('look');

@@ -1,4 +1,4 @@
-"""Tests for context_layer.rules - every test owns a disposable, fictional vault.
+"""Tests for paracortex.rules - every test owns a disposable, fictional vault.
 
 Runnable as `python3 tests/test_rules.py`. The CLI is exercised through a small
 driver that registers `rules` exactly as cli.py does, so the tests do not depend
@@ -23,13 +23,13 @@ REPO = Path(os.environ.get("TEST_REPO_HOME", Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from context_layer import rules  # noqa: E402
-from context_layer.platform_support import LockTimeout, file_lock  # noqa: E402
+from paracortex import rules  # noqa: E402
+from paracortex.platform_support import LockTimeout, file_lock  # noqa: E402
 
 DRIVER = (
     "import argparse, sys\n"
-    "from context_layer import rules\n"
-    "parser = argparse.ArgumentParser(prog='context-layer')\n"
+    "from paracortex import rules\n"
+    "parser = argparse.ArgumentParser(prog='paracortex')\n"
     "sub = parser.add_subparsers(dest='command', required=True)\n"
     "rules.register(sub)\n"
     "args, extra = parser.parse_known_args(sys.argv[1:])\n"
@@ -72,7 +72,7 @@ class RulesBase(unittest.TestCase):
 
     def env(self):
         env = isolated_home_env(os.environ, self.home)
-        for name in ("CONTEXT_LAYER_TOOL", "CLAUDE_CODE_SESSION_ID", "CONTEXT_LAYER_HOME"):
+        for name in ("PARACORTEX_TOOL", "CLAUDE_CODE_SESSION_ID", "PARACORTEX_HOME"):
             env.pop(name, None)
         env["PYTHONPATH"] = str(REPO) + os.pathsep + env.get("PYTHONPATH", "")
         return env
@@ -477,7 +477,7 @@ class RecordIntegrity(RulesBase):
         self.assertEqual(region.count("### "), 3)
         self.assertLess(region.index("First step"), region.index("step 2"))
         self.assertLess(region.index("step 2"), region.index("step 3"))
-        self.assertIn("< !-- context-layer:records:end -- >", region)
+        self.assertIn("< !-- paracortex:records:end -- >", region)
         log = (self.vault / "LOG.md").read_text(encoding="utf-8")
         self.assertNotIn(rules.END_MARK, log)
 
@@ -528,7 +528,7 @@ class RecordIntegrity(RulesBase):
         marker = self.vault / ".context" / rules.LOCK_NAME
         marker.parent.mkdir(exist_ok=True)
         marker.write_text("999999 0\n", encoding="ascii")
-        from context_layer.platform_support import set_private_path
+        from paracortex.platform_support import set_private_path
         set_private_path(marker)
         stored = rules.record(self.vault, summary="after a crash", files=["none"],
                               verified="ok", next_step="none")
@@ -655,7 +655,7 @@ class Hooks(HookBase):
         first = self.stop()
         self.assertEqual(first["decision"], "block")
         self.assertIn("notes/garden.md", first["reason"])
-        self.assertIn("context-layer rules record", first["reason"])
+        self.assertIn("paracortex rules record", first["reason"])
         # Claude Code continues; its next stop carries stop_hook_active=true.
         self.assertIsNone(self.stop(stop_hook_active=True))
         # Even without the flag, the same unrecorded path is not asked about twice.
@@ -902,7 +902,7 @@ class BriefAndCitationHooks(HookBase):
         for index in range(6):
             rules.record(self.vault, summary=f"Step {index} {'detail ' * 20}", files=["none"],
                          verified="ok", next_step="none")
-        from context_layer import memory
+        from paracortex import memory
         for index in range(6):
             memory.record(self.vault, kind="task", text=f"Task {index} {'to do ' * 40}")
             memory.record(self.vault, kind="note", text=f"Note {index} {'noted ' * 40}")
@@ -939,7 +939,7 @@ class BriefAndCitationHooks(HookBase):
         self.assertFalse((self.vault / ".context").exists())
 
     def test_stop_citation_line_names_undelivered_citations_only(self):
-        from context_layer import session_evidence
+        from paracortex import session_evidence
         self.install()
         self.write("notes/other.md", "# Other\n")
         (self.vault / ".context").mkdir(exist_ok=True)

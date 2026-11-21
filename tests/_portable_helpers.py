@@ -23,7 +23,10 @@ def sqlite_connection(database):
 
 def isolated_home_env(base, home):
     """Return a child environment whose home resolves to a disposable test path."""
-    environment = dict(base)
+    # 0.5 spellings (CONTEXT_LAYER_*) are read when the new variable is unset, so an
+    # operator's old environment must not leak into a test through that fallback.
+    environment = {key: value for key, value in base.items()
+                   if not key.startswith("CONTEXT_LAYER_")}
     environment["HOME"] = str(home)
     if os.name == "nt":
         drive, tail = os.path.splitdrive(str(Path(home).resolve()))

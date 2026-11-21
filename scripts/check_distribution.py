@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Install and smoke-test a built context-layer wheel outside its checkout.
+"""Install and smoke-test a built paracortex wheel outside its checkout.
 
-    python3 scripts/check_distribution.py dist/context_layer-X.Y.Z-py3-none-any.whl [--no-sdist]
+    python3 scripts/check_distribution.py dist/paracortex-X.Y.Z-py3-none-any.whl [--no-sdist]
 
 Smoke checks over one throwaway directory; the first failure stops the run with
 "FAILED: ..." and a non-zero exit:
@@ -45,7 +45,7 @@ RUNNER_TOOLCHAIN_DIRS = {".rustup"}  # created by rustup itself, never by this p
 
 def run(cmd, *, cwd=None, env=None, expect=(0,), path=None, stdin=None, include_stderr=False):
     e = dict(env or os.environ)
-    e.pop("CONTEXT_LAYER_HOME", None); e.pop("PYTHONPATH", None)
+    e.pop("PARACORTEX_HOME", None); e.pop("CONTEXT_LAYER_HOME", None); e.pop("PYTHONPATH", None)
     if TEST_HOME is not None:
         e["HOME"] = str(TEST_HOME)
         e["USERPROFILE"] = str(TEST_HOME)
@@ -97,7 +97,7 @@ def check_sdist(wheel, version, required=True):
     because the file that would show it was not there. `--no-sdist` (required
     False) is the explicit way to check a wheel alone.
     """
-    sdist = wheel.parent / f"context_layer-{version}.tar.gz"
+    sdist = wheel.parent / f"paracortex-{version}.tar.gz"
     if not sdist.is_file():
         if required:
             raise SystemExit(f"FAILED: no sdist at {sdist.name} beside the wheel; build both "
@@ -122,16 +122,16 @@ SDIST_REQUIRED = (
     "docs/host-integration.md", "docs/memory.md", "docs/tasks.md", "docs/source-lifecycle.md",
     "docs/privacy.md", "docs/cli.md", "docs/synapse.md", "docs/subagents.md",
     "docs/github-context.md",
-    "context_layer/data/worker_core.md", "router/index_format.py", "router/source_policy.py",
+    "paracortex/data/worker_core.md", "router/index_format.py", "router/source_policy.py",
 )
 WHEEL_REQUIRED = (
-    "context_layer/data/worker_core.md", "context_layer/templates/vault/AGENTS.md",
-    "context_layer/templates/vault/CLAUDE.md", "context_layer/router/source_policy.py",
-    "context_layer/router/index_format.py", "context_layer/router/build_index.py",
-    "context_layer/eval/retrieve.py",
-    "context_layer/github_context.py", "context_layer/github_client.py",
-    "context_layer/github_sources.py", "context_layer/github_cache.py",
-    "context_layer/platform_support.py",
+    "paracortex/data/worker_core.md", "paracortex/templates/vault/AGENTS.md",
+    "paracortex/templates/vault/CLAUDE.md", "paracortex/router/source_policy.py",
+    "paracortex/router/index_format.py", "paracortex/router/build_index.py",
+    "paracortex/eval/retrieve.py",
+    "paracortex/github_context.py", "paracortex/github_client.py",
+    "paracortex/github_sources.py", "paracortex/github_cache.py",
+    "paracortex/platform_support.py",
 )
 # pyproject `license-files`; setuptools copies each under *.dist-info/licenses/.
 WHEEL_LICENSES = ("LICENSE", "THIRD_PARTY.md", "retrieval-patches/LICENSE.upstream.txt")
@@ -143,7 +143,7 @@ def check_wheel(wheel):
         names = set(archive.namelist())
     for required in WHEEL_REQUIRED:
         check(required in names, f"wheel is missing {required}")
-    check(any(name.startswith("context_layer/templates/starter-brain/") for name in names),
+    check(any(name.startswith("paracortex/templates/starter-brain/") for name in names),
           "wheel is missing the starter-brain templates")
     licenses = {name.split(".dist-info/licenses/", 1)[1] for name in names
                 if ".dist-info/licenses/" in name}
@@ -158,7 +158,7 @@ FAKE_AGENT = '''#!{python}
 """Throwaway sub-agent for the smoke check: no model, no network, no vault."""
 import json, os, pathlib, sys
 prompt = sys.stdin.read()
-out = pathlib.Path(os.environ["CONTEXT_LAYER_OUT_DIR"])
+out = pathlib.Path(os.environ["PARACORTEX_OUT_DIR"])
 out.mkdir(parents=True, exist_ok=True)
 (out / "answer.md").write_text("cited %d sources\\n" % prompt.count("source_sha256"))
 print(json.dumps({{"result": "wrote answer.md", "is_error": False,
@@ -211,7 +211,7 @@ def release_walk(cli, py, root, vault):
     agent = root / "fake-agent.py"
     agent.write_text(FAKE_AGENT.format(python=py), encoding="utf-8", newline="\n")
     agent.chmod(0o755)
-    environment = dict(os.environ, CONTEXT_LAYER_FAKE_BACKEND=str(agent))
+    environment = dict(os.environ, PARACORTEX_FAKE_BACKEND=str(agent))
     task = json.loads(run([str(cli), "tasks", "new", str(vault), "--goal", "style",
                            "--source", "style.md", "--backend", "fake", "--json"],
                           cwd=root, env=environment))
@@ -233,7 +233,7 @@ def release_walk(cli, py, root, vault):
     # -- host install and uninstall, in a throwaway project directory --
     project = root / "project"; project.mkdir()
     printed = run([str(cli), "install", "print", "generic", "--vault", str(vault)], cwd=root)
-    entry = json.loads(printed)["mcpServers"]["context-layer"]
+    entry = json.loads(printed)["mcpServers"]["paracortex"]
     # install sets PYTHONUTF8=1 for every host command (E-17); nothing else, and never PYTHONPATH
     check(entry.get("env", {}) == {"PYTHONUTF8": "1"} and "PYTHONPATH" not in printed,
           f"the installed console script exports an unexpected env: {entry}")
@@ -242,13 +242,13 @@ def release_walk(cli, py, root, vault):
     check(json.loads(run([str(cli), "install", "generic", "--vault", str(vault)], cwd=root)) ==
           json.loads(printed), "`install generic` and `install print generic` disagree")
     # The contrast: called from a PATH that cannot resolve the console script, the
-    # printed config falls back to `-m context_layer.cli` plus the PYTHONPATH that
+    # printed config falls back to `-m paracortex.cli` plus the PYTHONPATH that
     # makes it importable. That branch must still name the installed package.
     empty_path = root / "empty-path"
     empty_path.mkdir()
     hidden = json.loads(run([str(cli), "install", "print", "generic", "--vault", str(vault)],
-                            cwd=root, path=str(empty_path)))["mcpServers"]["context-layer"]
-    check(hidden.get("args", [])[:2] == ["-m", "context_layer.cli"]
+                            cwd=root, path=str(empty_path)))["mcpServers"]["paracortex"]
+    check(hidden.get("args", [])[:2] == ["-m", "paracortex.cli"]
           and "PYTHONPATH" in hidden.get("env", {}), f"the fallback launcher changed shape: {hidden}")
     run([str(cli), "install", "claude-code", "--vault", str(vault),
          "--project", str(project), "--hook"], cwd=root)            # dry run
@@ -258,7 +258,7 @@ def release_walk(cli, py, root, vault):
     mcp = project / ".mcp.json"; settings = project / ".claude" / "settings.json"
     check(mcp.is_file() and settings.is_file(), "install --apply wrote no config")
     mcp_data = json.loads(mcp.read_text(encoding="utf-8"))
-    check("context-layer" in mcp_data.get("mcpServers", {}), "no MCP entry was written")
+    check("paracortex" in mcp_data.get("mcpServers", {}), "no MCP entry was written")
     settings_data = json.loads(settings.read_text(encoding="utf-8"))
     prompt_handlers = hook_handlers(settings_data, "UserPromptSubmit")
     check(len(prompt_handlers) == 1 and prompt_handlers[0].get("type") == "command"
@@ -275,8 +275,8 @@ def release_walk(cli, py, root, vault):
          "--project", str(project), "--apply"], cwd=root)           # removes both, unasked
     if mcp.is_file():
         remaining_mcp = json.loads(mcp.read_text(encoding="utf-8"))
-        check("context-layer" not in remaining_mcp.get("mcpServers", {}),
-              "uninstall left the context-layer MCP entry")
+        check("paracortex" not in remaining_mcp.get("mcpServers", {}),
+              "uninstall left the paracortex MCP entry")
     if settings.is_file():
         remaining_settings = json.loads(settings.read_text(encoding="utf-8"))
         # This project was empty before install, so no hook event may remain.
@@ -286,7 +286,7 @@ def release_walk(cli, py, root, vault):
     check(removed_doctor.get("failed") == 0 and not any(
         item.get("name") == "settings.json UserPromptSubmit"
         for item in removed_doctor.get("checks", [])),
-          "the installed doctor still found a context-layer prompt hook after uninstall")
+          "the installed doctor still found a paracortex prompt hook after uninstall")
     facts["host"] = "installed console; claude-code hook validated by doctor, then removed"
 
     # -- rollback, then back to a current index --
@@ -512,7 +512,7 @@ def walk_api(cli, py, root):
     guard = ("import socket, urllib.request, sys; "
              "deny=lambda *a, **k: (_ for _ in ()).throw(RuntimeError('network forbidden')); "
              "socket.socket=deny; socket.create_connection=deny; urllib.request.urlopen=deny; "
-             "from context_layer.cli import main; sys.exit(main(sys.argv[1:]))")
+             "from paracortex.cli import main; sys.exit(main(sys.argv[1:]))")
     def call(*args, expect=(0,), errors=False):
         return run([str(py), "-c", guard, *args], cwd=root, env=env,
                    expect=expect, include_stderr=errors)
@@ -545,32 +545,45 @@ def walk_api(cli, py, root):
 def main(argv=None) -> int:
     global TEST_HOME, PATH_PREFIX
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("wheel", help="The built context_layer-*.whl; its sdist is read beside it.")
+    parser.add_argument("wheel", help="The built paracortex-*.whl; its sdist is read beside it.")
     parser.add_argument("--no-sdist", action="store_true",
                         help="Check the wheel alone: do not fail when no sdist sits beside it.")
     args = parser.parse_args(argv)
     wheel = pathlib.Path(args.wheel).resolve()
     if not wheel.is_file() or wheel.suffix != ".whl": raise SystemExit("wheel not found")
     version_tag = wheel.name.split("-")[1]
-    with tempfile.TemporaryDirectory(prefix="context-layer-dist-") as td:
+    with tempfile.TemporaryDirectory(prefix="paracortex-dist-") as td:
         root = pathlib.Path(td); envdir = root / "venv"; vault = root / "vault"; vault.mkdir()
         TEST_HOME = root / "home"; TEST_HOME.mkdir()
         (vault / "style.md").write_text("# Style\n\nKnown style text appears here.\n", encoding="utf-8", newline="\n")
         venv.EnvBuilder(with_pip=True).create(envdir)
         bindir = envdir / ("Scripts" if os.name == "nt" else "bin")
         py = bindir / ("python.exe" if os.name == "nt" else "python")
-        cli = bindir / ("context-layer.exe" if os.name == "nt" else "context-layer")
+        cli = bindir / ("paracortex.exe" if os.name == "nt" else "paracortex")
         run([str(py), "-m", "pip", "install", "--no-index", "--no-deps", str(wheel)], cwd=root)
         PATH_PREFIX = str(bindir)   # what an activated environment looks like
         version = run([str(cli), "--version"], cwd=root)
-        check("context-layer" in version, f"--version printed {version.strip()!r}")
+        check("paracortex" in version, f"--version printed {version.strip()!r}")
         check(version_tag in version, f"{version.strip()} is not the built {version_tag}")
+        # The 0.5 names (docs/RENAME.md): the console script and the import shim.
+        legacy_cli = bindir / ("context-layer.exe" if os.name == "nt" else "context-layer")
+        legacy = run([str(legacy_cli), "--version"], cwd=root)
+        check(legacy == version, f"context-layer --version printed {legacy!r}, not {version!r}")
+        notice = run([str(legacy_cli), "--version"], cwd=root, include_stderr=True)[len(legacy):]
+        check(notice.count("\n") == 1 and "paracortex" in notice,
+              f"context-layer did not print one line naming paracortex: {notice!r}")
+        shim = run([str(py), "-W", "always::DeprecationWarning", "-c",
+                    "import context_layer, context_layer.memory, context_layer.router.textio, "
+                    "paracortex.memory; assert context_layer.memory is paracortex.memory; "
+                    "print(context_layer.__version__)"], cwd=root, include_stderr=True)
+        check(version_tag in shim and "DeprecationWarning" in shim,
+              f"import context_layer did not warn and alias paracortex: {shim!r}")
         wheel_licenses = check_wheel(wheel)
         notices = check_sdist(wheel, version_tag, required=not args.no_sdist)
         # First run: search before init/index is one ERROR packet naming the next command.
         early = json.loads(run([str(cli), "search", str(vault), "--prompt", "style"], cwd=root,
                                expect=(1,)))
-        check(early["status"] == "ERROR" and "context-layer init" in early["error"],
+        check(early["status"] == "ERROR" and "paracortex init" in early["error"],
               f"the first-run search is not one ERROR naming init: {early}")
         run([str(cli), "init", str(vault)], cwd=root)
         run([str(cli), "index", str(vault)], cwd=root)
@@ -590,7 +603,7 @@ def main(argv=None) -> int:
         check("Known style text appears here." in evidence, "route did not deliver the note's text")
         check("errors" not in payload or not payload["errors"], f"route reported errors: {payload}")
         result = root / "eval.json"
-        package_dir = pathlib.Path(run([str(py), "-c", "import context_layer; print(context_layer.__file__)"],
+        package_dir = pathlib.Path(run([str(py), "-c", "import paracortex; print(paracortex.__file__)"],
                                        cwd=root).strip()).parent
         eval_script = package_dir / "eval" / "evaluate.py"
         fixture = eval_script.parent / "stimulus-set.example.jsonl"
@@ -603,7 +616,7 @@ def main(argv=None) -> int:
         check(summary["total_expected"] == 17 and summary["total_hit"] == 15,
               f"the bundled evaluation gave {summary['total_hit']}/{summary['total_expected']}, not 15/17")
         check(package_dir.resolve().is_relative_to(envdir.resolve()),
-              f"context_layer was imported from {package_dir}, not from the fresh venv")
+              f"paracortex was imported from {package_dir}, not from the fresh venv")
         # Also exercise the bundled comparison data and installed eval CLI.
         run([str(cli), "eval", "--command", shlex.join([str(py), str(demo)]),
              "--stimuli", str(fixture), "--out", str(root / "cli-eval.json"), "--quiet"], cwd=root)
@@ -621,7 +634,7 @@ def main(argv=None) -> int:
         upgraded = upgrade(cli, py, wheel, root, vault, task_id)
         # A CI runner's rustup proxies on PATH create ~/.rustup when a toolchain lookup
         # passes through them; nothing in this package names rustup or cargo. Anything
-        # else in the temporary HOME is a write by a context-layer child.
+        # else in the temporary HOME is a write by a paracortex child.
         written = [p for p in TEST_HOME.iterdir() if p.name not in RUNNER_TOOLCHAIN_DIRS]
         check(written == [], f"a child wrote into the temporary HOME: {written}")
         print(json.dumps({"status": "pass", "version": version.strip(), "evaluation_prompts": summary["n"],

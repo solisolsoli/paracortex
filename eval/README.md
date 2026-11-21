@@ -1,4 +1,4 @@
-# Context-layer evaluation harness
+# Paracortex evaluation harness
 
 A standard-library harness for retrieval diagnostics and exact evidence delivery.
 It counts output characters and can verify that frozen source passages reached
@@ -42,7 +42,7 @@ The older adapters below remain source-name diagnostics with differing formats.
 | `cases.example.json` | 6 invented rubric cases with their required patterns. |
 | `gate.example.json` | A filled-in gate, with the measured baseline it came from. |
 | `packet-format.example.json` | Regexes describing *your* packet's structure. |
-| `live_compare.py` | Runs a held-out case set through a headless host twice (host alone vs host + context-layer MCP) and records tokens, cost, time, delivery and abstention per case. |
+| `live_compare.py` | Runs a held-out case set through a headless host twice (host alone vs host + paracortex MCP) and records tokens, cost, time, delivery and abstention per case. |
 | `LIVE_COMPARE.md` | What each arm may do, which host fields are measured, how judgements are merged, limits. |
 | `LIVE_PILOT_0.3.md` | The 0.3 live host pilot on the fictional benchmark vault (24 sealed questions x 3 arms, blind-judged): setup, results, limits. |
 | `live-pilot-0.3/` | That pilot's answers, blind-judging files and case selection. In the repository only, not in the distributions. |
@@ -105,9 +105,9 @@ mean packet cost (chars):     2177
 cost per hit (chars):         1742
 ```
 
-## Flags of `context-layer search` and `context-layer eval`
+## Flags of `paracortex search` and `paracortex eval`
 
-`context-layer search` defines `--prompt` and `--method`; every other flag is
+`paracortex search` defines `--prompt` and `--method`; every other flag is
 forwarded verbatim to [retrieve.py](retrieve.py) (`python3 eval/retrieve.py
 --help`). A flag that only one method applies is marked; `docs/cli.md` has the
 exit codes.
@@ -120,20 +120,20 @@ exit codes.
 | `--budget CHARS` | 6000 | all | total evidence characters (JSON framing not counted); for synaptic, the budget of its fts part |
 | `--per-source CHARS` | 2000 | all | at most this many characters from one source |
 | `--delivery window\|prefix\|focus` | `window` | fts, fts-canonical, default synaptic (its fts part) | `window`: a note whole when it fits `--per-source`, else the match-anchored verbatim windows that hold query terms; `prefix`: the note's first `--per-source` characters (the 0.3 behaviour); `focus`: only the blocks that hold query terms, each with the block before and after it in the same section, even when the whole note would fit (items carry their byte and line spans and `truncated: true`); a note with no matching block, or whose selection is all of it, is delivered as `window` does. With synaptic, `focus` also reserves a linked note only when its activation is at least 0.6 times the strongest reserved one's. The prompt hook's default; see [docs/validation.md](../docs/validation.md#focused-hook-delivery) |
-| `--name-fields` | off | fts, fts-canonical, synaptic (its fts part) | needs an index built with `context-layer index --name-fields`: fuses the content ranking with the notes whose file name, frontmatter aliases or headings match a query term (reciprocal rank, k = 60); an index without the fields is an error that names the command; see [source-lifecycle.md](../docs/source-lifecycle.md#note-names-aliases-and-headings-opt-in) |
+| `--name-fields` | off | fts, fts-canonical, synaptic (its fts part) | needs an index built with `paracortex index --name-fields`: fuses the content ranking with the notes whose file name, frontmatter aliases or headings match a query term (reciprocal rank, k = 60); an index without the fields is an error that names the command; see [source-lifecycle.md](../docs/source-lifecycle.md#note-names-aliases-and-headings-opt-in) |
 | `--extra-tokens N` | 600 | synaptic | estimated-token budget, ceil(chars/4), for link-graph extras added after the unchanged fts packet |
 | `--compact` | off | synaptic | the compact packer: passages instead of the fts packet, one `--budget-tokens` budget; smaller, may drop fts evidence |
 | `--budget-tokens N` | 1200 | synaptic with `--compact` | packet budget in estimated tokens |
 | `--max-hops 1\|2` | 1 | synaptic | link hops activation may spread |
 | `--record-query` | off | synaptic | store the query text in `.context/activation.json` (not stored by default) |
 | `--relevance-floor R` | 0 (off) | fts, fts-canonical, synaptic (its fts part) | of the top-k notes, leave out one whose best bm25 is weaker than R times the strongest (0 <= R < 1); canonical pins and name-only hits stay; nothing is back-filled; the left-out paths are listed under `relevance_floor`. Fewer tokens, may drop evidence. Dev measurement: [docs/validation.md](../docs/validation.md#opt-in-relevance-floor) |
-| `--prompt-file PATH` | none | `eval/retrieve.py` only (`context-layer search` requires `--prompt`) | read the prompt from a UTF-8 file (`-` reads standard input) instead of the last argument |
+| `--prompt-file PATH` | none | `eval/retrieve.py` only (`paracortex search` requires `--prompt`) | read the prompt from a UTF-8 file (`-` reads standard input) instead of the last argument |
 
 `bench/run_offline.py` refuses to forward a flag to a method that would not
 apply it, and maps its own `--budget-tokens N` onto these flags per method (see
 [bench/README.md](../bench/README.md)).
 
-`context-layer eval` defines `--cwd DIR` (the directory to run from; default
+`paracortex eval` defines `--cwd DIR` (the directory to run from; default
 this `eval/` directory, so the example paths resolve) and forwards everything
 else to [evaluate.py](evaluate.py):
 

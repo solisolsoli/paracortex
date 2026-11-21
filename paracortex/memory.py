@@ -1,4 +1,4 @@
-"""context_layer.memory — shared, append-only memory for decisions/tasks/results.
+"""paracortex.memory — shared, append-only memory for decisions/tasks/results.
 
 What this is
 ------------
@@ -51,6 +51,7 @@ import re
 import shlex
 import sys
 from urllib.parse import quote
+from .naming import getenv
 from .platform_support import (LockTimeout, atomic_write as _portable_atomic_write,
                                file_lock)
 
@@ -79,7 +80,7 @@ READ_BLOCK = 1 << 20
 
 # Opt-in session bill of materials (docs/memory.md): ids, paths and hashes only.
 SESSION_PARTS = (".context", "sessions")
-SESSION_ENV = "CONTEXT_LAYER_SESSION"
+SESSION_ENV = "PARACORTEX_SESSION"
 BOM_SCHEMA = "session-bom/v1"
 _SAFE_SESSION = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
 _ID_IN_TEXT = re.compile(r"m-[0-9a-f]{16}")
@@ -184,7 +185,7 @@ def _digest(path: Path) -> str:
 
 
 def _env(name: str) -> str | None:
-    value = (os.environ.get(name) or "").strip()
+    value = (getenv(name) or "").strip()
     return value or None
 
 
@@ -192,7 +193,7 @@ def _tool(value) -> str:
     # "unknown" is the contract's default, i.e. the caller did not say.
     if isinstance(value, str) and value.strip() and value.strip() != "unknown":
         return value.strip()
-    return _env("CONTEXT_LAYER_TOOL") or "cli"
+    return _env("PARACORTEX_TOOL") or "cli"
 
 
 def _session(value) -> str | None:
@@ -303,7 +304,7 @@ def _parse(raw: bytes, label: str) -> tuple[list[tuple[int, dict]], list[str]]:
         if version > FORMAT_VERSION:
             raise MemoryStoreError(
                 f"{label} line {number} has format_version {version}, but this "
-                f"context-layer reads only up to {FORMAT_VERSION}; upgrade context-layer")
+                f"paracortex reads only up to {FORMAT_VERSION}; upgrade paracortex")
         if version < 1:
             problems.append(f"line {number}: format_version {version} was never written "
                             "by any version of this tool")
@@ -328,8 +329,8 @@ def _require_readable(problems: list[str], path: Path) -> None:
     if problems:
         raise MemoryStoreError(
             f"{_store_name(path.name)} has {len(problems)} unusable line(s) - {problems[0]}. "
-            "Run `context-layer memory verify <vault>`: a torn last line (a crash during "
-            "a write) is moved aside by `context-layer memory repair <vault>`; any other "
+            "Run `paracortex memory verify <vault>`: a torn last line (a crash during "
+            "a write) is moved aside by `paracortex memory repair <vault>`; any other "
             "bad line has to be fixed by hand.")
 
 
@@ -577,7 +578,7 @@ class _Chain:
 
 def _adopt_command(item: dict, heads: list[str]) -> str:
     """The exact `memory add` that makes a superseded record's content current again."""
-    argv = ["context-layer", "memory", "add", "<vault>", "--kind", str(item.get("kind")),
+    argv = ["paracortex", "memory", "add", "<vault>", "--kind", str(item.get("kind")),
             "--state", str(item.get("state") or "draft"), "--text", str(item.get("text"))]
     for source in item.get("sources") or []:
         if isinstance(source, dict):
@@ -861,7 +862,7 @@ def _moved_hint(entry: dict) -> str:
     if not entry.get("moved_to"):
         return ""
     return (f"; the same bytes are now at {', '.join(entry['moved_to'])} "
-            f"(`context-layer memory rebind <vault> {entry['id']}` records the new path)")
+            f"(`paracortex memory rebind <vault> {entry['id']}` records the new path)")
 
 
 def verify(vault: Path) -> list[str]:
@@ -1107,7 +1108,7 @@ def session_path(vault, session: str) -> Path:
 
 
 def _session_log(vault: Path, op: str, events: list) -> None:
-    """With CONTEXT_LAYER_SESSION set, append what this call used: ids, paths, hashes.
+    """With PARACORTEX_SESSION set, append what this call used: ids, paths, hashes.
 
     Never text: a line holds the schema, time, session id, operation, event and
     either a record id or a source path with its recorded and current hashes.
@@ -1139,7 +1140,7 @@ def _session_log(vault: Path, op: str, events: list) -> None:
         if created:
             _fsync_dir(path.parent)
     except OSError as exc:
-        print(f"context-layer memory: the session record in {'/'.join(SESSION_PARTS)} was "
+        print(f"paracortex memory: the session record in {'/'.join(SESSION_PARTS)} was "
               f"not written: {exc.strerror or exc}", file=sys.stderr)
 
 
@@ -1255,7 +1256,7 @@ def _render_mirror(vault_name: str, records: list[dict], generated_at: str) -> s
     lines = [
         "# Memory",
         "",
-        "Derived file. `context-layer memory` rewrites it from `records.jsonl` after",
+        "Derived file. `paracortex memory` rewrites it from `records.jsonl` after",
         "every write, so edits made here are lost. Edit or delete `records.jsonl`",
         "instead; that file is the record, this one is only a view of it.",
         "",
@@ -1432,7 +1433,7 @@ def _render_note(item: dict, chain: _Chain, closers: dict, mention: dict, state_
              "as search evidence; add it to `exclude_prefixes` in `.context/routes.json` to "
              "keep it out.")
     body += ["", "---", "",
-             f"Derived note: `context-layer memory mirror --notes {folder}` wrote it from "
+             f"Derived note: `paracortex memory mirror --notes {folder}` wrote it from "
              "`.context/memory/records.jsonl`, the record of truth. Editing it changes nothing "
              "in memory, and the mirror leaves an edited note alone. " + where, ""]
     return "\n".join(front + body)
@@ -1505,7 +1506,7 @@ def mirror_notes(vault: Path, folder, *, remove: bool = False, dry_run: bool = F
         raise MemoryStoreError(f"{name} already holds files that `memory mirror` did not "
                                "write; choose a new or empty folder")
     if not policy.config_path(vault_path).is_file():
-        raise MemoryStoreError("No .context/routes.json in this vault; run `context-layer init "
+        raise MemoryStoreError("No .context/routes.json in this vault; run `paracortex init "
                                "<vault>` first, so the notes folder can be kept out of retrieval")
     prefixes = _exclude_prefixes(vault_path)
     added_before = bool(marker and marker.get("exclusion_added"))
@@ -1618,14 +1619,14 @@ def _parse_source(value: str) -> dict:
 
 
 def _fail(command: str, message: str) -> int:
-    print(f"context-layer memory {command}: {message}", file=sys.stderr)
+    print(f"paracortex memory {command}: {message}", file=sys.stderr)
     return 1
 
 
 def _unexpected(args: argparse.Namespace, command: str) -> bool:
     extra = getattr(args, "rest", []) or []
     if extra:
-        print(f"context-layer memory {command}: unrecognised arguments: {' '.join(extra)}",
+        print(f"paracortex memory {command}: unrecognised arguments: {' '.join(extra)}",
               file=sys.stderr)
         return True
     return False
@@ -1713,7 +1714,7 @@ def cmd_resume(args: argparse.Namespace) -> int:
     print(f"Continuation packet — vault {packet['vault']} — "
           f"generated {packet['generated_at']}")
     if not packet["records"]:
-        print("No records yet. `context-layer memory add` writes the first one.")
+        print("No records yet. `paracortex memory add` writes the first one.")
         return 0
     print(f"\nRecords ({len(packet['records'])}, newest first):")
     for item in packet["records"]:
@@ -1769,8 +1770,8 @@ def cmd_verify(args: argparse.Namespace) -> int:
         return _fail("verify", str(exc))
     if problems:
         for problem in problems:
-            print(f"context-layer memory verify: {problem}", file=sys.stderr)
-        print(f"context-layer memory verify: {len(problems)} problem(s) in "
+            print(f"paracortex memory verify: {problem}", file=sys.stderr)
+        print(f"paracortex memory verify: {len(problems)} problem(s) in "
               f"{_store_name(RECORDS_NAME)}", file=sys.stderr)
         return 1
     print(f"{_store_name(RECORDS_NAME)}: {total} record(s), chain intact, no duplicate "
@@ -1793,12 +1794,12 @@ def cmd_repair(args: argparse.Namespace) -> int:
         print(f"{report['store']}: no torn last line; nothing to repair.")
     if report["problems"]:
         for problem in report["problems"]:
-            print(f"context-layer memory repair: {problem}", file=sys.stderr)
-        print("context-layer memory repair: `repair` moves only a torn last line; fix the "
-              "line(s) above by hand, then run `context-layer memory verify`.", file=sys.stderr)
+            print(f"paracortex memory repair: {problem}", file=sys.stderr)
+        print("paracortex memory repair: `repair` moves only a torn last line; fix the "
+              "line(s) above by hand, then run `paracortex memory verify`.", file=sys.stderr)
         return 1
     if report["torn"] and not report["dry_run"]:
-        print(f"{_store_name(MIRROR_NAME)} rebuilt; run `context-layer memory verify` next.")
+        print(f"{_store_name(MIRROR_NAME)} rebuilt; run `paracortex memory verify` next.")
     return 0
 
 
@@ -1898,7 +1899,7 @@ def cmd_session_show(args: argparse.Namespace) -> int:
     for name, count in sorted(view["other_events"].items()):
         print(f"  other event {name}: {count}")
     for problem in view["problems"]:
-        print(f"context-layer memory session show: {problem}", file=sys.stderr)
+        print(f"paracortex memory session show: {problem}", file=sys.stderr)
     return 1 if view["problems"] else 0
 
 
@@ -1942,9 +1943,9 @@ def register(sub: argparse._SubParsersAction) -> None:
                             "against the file and a mismatch is refused.")
     p_add.add_argument("--state", choices=list(STATES), default="draft")
     p_add.add_argument("--tool", default=None,
-                       help="Recording tool (default: $CONTEXT_LAYER_TOOL, else cli).")
+                       help="Recording tool (default: $PARACORTEX_TOOL, else cli).")
     p_add.add_argument("--session", default=None,
-                       help="Session id (default: $CONTEXT_LAYER_SESSION, else none).")
+                       help="Session id (default: $PARACORTEX_SESSION, else none).")
     p_add.add_argument("--supersedes", action="append", default=None, metavar="ID",
                        help="Id of the record this one replaces. Repeat it to merge a fork: "
                             "every record named must be in force.")
@@ -2025,7 +2026,7 @@ def register(sub: argparse._SubParsersAction) -> None:
     p_session = inner.add_parser(
         "session", help="Show what a session read and wrote (opt-in session records).",
         allow_abbrev=False,
-        description="Session records exist only when CONTEXT_LAYER_SESSION was set: "
+        description="Session records exist only when PARACORTEX_SESSION was set: "
                     ".context/sessions/<id>.jsonl holds record ids and source paths with "
                     "hashes (session-bom/v1), never text.")
     session_inner = p_session.add_subparsers(dest="session_command", required=True)

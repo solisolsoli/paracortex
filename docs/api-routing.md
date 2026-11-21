@@ -1,14 +1,14 @@
 # Offline API route planner
 
-`context-layer api plan` previews a route from an explicit need and data-scope
+`paracortex api plan` previews a route from an explicit need and data-scope
 assertion. It does not read a task, vault, environment key or source; it makes no
 network call, starts no process and dispatches nothing. The command is a routing
 hint, not an answer or an approval.
 
 ```sh
-context-layer api plan
-context-layer api plan --need claim_support --data-scope public
-context-layer api plan --need generate --data-scope synthetic --model gpt-example-1
+paracortex api plan
+paracortex api plan --need claim_support --data-scope public
+paracortex api plan --need generate --data-scope synthetic --model gpt-example-1
 ```
 
 The defaults are `--need local` and `--data-scope private`. Needs are the closed

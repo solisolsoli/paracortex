@@ -4,7 +4,7 @@
 default), or a CLAUDE.md that only imports AGENTS.md (`rules init
 --single-source`). Claude Code reads CLAUDE.md; Codex and other agents read
 AGENTS.md. With twins, edit one and copy it to the other in the same run; then
-run `context-layer rules check .` Sections marked CUSTOMIZE are yours to rewrite;
+run `paracortex rules check .` Sections marked CUSTOMIZE are yours to rewrite;
 the rest is the working discipline and should change only on purpose. -->
 
 ## 1. Purpose
@@ -22,7 +22,7 @@ What these rules do is make an unsupported claim hard to pass off and easy to
 detect.
 
 - No factual claim without a source: a vault path with its SHA-256 (from
-  `context-layer search` or `read_source`), a command and its output, or a URL.
+  `paracortex search` or `read_source`), a command and its output, or a URL.
 - Label every claim that matters with exactly one label:
 
 | Label | Means |
@@ -43,7 +43,7 @@ detect.
   estimate, or leave it out.
 - Say "I don't know" or "not found in the vault" rather than fill a gap.
 - If local evidence is insufficient and the owner enabled `.context/github.json`,
-  use `github_context` (or `context-layer github-context . --prompt "..."`)
+  use `github_context` (or `paracortex github-context . --prompt "..."`)
   for the allowlisted public documentation. Cite its immutable URL, commit and
   hash. A pinned version may not be current; FOUND is not answer correctness.
   Use offline mode only with the owner's enabled cache; a miss stays explicit.
@@ -112,13 +112,13 @@ One command does the first two and keeps the rule text one (both files when
 they are twins; only AGENTS.md when CLAUDE.md imports it):
 
 ```sh
-context-layer rules record . --summary "..." --files a.md b.md \
+paracortex rules record . --summary "..." --files a.md b.md \
   --verified "..." --next "..." [--why "..."] [--link "[[note]]"]
 ```
 
 Rule parity: CLAUDE.md and AGENTS.md hold one rule text. With twins, a rule
 change written to one is written to the other in the same run; when CLAUDE.md
-imports AGENTS.md, only AGENTS.md is edited. `context-layer rules check .`
+imports AGENTS.md, only AGENTS.md is edited. `paracortex rules check .`
 verifies it (SHA-256 of both files, or the import line). If parity cannot be
 restored now, the work is unfinished and goes into BACKLOG.md as such.
 
@@ -145,17 +145,17 @@ changed it. If an older note and LOG.md disagree, LOG.md wins.
   them around the exclusion.
 - Ask before anything leaves this machine (see section 4).
 
-## 8. Tools (context-layer)
+## 8. Tools (paracortex)
 
-- `context-layer search . --prompt "..."`: verbatim passages with path and
+- `paracortex search . --prompt "..."`: verbatim passages with path and
   SHA-256. Add `--method synaptic` to follow the vault's own links.
 - MCP tools when connected: `search_vault`, `read_source`, `vault_status`,
   `memory_record`, `memory_resume`, `graph_neighbors`, `read_packet`,
   `check_claims`, `github_context`.
-- `context-layer rules check .` / `rules record .`: parity and records.
-- `context-layer brief .`: the vault state at a glance, each line quoted from
+- `paracortex rules check .` / `rules record .`: parity and records.
+- `paracortex brief .`: the vault state at a glance, each line quoted from
   a named file with its hash prefix.
-- `context-layer index .`: rebuild the index after notes change. Stale
+- `paracortex index .`: rebuild the index after notes change. Stale
   evidence is withheld, not served with a wrong hash.
 
 ## 9. Record format
@@ -171,5 +171,5 @@ changed it. If an older note and LOG.md disagree, LOG.md wins.
 
 ## Work records
 
-<!-- context-layer:records:start -->
-<!-- context-layer:records:end -->
+<!-- paracortex:records:start -->
+<!-- paracortex:records:end -->

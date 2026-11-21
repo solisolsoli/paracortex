@@ -2,14 +2,14 @@
 
 Two ways to give an AI host the vault's evidence without pasting it by hand:
 
-- **MCP server** (`context-layer mcp`) — the host calls tools when it decides it
+- **MCP server** (`paracortex mcp`) — the host calls tools when it decides it
   needs them: `search_vault`, `read_source`, `vault_status`, `memory_record`
   (drafts only), `memory_resume`, `graph_neighbors`, `read_packet`,
   `check_claims`, `github_context`. Any MCP client
   that speaks stdio can use it. It speaks MCP revision 2026-07-28 and the
   `initialize`-era revisions 2025-11-25, 2025-06-18, 2025-03-26 and 2024-11-05
   (see [Protocol revisions](#protocol-revisions)).
-- **Prompt hook** (`context-layer hook claude-code`) — runs on every prompt and
+- **Prompt hook** (`paracortex hook claude-code`) — runs on every prompt and
   prepends focused synaptic evidence (FTS hits plus notes reached through
   explicit links; `--method fts` for FTS only) before the model sees the
   question. Claude Code; the same hook in Codex's documented format is
@@ -43,8 +43,8 @@ Every `install` and `uninstall` is a **dry run** by default: it prints a unified
 diff of the file it would change and writes nothing.
 
 ```sh
-context-layer install claude-code --vault /path/to/vault            # show the diff
-context-layer install claude-code --vault /path/to/vault --apply    # write it
+paracortex install claude-code --vault /path/to/vault            # show the diff
+paracortex install claude-code --vault /path/to/vault --apply    # write it
 ```
 
 `--apply` copies the current file to `<name>.bak-<UTC timestamp>` beside it
@@ -56,8 +56,8 @@ project empty. `install print <host>` shows the config alone, for pasting
 somewhere this tool does not write. Diffs and snippets go to stdout; notes and
 warnings go to stderr.
 
-The command a host is told to run is `context-layer` from `PATH`, or
-`<this python> -m context_layer.cli` (with `PYTHONPATH` set to the checkout) when
+The command a host is told to run is `paracortex` from `PATH`, or
+`<this python> -m paracortex.cli` (with `PYTHONPATH` set to the checkout) when
 the package is not on `PATH`, both with `PYTHONUTF8=1` (an `env` block for the MCP
 server, a `PYTHONUTF8=1` prefix for POSIX hook commands). Windows hooks use a
 PowerShell encoded command to carry literal paths and environment values safely;
@@ -74,7 +74,7 @@ Claude Code settings docs describe as personal to one project
 ### MCP, project scope (default)
 
 ```sh
-context-layer install claude-code --vault /path/to/vault --project /path/to/repo --apply
+paracortex install claude-code --vault /path/to/vault --project /path/to/repo --apply
 ```
 
 Writes `<project>/.mcp.json` (default project: the vault directory itself):
@@ -82,8 +82,8 @@ Writes `<project>/.mcp.json` (default project: the vault directory itself):
 ```json
 {
   "mcpServers": {
-    "context-layer": {
-      "command": "context-layer",
+    "paracortex": {
+      "command": "paracortex",
       "args": ["mcp", "--vault", "/path/to/vault"]
     }
   }
@@ -92,13 +92,15 @@ Writes `<project>/.mcp.json` (default project: the vault directory itself):
 
 Other `mcpServers` keys and every other key in the file are kept. Claude Code
 asks for approval the first time it sees a project MCP server. Confirm with
-`/mcp` in the session; the ten tools appear as `mcp__context-layer__*`.
+`/mcp` in the session; the ten tools appear as `mcp__paracortex__*`
+(`mcp__context-layer__*` for an entry 0.5 wrote; re-running `install` renames it,
+see [the rename guide](RENAME.md)).
 
 ### MCP, local or user scope
 
 ```sh
-context-layer install claude-code --scope user --vault /path/to/vault
-context-layer install claude-code --scope local --vault /path/to/vault --project /path/to/repo
+paracortex install claude-code --scope user --vault /path/to/vault
+paracortex install claude-code --scope local --vault /path/to/vault --project /path/to/repo
 ```
 
 Claude Code keeps local- and user-scope servers in its own `~/.claude.json`
@@ -106,7 +108,7 @@ Claude Code keeps local- and user-scope servers in its own `~/.claude.json`
 edits. It prints the exact command instead:
 
 ```sh
-claude mcp add --scope user context-layer -- context-layer mcp --vault /path/to/vault
+claude mcp add --scope user paracortex -- paracortex mcp --vault /path/to/vault
 ```
 
 The command carries `--env PYTHONUTF8=1` (UTF-8 mode, so a host that starts it
@@ -117,20 +119,20 @@ The command shown above is the shape; the real one lists these `--env` pairs. Wi
 only if `claude` is on `PATH`, it runs that command for you (local scope from
 the project directory, since Claude Code stores a local server per project);
 otherwise it prints it and says it was not run. Undo with
-`claude mcp remove --scope user|local context-layer` (what
+`claude mcp remove --scope user|local paracortex` (what
 `uninstall --scope user|local` prints or runs). `--apply` here runs a host CLI
 that edits the host's own config, so this tool keeps no backup of that file.
 
 ### Prompt hook
 
 ```sh
-context-layer install claude-code --vault /path/to/vault --hook --apply
+paracortex install claude-code --vault /path/to/vault --hook --apply
 ```
 
 Adds one `UserPromptSubmit` command hook to `<project>/.claude/settings.json`
 (`.claude/settings.local.json` with `--scope local`), as its own entry, with
 `"timeout": 30`; existing hooks are copied through untouched. The hook runs
-`context-layer hook claude-code --vault <vault>`, which reads the host's hook
+`paracortex hook claude-code --vault <vault>`, which reads the host's hook
 JSON on stdin, runs the synaptic search (the fts items, focused, plus link-reached
 passages; `--method fts` for lexical matches only) for its `prompt`, and prints
 `hookSpecificOutput.additionalContext`. Each evidence item sits between markers
@@ -172,9 +174,9 @@ that match the prompt and their neighbours (byte and line ranges and sha256
 kept). To size the link extras or to keep the hook on FTS only:
 
 ```sh
-context-layer install claude-code --vault /path/to/vault --hook \
+paracortex install claude-code --vault /path/to/vault --hook \
   --extra-tokens 600 --apply                     # synaptic, larger link budget
-context-layer install claude-code --vault /path/to/vault --hook \
+paracortex install claude-code --vault /path/to/vault --hook \
   --method fts --apply                           # FTS only, as before 0.5
 ```
 
@@ -213,9 +215,9 @@ must pass on is also in `additionalContext`:
 
 - a source that changed or was deleted since the last index is withheld, and
   the context says `Not included: withheld N source(s): <path> (<reason>); run
-  context-layer index <vault>. Tell the user that these notes were left out ...`
+  paracortex index <vault>. Tell the user that these notes were left out ...`
   — even when nothing else was found. For `hook claude-code` the same line
-  (`context-layer: withheld N source(s): ...`) is also the hook JSON's
+  (`paracortex: withheld N source(s): ...`) is also the hook JSON's
   `systemMessage`, which Claude Code shows to the user without the model's
   relay; `hook codex` sends only the context notice (whether Codex shows
   `systemMessage` is not verified);
@@ -254,7 +256,7 @@ the MCP entry (and, for `local`, the hooks' file).
 ### Rule-record hooks
 
 `install claude-code --rules` adds the `SessionStart` and `Stop` hooks that run
-`context-layer rules hook session-start|stop` (see `docs/brain-guide.md`), and a
+`paracortex rules hook session-start|stop` (see `docs/brain-guide.md`), and a
 `PostToolUse` hook for `Write|Edit|MultiEdit|NotebookEdit` that attributes vault
 writes to the agent. `--plan-default` sets `permissions.defaultMode` to `"plan"`
 (see [Uninstall and rollback](#uninstall-and-rollback)).
@@ -262,8 +264,8 @@ writes to the agent. `--plan-default` sets `permissions.defaultMode` to `"plan"`
 ## Codex — expected but unverified
 
 ```sh
-context-layer install codex --vault /path/to/vault --apply
-context-layer install codex --vault /path/to/vault --project /path/to/repo --hook --rules --apply
+paracortex install codex --vault /path/to/vault --apply
+paracortex install codex --vault /path/to/vault --project /path/to/repo --hook --rules --apply
 ```
 
 No Codex CLI ran on the reference machine: every file below follows the Codex
@@ -276,13 +278,13 @@ and nobody here has watched Codex load it.
 exist", so a missing one is refused), between the tool's own markers:
 
 ```toml
-# >>> context-layer >>>
-# Written by context-layer. Only the lines between these markers are touched.
-[mcp_servers.context_layer]
-command = "context-layer"
+# >>> paracortex >>>
+# Written by paracortex. Only the lines between these markers are touched.
+[mcp_servers.paracortex]
+command = "paracortex"
 args = ["mcp", "--vault", "/path/to/vault"]
 tool_timeout_sec = 180
-# <<< context-layer <<<
+# <<< paracortex <<<
 ```
 
 `tool_timeout_sec` is written because Codex's default is 60 s and one search may
@@ -290,16 +292,16 @@ take up to 120 s here. Only text between the markers is read or rewritten; the
 rest of the file is copied through byte for byte. Before writing, the installer
 refuses, names the problem and writes nothing when:
 
-- the file already declares `[mcp_servers.context_layer]` outside the markers,
+- the file already declares `[mcp_servers.paracortex]` outside the markers,
   in any spelling (a table, a sub-table, a dotted key, or a key of
-  `[mcp_servers]`) — for example after `codex mcp add context_layer ...`;
+  `[mcp_servers]`) — for example after `codex mcp add paracortex ...`;
 - the file, or the file with the block, is not valid TOML (checked with
   `tomllib`, Python 3.11+; on Python 3.10 only the table scan runs).
 
 **Hooks.** `--hook` and `--rules` write `<project>/.codex/hooks.json` in the shape
 the Codex hooks page documents (event → matcher group → handler, the same
 `hookSpecificOutput.additionalContext` output): a `UserPromptSubmit` hook
-running `context-layer hook codex`, and the `SessionStart`/`Stop` rule hooks.
+running `paracortex hook codex`, and the `SessionStart`/`Stop` rule hooks.
 The prompt hook's handler carries `"additionalContextLimit": 0`: by default Codex
 limits a hook's context to roughly 2,500 tokens and saves longer text to disk,
 and its docs reserve `0` for a hook that enforces its own strict cap, which this
@@ -313,7 +315,7 @@ project is trusted, and runs a new or changed hook only after you review it in
 prints it in that host's own shape:
 
 ```sh
-context-layer install generic --vault /path/to/vault --format cursor
+paracortex install generic --vault /path/to/vault --format cursor
 ```
 
 The table records each host's documented config, read on 2026-09-28. **None of
@@ -343,7 +345,7 @@ so those hosts ask before each search unless you approve the tool.
 The contract is plain stdio MCP: JSON-RPC 2.0, one object per line, nothing but
 JSON-RPC on stdout (written as ASCII, every other character as a JSON escape),
 logs on stderr. On start the server prints
-`context-layer mcp: serving vault '<vault folder name>'` to stderr and waits.
+`paracortex mcp: serving vault '<vault folder name>'` to stderr and waits.
 
 ### Protocol revisions
 
@@ -441,10 +443,10 @@ batch always does.
 | `search_vault` | The `evidence-delivery-v1` packet from `eval/retrieve.py`: verbatim passages with `source_path` and `source_sha256`. `method` defaults to `fts`; `top_k`, `budget` and `per_source` override the server's defaults up to the [limits](#limits). Annotated not read-only: `method: synaptic` writes `.context/activation.json`, and the opt-in [session evidence ledger](#session-evidence-ledger) records paths and hashes. Decisions assessment and Responses generation are separate manual CLI commands. |
 | `read_source` | One vault file verbatim, with its current SHA-256 and total length in characters. `start` offsets, `max_chars` defaults to 2000 and is at most 6000. Pass `sha256` to assert a version. Files over 64 MiB and non-UTF-8 files are refused. |
 | `vault_status` | The `source-health-v1` report (see [source-lifecycle.md](source-lifecycle.md)): whether the index exists, when it was built, how many sources are in scope and whether any went stale. |
-| `memory_record` | Appends one shared memory record (`decision`, `task`, `result` or `note`) with the sources it rests on, through the same store as `context-layer memory add` (see [memory.md](memory.md)). A repeated record is reported as a duplicate, not appended twice. A `result` names the tasks it completes in `closes`. |
-| `memory_resume` | Recent shared memory records, the ones whose sources changed since they were written, and open tasks — the same packet as `context-layer memory resume`. |
-| `graph_neighbors` | The explicit-link neighbours of one note (`path`, vault-relative): the notes it links to and the notes that link to it (wikilinks, embeds, Markdown links, frontmatter relations), each with the link kind and line. Paths only, no note text. `limit` caps each direction (default 25, at most 100). Links from a note that changed since the last `index` are withheld. Needs the link graph that `context-layer index` builds. |
-| `read_packet` | A shared evidence packet by its `id` (the SHA-256 printed by `context-layer packet build`, see [subagents.md](subagents.md)). Every source is re-checked first; if any changed, vanished or became excluded, the whole packet is withheld (`status: WITHHELD`, with reasons). |
+| `memory_record` | Appends one shared memory record (`decision`, `task`, `result` or `note`) with the sources it rests on, through the same store as `paracortex memory add` (see [memory.md](memory.md)). A repeated record is reported as a duplicate, not appended twice. A `result` names the tasks it completes in `closes`. |
+| `memory_resume` | Recent shared memory records, the ones whose sources changed since they were written, and open tasks — the same packet as `paracortex memory resume`. |
+| `graph_neighbors` | The explicit-link neighbours of one note (`path`, vault-relative): the notes it links to and the notes that link to it (wikilinks, embeds, Markdown links, frontmatter relations), each with the link kind and line. Paths only, no note text. `limit` caps each direction (default 25, at most 100). Links from a note that changed since the last `index` are withheld. Needs the link graph that `paracortex index` builds. |
+| `read_packet` | A shared evidence packet by its `id` (the SHA-256 printed by `paracortex packet build`, see [subagents.md](subagents.md)). Every source is re-checked first; if any changed, vanished or became excluded, the whole packet is withheld (`status: WITHHELD`, with reasons). |
 | `check_claims` | Checks claims against the passages they cite. Each claim is `{text, citations}` (optionally `id`), with citations `{source_path, source_sha256, line_start, line_end, span}`. The check verifies local boundaries, source hash and verbatim span; it does not call a model or prove the claim true. |
 
 Every tool has a `title` and `annotations`: `readOnlyHint` is true for all but
@@ -478,7 +480,7 @@ check reads to tell cited evidence from delivered evidence.
 
 - Hook: `--session-evidence` on the hook line; the session id is the hook JSON's
   `session_id`.
-- Server: `CONTEXT_LAYER_SESSION_EVIDENCE=1` in its environment; the session id
+- Server: `PARACORTEX_SESSION_EVIDENCE=1` in its environment; the session id
   is `CLAUDE_CODE_SESSION_ID` (set by Claude Code for stdio MCP servers,
   code.claude.com/docs/en/env-vars) or `CLAUDE_SESSION_ID`. This build reads no
   Codex session variable, so under Codex only the hook records.
@@ -497,8 +499,8 @@ write never fails the search.
 ## doctor
 
 ```sh
-context-layer doctor --host claude-code --project /path/to/repo /path/to/vault
-context-layer doctor --host codex /path/to/vault --json
+paracortex doctor --host claude-code --project /path/to/repo /path/to/vault
+paracortex doctor --host codex /path/to/vault --json
 ```
 
 Offline and read-only: it writes nothing, starts no host, hook or server, and
@@ -506,9 +508,9 @@ makes no network request. It reports, one row each, Python and SQLite FTS5,
 `routes.json`, the index and link-graph format, CLAUDE.md/AGENTS.md parity (or
 a single-source `CLAUDE.md` that is just `@AGENTS.md`), and per host:
 
-- `claude-code`: the `.mcp.json` entry and every context-layer hook in
+- `claude-code`: the `.mcp.json` entry and every paracortex hook in
   `.claude/settings.json` and `.claude/settings.local.json`;
-- `codex`: the `[mcp_servers.context_layer]` table in `$CODEX_HOME/config.toml`
+- `codex`: the `[mcp_servers.paracortex]` table in `$CODEX_HOME/config.toml`
   (TOML parsed on 3.11+; `tool_timeout_sec` above 120) and
   `.codex/hooks.json`;
 - `generic`: the vault only.
@@ -518,18 +520,18 @@ value this binary rejects (a value above a cap, an unknown flag, a `rules hook`
 event it does not know) fails; an unknown `--method` warns. The launcher, its
 `PYTHONPATH` and the `--vault` it names must exist; a prompt hook whose timeout
 does not exceed the hook's own 20 s warns. Exit 0 when nothing failed (warnings
-allowed), 1 when a check failed. `python -m context_layer.doctor ...` runs the
+allowed), 1 when a check failed. `python -m paracortex.doctor ...` runs the
 same command.
 
 ## Uninstall and rollback
 
 ```sh
-context-layer uninstall claude-code --vault /path/to/vault --project /path/to/repo   # diff
-context-layer uninstall claude-code --vault /path/to/vault --project /path/to/repo --apply
-context-layer uninstall codex --vault /path/to/vault --project /path/to/repo --apply
+paracortex uninstall claude-code --vault /path/to/vault --project /path/to/repo   # diff
+paracortex uninstall claude-code --vault /path/to/vault --project /path/to/repo --apply
+paracortex uninstall codex --vault /path/to/vault --project /path/to/repo --apply
 ```
 
-`uninstall` removes only what this tool added: the `context-layer` MCP entry,
+`uninstall` removes only what this tool added: the `paracortex` MCP entry,
 its own `UserPromptSubmit`, `SessionStart`, `Stop` and `PostToolUse` hooks from
 both `.claude/settings.json` and `.claude/settings.local.json` (Claude Code),
 the marker block and `.codex/hooks.json` entries (Codex) — always all of them,
@@ -542,7 +544,7 @@ keys and is backed up first, so a rollback is `cp <name>.bak-<stamp> <name>`.
 no mode is set. An existing different mode (for example `"acceptEdits"`) is
 refused with a one-line message and nothing is written; an existing `"plan"` is
 left as the user's. When it does set the mode, it records that (and which
-settings file it wrote) in `.claude/context-layer.plan-default.json`, and
+settings file it wrote) in `.claude/paracortex.plan-default.json`, and
 `uninstall` removes a `"plan"` mode only when that marker is present.
 
 Two limits of "byte-identical", both visible in the dry-run diff before you
@@ -552,21 +554,21 @@ with a newline gains one.
 
 ## Troubleshooting
 
-**The host lists no tools.** Run `context-layer doctor --host <host>`, then the
+**The host lists no tools.** Run `paracortex doctor --host <host>`, then the
 configured command by hand — it should print
-`context-layer mcp: serving vault '<vault folder name>'` on stderr and then
+`paracortex mcp: serving vault '<vault folder name>'` on stderr and then
 wait. A wrong `command`/`args` or a `PATH` the host does not share is the usual
 cause; rerun `install … --apply` from the environment the host will use.
 
 **Every search comes back `NOT_FOUND`.** Call `vault_status`. `index_present:
-false` means the index was never built (`context-layer index /path/to/vault`),
+false` means the index was never built (`paracortex index /path/to/vault`),
 and `markdown_files_in_scope: 0` means exclusions or the path are wrong.
 
 **A packet has a `withheld` list, or the hook says "Not included: withheld N
 source(s)".** A note changed or was deleted after the index was built. This is
 the design: that note's text is left out rather than delivered with a hash that
 no longer matches, and the rest of the packet is served. Re-run
-`context-layer index /path/to/vault`.
+`paracortex index /path/to/vault`.
 
 **The hook says "N item(s) omitted".** The packet was larger than
 `--max-context-chars`. Lower `--top-k`/`--per-source`, or read the named notes
@@ -582,7 +584,7 @@ supported".** Boundary refusals, not bugs. Widen `exclude_prefixes` in
 unsupported, so copy the file into the vault instead.
 
 **`install codex` refuses: the table is declared outside the markers.** An
-earlier `codex mcp add context_layer ...` (or a hand edit) already defines the
+earlier `codex mcp add paracortex ...` (or a hand edit) already defines the
 server. Remove that table, or keep it and skip `install codex`.
 
 **Permissions.** `install --apply` needs write access to the config file's
@@ -645,7 +647,7 @@ macOS (Darwin 25.6.0), CPython 3.12.4, by `tests/test_mcp_install.py`,
 Not verified here: a live Claude Code, Codex or any other host loading these
 configs (every non-Claude-Code row and the Codex hooks are expected but
 unverified), and `claude mcp add` actually executing. The
-[accepted runtime run for `4dc60a9`](https://github.com/solisolsoli/context-layer/actions/runs/36773269705)
+[accepted runtime run for `4dc60a9`](https://github.com/solisolsoli/paracortex/actions/runs/36773269705)
 passed all 12 required jobs, including Ubuntu with Python 3.10–3.13, macOS with
 Python 3.12 and native Windows with Python 3.12. These jobs check the CLI, local
 fixtures and installed packages; they do not establish that every live host

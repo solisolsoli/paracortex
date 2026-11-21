@@ -50,7 +50,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from context_layer import orchestrate as orch  # noqa: E402
+from paracortex import orchestrate as orch  # noqa: E402
 
 TEMPLATE_RULES = ROOT / "templates" / "vault" / "CLAUDE.md"
 STANDIN_LINES = 250
@@ -214,7 +214,7 @@ def run(rules_text: str, rules_label: str, sample_k: int, mode: str = "compact")
     vault.mkdir()
     generate(vault)
     env = dict(os.environ, HOME=str(vault.parent))
-    done = subprocess.run([sys.executable, "-m", "context_layer.cli", "index", str(vault)],
+    done = subprocess.run([sys.executable, "-m", "paracortex.cli", "index", str(vault)],
                           cwd=ROOT, capture_output=True, text=True, env=env)
     if done.returncode != 0:
         raise SystemExit(done.stderr)

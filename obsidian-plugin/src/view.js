@@ -2,7 +2,7 @@
 
 // The 3D view. Notes are points ("neurons"), resolved links are curved
 // ribbons ("synapses"). Linked notes fill a sphere; unlinked notes form a
-// faint outer shell. An optional overlay replays the last context-layer
+// faint outer shell. An optional overlay replays the last paracortex
 // synaptic retrieval: activated notes light up, the traversed links pulse in
 // hop order, and everything else dims.
 
@@ -20,7 +20,7 @@ const { BrainModel, isMarkdownFile, isFolder } = require('./graph');
 const { clamp, lerp, nearestAngle, mat4Perspective, mat4LookAt } = require('./math');
 
 const { ItemView, Notice } = obsidian;
-const VIEW_TYPE = 'context-layer-brain-view';
+const VIEW_TYPE = 'paracortex-brain-view';
 const EDGE_SEGMENTS = 12;                 // ribbon tessellation per link
 const { NODE_ALPHA, ORPHAN_ALPHA } = Palette;
 const REGION_DIM = 0.25;                  // notes outside a focused region
@@ -63,7 +63,7 @@ class BrainView extends ItemView {
   }
 
   getViewType() { return VIEW_TYPE; }
-  getDisplayText() { return 'Context Layer Brain View'; }
+  getDisplayText() { return 'Paracortex Brain View'; }
   getIcon() { return 'brain'; }
 
   get settings() { return this.plugin.settings; }
@@ -99,7 +99,7 @@ class BrainView extends ItemView {
         'aria-label': '3D link graph of this vault. Arrow keys turn the view, plus and minus zoom, Home resets it. The retrieval summary lists the notes of the last retrieval.',
       } });
       this.hudEl = root.createDiv({ cls: 'nb-hud' });
-      this.hudEl.createDiv({ cls: 'nb-title', text: 'CONTEXT LAYER BRAIN VIEW', attr: { lang: 'en' } });
+      this.hudEl.createDiv({ cls: 'nb-title', text: 'PARACORTEX BRAIN VIEW', attr: { lang: 'en' } });
       this.countersEl = this.hudEl.createDiv({ cls: 'nb-counters' });
       this.activationEl = this.hudEl.createDiv({ cls: 'nb-activation nb-hidden' });
       this.overlayKeyEl = this.hudEl.createDiv({ cls: 'nb-overlay-key nb-hidden' });
@@ -147,7 +147,7 @@ class BrainView extends ItemView {
     } catch (err) {
       if (this._closed) return;
       this.logError('open', err);
-      new Notice('Context Layer Brain View failed to start: ' + errorMessage(err));
+      new Notice('Paracortex Brain View failed to start: ' + errorMessage(err));
     } finally {
       this._resolveReady();
     }
@@ -175,7 +175,7 @@ class BrainView extends ItemView {
   }
 
   logError(where, err) {
-    console.error('[context-layer-brain] ' + where, err);
+    console.error('[paracortex-brain] ' + where, err);
     this.errorLog.push(where + ': ' + errorMessage(err));
     if (this.errorLog.length > 50) this.errorLog.shift();
   }
@@ -906,7 +906,7 @@ class BrainView extends ItemView {
     if (!status) return 'No retrieval trace found yet.';
     if (status.state === 'cleared') return 'The last retrieval was cleared. A newer retrieval shows again.';
     if (status.state === 'stale') return 'The last retrieval is older than the freshness window (' + this.settings.activationWindowMinutes + ' min).';
-    if (status.state === 'unmatched') return 'None of the ' + status.total + ' notes in the last retrieval is in this vault. Check that context-layer indexed this vault folder.';
+    if (status.state === 'unmatched') return 'None of the ' + status.total + ' notes in the last retrieval is in this vault. Check that paracortex indexed this vault folder.';
     if (status.state === 'empty') return 'The last retrieval activated no notes' + (this.activationTrace.packet.status === 'NOT_FOUND' ? ' (no evidence found).' : '.');
     return 'Nothing to focus.';
   }
@@ -936,7 +936,7 @@ class BrainView extends ItemView {
       return { state: 'shown', text: 'Last retrieval ' + Activation.formatHud(t, now, this.overlay), matched: this.overlay.matched, total: this.overlay.total };
     }
     if (m && m.total > 0) {
-      return { state: 'unmatched', text: at + ' \u00b7 0 of ' + m.total + ' notes are in this vault (check that context-layer indexed this vault folder)', matched: 0, total: m.total };
+      return { state: 'unmatched', text: at + ' \u00b7 0 of ' + m.total + ' notes are in this vault (check that paracortex indexed this vault folder)', matched: 0, total: m.total };
     }
     const empty = t.packet.status === 'NOT_FOUND' ? '' : ' \u00b7 no notes to show';
     return { state: 'empty', text: 'Last retrieval ' + Activation.formatHud(t, now) + empty, matched: 0, total: 0 };

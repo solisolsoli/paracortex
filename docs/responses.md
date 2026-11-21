@@ -5,8 +5,8 @@ Use this command only when a specific task benefits from a separate Responses AP
 The command accepts a reviewed UTF-8 file containing **public or synthetic** text. The scope flag is an operator assertion, not a privacy detector. Do not send private vault notes, conversations, credentials, or unpublished source material. A few obvious credential patterns are refused locally, but that check cannot establish that text is public. No request occurs without `--send`; the default prints metadata without the input text.
 
 ```sh
-context-layer responses run --input-file /path/to/reviewed-public-task.txt --data-scope public --model MODEL
-context-layer responses run --input-file /path/to/reviewed-public-task.txt --data-scope public --model MODEL --send
+paracortex responses run --input-file /path/to/reviewed-public-task.txt --data-scope public --model MODEL
+paracortex responses run --input-file /path/to/reviewed-public-task.txt --data-scope public --model MODEL --send
 ```
 
 `--web-search` explicitly enables at most one web search tool call. There are no tools by default. `--max-output-tokens` defaults to 1024 (allowed 64–4096) and `--timeout` defaults to 10 seconds (maximum 30). The client sends one POST to `https://api.openai.com/v1/responses`, refuses redirects, and uses `OPENAI_API_KEY` from the process environment. Keep the key out of prompts, files, logs, and command arguments.

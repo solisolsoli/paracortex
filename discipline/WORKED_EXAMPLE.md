@@ -1,6 +1,6 @@
 # Record discipline: one worked example
 
-One fictional working step in a starter brain (`context-layer brain init`),
+One fictional working step in a starter brain (`paracortex brain init`),
 from plan to record, with what each tool prints or writes. The garden, the
 dates, the record id and the hashes are example values; the formats are the
 ones the tools produce. The rules behind it are in
@@ -22,7 +22,7 @@ Verification: re-read the note; rules check.
 
 ## 2. Evidence, labelled
 
-`context-layer search . --prompt "watering schedule hot days"` returns the
+`paracortex search . --prompt "watering schedule hot days"` returns the
 schedule note verbatim with its path and SHA-256. The agent writes:
 "SUPPORTED: the schedule waters at 19:00 on days above 28 C
 (`500-Knowledge/Example - Watering Schedule v2.md`, sha256 3f2a9c1b7d4e).
@@ -37,7 +37,7 @@ once, about the agent's edit only:
 
 ```text
 1 vault path(s) the agent wrote in this session changed and no work record was
-appended: 500-Knowledge/Example - Watering Schedule v2.md. Run: context-layer
+appended: 500-Knowledge/Example - Watering Schedule v2.md. Run: paracortex
 rules record <vault> --summary "<what was done and why>" --files <changed paths>
 --verified "<how it was checked>" --next "<what remains>". If the change was not
 meaningful, say so in one line and stop again.
@@ -46,14 +46,14 @@ meaningful, say so in one line and stop again.
 and tells the user, without asking the agent anything:
 
 ```text
-context-layer rules: 1 vault path(s) changed in this session that the agent's
+paracortex rules: 1 vault path(s) changed in this session that the agent's
 file tools did not write (not asked about): daily/Example - 2026-01-15.md.
 ```
 
 ## 4. The record
 
 ```sh
-context-layer rules record . --summary "Added a hot-day evening watering slot" \
+paracortex rules record . --summary "Added a hot-day evening watering slot" \
   --why "the timer has a spare program and beds dry out above 32 C" \
   --files "500-Knowledge/Example - Watering Schedule v2.md" \
   --verified "re-read the schedule note; rules check OK" \
@@ -98,7 +98,7 @@ into `BACKLOG.md` in the same run:
 
 ## 6. The next session
 
-`context-layer brief .` (or the SessionStart hook with `--brief`) quotes where
+`paracortex brief .` (or the SessionStart hook with `--brief`) quotes where
 things stand, each line pinned to a file and its hash prefix:
 
 ```text

@@ -10,7 +10,7 @@ stops a model from producing fluent text that no source supports. The gate makes
 unsupported claim hard to pass off and easy to detect; it does not make it impossible.
 
 **No factual claim without a source.** A source is one of: a vault path with its
-SHA-256 (from `context-layer search` or `read_source`), a command together with its
+SHA-256 (from `paracortex search` or `read_source`), a command together with its
 output, or a URL.
 
 ## The categories

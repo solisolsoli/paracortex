@@ -17,7 +17,7 @@ upstream checks preview changes without updating a pin. Pin updates require
 the expected old commit and an explicit new commit. Retrieval is off by default
 and preserves local search status and evidence;
 [docs/github-context.md](docs/github-context.md) defines its use and bounds.
-The [accepted runtime run for `4dc60a9`](https://github.com/solisolsoli/context-layer/actions/runs/36773269705)
+The [accepted runtime run for `4dc60a9`](https://github.com/solisolsoli/paracortex/actions/runs/36773269705)
 passed all 12 required jobs, including native Windows full tests and the
 installed-distribution walk. This establishes the tested platform coverage
 below, not live host integration or model answer quality.
@@ -80,7 +80,7 @@ freedom. Concretely, every 0.2 component must satisfy:
 6. **Readable inside the vault.** Memory and task state are plain JSON Lines a person
    can read, with Markdown views: `MEMORY.md` and `TASKS.md` in `.context/`, regenerated
    on every write (Obsidian does not show dot folders), and, opt-in,
-   `context-layer memory mirror --notes <folder>`, which writes decisions and tasks as
+   `paracortex memory mirror --notes <folder>`, which writes decisions and tasks as
    ordinary notes and keeps that folder out of retrieval by default, so text an agent
    wrote is never served as evidence.
 7. **Honest.** Unverified platforms, small samples and heuristics are labelled as
@@ -116,7 +116,7 @@ compatibility is assumed for any host not listed.
    summed.
 8. `status` shows index age, changed/deleted/moved sources, exclusions, warnings.
 9. A held-out question set written before step 3 compares baseline (host alone)
-   and candidate (host + context layer) on quality, total tokens and wall time.
+   and candidate (host + Paracortex) on quality, total tokens and wall time.
 
 ## Acceptance criteria
 
@@ -154,5 +154,5 @@ compatibility is assumed for any host not listed.
 - **Total tokens**: input + output (+ cache read/write) summed over coordinator,
   every sub-agent attempt and every retry, taken from the host's usage output.
 - **Time**: wall-clock per case from dispatch to verified result.
-- **Baseline**: same host, same model, same question, no context layer (the
+- **Baseline**: same host, same model, same question, no Paracortex (the
   host uses its own file tools on the same vault copy).

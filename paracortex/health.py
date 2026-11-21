@@ -1,4 +1,4 @@
-"""context_layer.health — source lifecycle: what the index covers, and what drifted.
+"""paracortex.health — source lifecycle: what the index covers, and what drifted.
 
 `status` compares the index against the vault as it is now. Every in-scope file
 is read and hashed on every run: size and mtime are not evidence. A source can
@@ -33,7 +33,7 @@ import sys
 SCHEMA = "source-health-v1"
 CONTEXT_DIR = ".context"
 ROUTES_NAME = "routes.json"
-GRAPH_NAME = "graph.sqlite"     # written by context_layer.graph; kept with a .prev by `index`
+GRAPH_NAME = "graph.sqlite"     # written by paracortex.graph; kept with a .prev by `index`
 READ_BLOCK = 1 << 20
 MAX_FILE_BYTES_CAP = 50_000_000  # the most routes.json `max_file_bytes` may ask for
 
@@ -518,7 +518,7 @@ def status_summary(vault: "Path | str") -> dict:
     elif not present:
         overall = "missing"
         reasons.append(f"No index at {CONTEXT_DIR}/{builder.INDEX_NAME}; "
-                       "run `context-layer index <vault>` before asking for evidence.")
+                       "run `paracortex index <vault>` before asking for evidence.")
     elif not readable:
         overall = "missing"
         if index_problem:
@@ -536,7 +536,7 @@ def status_summary(vault: "Path | str") -> dict:
 
     if present and readable and drifted:
         reasons.append("The index is older than the sources in scope; rebuild with "
-                       "`context-layer index <vault>`.")
+                       "`paracortex index <vault>`.")
     if changed:
         reasons.append(f"{len(changed)} indexed source(s) changed on disk; their evidence "
                        "is withheld until a successful rebuild.")
@@ -566,11 +566,11 @@ def status_summary(vault: "Path | str") -> dict:
                        "indexed; rebuilding will not include them.")
     if present and readable and graph["present"] and not graph["readable"]:
         reasons.append(f"The link graph ({CONTEXT_DIR}/{GRAPH_NAME}) cannot be used: "
-                       f"{graph_problem}; `context-layer index <vault>` rebuilds it.")
+                       f"{graph_problem}; `paracortex index <vault>` rebuilds it.")
     elif graph_off:
         reasons.append(f"The link graph ({CONTEXT_DIR}/{GRAPH_NAME}) was built from another "
                        "index generation: its notes or their hashes differ from the index's. "
-                       "`context-layer index <vault>` rebuilds both.")
+                       "`paracortex index <vault>` rebuilds both.")
     if older and not drifted:
         reasons.append("A source was touched after the index was built, but every hash "
                        "still matches.")
@@ -683,9 +683,9 @@ def rollback(vault: "Path | str", *, dry_run: bool = False, index_only: bool = F
             "index, so a vault indexed only once has nothing to roll back to.")
     graph = index.with_name(GRAPH_NAME)
     previous_graph = _previous(graph)
-    alone = ("Run `context-layer rollback <vault> --index-only` to restore the index "
+    alone = ("Run `paracortex rollback <vault> --index-only` to restore the index "
              "alone (status then reports the graph as another generation), or "
-             "`context-layer index <vault>` to rebuild both.")
+             "`paracortex index <vault>` to rebuild both.")
     if not index_only:
         if graph.is_file() and not previous_graph.is_file():
             raise ValueError(
@@ -744,13 +744,13 @@ def rollback(vault: "Path | str", *, dry_run: bool = False, index_only: bool = F
 
 def cmd_status(args: argparse.Namespace) -> int:
     if args.rest:
-        print(f"context-layer status: unrecognised arguments: {' '.join(args.rest)}",
+        print(f"paracortex status: unrecognised arguments: {' '.join(args.rest)}",
               file=sys.stderr)
         return 2
     try:
         summary = status_summary(Path(args.vault))
     except ValueError as exc:
-        print(f"context-layer status: {exc}", file=sys.stderr)
+        print(f"paracortex status: {exc}", file=sys.stderr)
         return 2
     if args.json:
         print(json.dumps(summary, ensure_ascii=False, indent=2))
@@ -761,16 +761,16 @@ def cmd_status(args: argparse.Namespace) -> int:
 
 def cmd_rollback(args: argparse.Namespace) -> int:
     if args.rest:
-        print(f"context-layer rollback: unrecognised arguments: {' '.join(args.rest)}",
+        print(f"paracortex rollback: unrecognised arguments: {' '.join(args.rest)}",
               file=sys.stderr)
         return 2
     try:
         plan = rollback(Path(args.vault), dry_run=args.dry_run, index_only=args.index_only)
     except ValueError as exc:
-        print(f"context-layer rollback: {exc}", file=sys.stderr)
+        print(f"paracortex rollback: {exc}", file=sys.stderr)
         return 1
     except OSError as exc:
-        print(f"context-layer rollback: {exc.strerror or exc}", file=sys.stderr)
+        print(f"paracortex rollback: {exc.strerror or exc}", file=sys.stderr)
         return 1
     verb = "would restore" if plan["dry_run"] else "restored"
     print(f"{verb} {plan['restored']} from {plan['from']}")
@@ -780,7 +780,7 @@ def cmd_rollback(args: argparse.Namespace) -> int:
         print(f"{verb} {CONTEXT_DIR}/{GRAPH_NAME} from {CONTEXT_DIR}/{GRAPH_NAME}.prev")
     elif plan["graph_left"]:
         print(f"{CONTEXT_DIR}/{GRAPH_NAME} was left as it is (--index-only): `status` reports "
-              "it as another generation until `context-layer index` rebuilds both")
+              "it as another generation until `paracortex index` rebuilds both")
     if not plan["dry_run"]:
         print("the replaced index is kept as the new .prev; run rollback again to undo")
         print("the restored index is older than the sources; run `status` before trusting it")

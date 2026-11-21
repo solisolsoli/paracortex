@@ -10,10 +10,10 @@ What it does, in order:
 1. checks the seal (`bench/SEAL.md`) so the cases and the vault are the ones
    that were committed before any method was scored;
 2. copies `bench/vault/` to a temporary directory and runs
-   `python3 -m context_layer.cli init` and `index` on the copy (the checkout
+   `python3 -m paracortex.cli init` and `index` on the copy (the checkout
    is put on PYTHONPATH, so no install is needed);
 3. for every case and method runs
-   `python3 -m context_layer.cli search <copy> --prompt <question> --method <m>`
+   `python3 -m paracortex.cli search <copy> --prompt <question> --method <m>`
    and reads the evidence JSON it prints;
 4. scores only what can be checked without trusting the method: a gold item
    counts as found when its `must_contain` string occurs verbatim (after
@@ -429,12 +429,12 @@ def cli_env() -> dict:
     env["PYTHONHASHSEED"] = "0"
     # The CLI's output is read as UTF-8 here, so the CLI writes UTF-8 whatever the locale.
     env["PYTHONUTF8"] = "1"
-    env.pop("CONTEXT_LAYER_HOME", None)
+    env.pop("PARACORTEX_HOME", None); env.pop("CONTEXT_LAYER_HOME", None)
     return env
 
 
 def cli(args: list[str], timeout: int = 180) -> subprocess.CompletedProcess:
-    return subprocess.run([sys.executable, "-m", "context_layer.cli", *args],
+    return subprocess.run([sys.executable, "-m", "paracortex.cli", *args],
                           capture_output=True, text=True, encoding="utf-8", env=cli_env(),
                           cwd=str(REPO), timeout=timeout, stdin=subprocess.DEVNULL)
 
@@ -445,7 +445,7 @@ def prepare_vault(workdir: Path) -> Path:
     for step in (["init", str(vault)], ["index", str(vault)]):
         done = cli(step)
         if done.returncode != 0:
-            raise SystemExit(f"run_offline: `context-layer {step[0]}` failed "
+            raise SystemExit(f"run_offline: `paracortex {step[0]}` failed "
                              f"(exit {done.returncode}):\n{done.stderr[-2000:]}")
     return vault
 
@@ -675,7 +675,7 @@ def git_head() -> str:
                               capture_output=True, text=True, timeout=10)
         # The scorer lives in bench/, so a change there makes the run "dirty" too; the
         # result files the run itself writes (bench/results/) do not.
-        dirty = subprocess.run(["git", "status", "--porcelain", "--", "context_layer", "router",
+        dirty = subprocess.run(["git", "status", "--porcelain", "--", "paracortex", "router",
                                 "eval", "bench", ":(exclude)bench/results"],
                                cwd=str(REPO), capture_output=True, text=True, timeout=10)
         head = done.stdout.strip() or "unknown"

@@ -1,4 +1,4 @@
-"""Tests for context_layer.session_evidence - the delivery ledger and the citation check.
+"""Tests for paracortex.session_evidence - the delivery ledger and the citation check.
 
 Runnable as `python3 tests/test_session_evidence.py`. Every test owns a
 disposable, fictional vault; HOME points into its temporary folder and no host
@@ -32,12 +32,12 @@ REPO = Path(os.environ.get("TEST_REPO_HOME", Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from context_layer import rules, session_evidence as se  # noqa: E402
+from paracortex import rules, session_evidence as se  # noqa: E402
 
 DRIVER = (
     "import argparse, sys\n"
-    "from context_layer import rules\n"
-    "parser = argparse.ArgumentParser(prog='context-layer')\n"
+    "from paracortex import rules\n"
+    "parser = argparse.ArgumentParser(prog='paracortex')\n"
     "sub = parser.add_subparsers(dest='command', required=True)\n"
     "rules.register(sub)\n"
     "args, extra = parser.parse_known_args(sys.argv[1:])\n"
@@ -205,7 +205,7 @@ class Ledger(EvidenceBase):
         self.assertEqual(names, [".session-evidence.lock", "s2.jsonl", "s3.jsonl", "s4.jsonl"])
 
     def test_concurrent_writers_never_interleave(self):
-        script = ("import sys\nfrom context_layer import session_evidence as se\n"
+        script = ("import sys\nfrom paracortex import session_evidence as se\n"
                   "for i in range(25):\n"
                   f"    se.record_delivery({str(self.vault)!r}, 'shared', "
                   f"[('notes/garden.md', {self.garden!r}), ('notes/beans.md', {self.beans!r})])\n")
