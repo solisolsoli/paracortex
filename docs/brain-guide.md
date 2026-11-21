@@ -180,7 +180,9 @@ It creates:
   there and linking back to the Dashboard;
 - a `Dashboard.md` home note linking every hub and the working files;
 - note templates (Daily, Project, Decision, Person, Meeting) with the same
-  frontmatter keys: `aliases`, `related`, `supersedes`, `status`, `tags`;
+  frontmatter keys: `aliases`, `related`, `supersedes`, `status`, `tags`, and
+  five for long multi-agent work (Memory, Handover, Directive Log, Claim Ledger,
+  Board; see [working records](working-records.md));
 - nine fictional example notes, all named `Example - ...` and safe to delete,
   showing a project linked to a decision, a meeting, a person and a knowledge
   note, and a schedule note that replaced an older one kept in the archive

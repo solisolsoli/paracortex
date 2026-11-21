@@ -163,6 +163,7 @@ covers setup, cache controls and troubleshooting.
 | Organize a new vault and give agents shared rules | [Starter brain and daily workflow](docs/brain-guide.md) |
 | See which notes a search used | [Obsidian Brain View](obsidian-plugin/README.md) |
 | Carry decisions between sessions | [Source-linked memory](docs/memory.md) |
+| Keep long, multi-agent work resumable: handovers, verbatim decisions, claim status | [Working records](docs/working-records.md) |
 | Give sub-agents focused evidence and check their returns | [Sub-agent workflow](docs/subagents.md) |
 | Assess public or synthetic text manually | [Decisions API](docs/decisions.md), an opt-in advisory command |
 | Draft a public or synthetic task with an explicit model | [Responses API](docs/responses.md), preview first and send only on request |

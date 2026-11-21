@@ -31,6 +31,14 @@ No changes recorded yet.
   them under the new server name (`mcp__paracortex__search_vault`).
 - Changed (may affect users): the Obsidian plugin id changed, so Obsidian treats
   it as a new plugin; copy `data.json` to keep settings (docs/RENAME.md).
+- Added five starter-brain templates for long multi-agent work: Memory (one fact
+  per note, with a one-line-per-note index), Handover (dated running log),
+  Directive Log (the owner's words, verbatim, dated, numbered), Claim Ledger (one
+  claim per row with an evidence status) and Board (the plan before the work),
+  documented in [docs/working-records.md](docs/working-records.md). They live in
+  the excluded `Templates` folder, so retrieval results are unchanged.
+- Added [docs/ROADMAP.md](docs/ROADMAP.md): structure-aware retrieval for those
+  records, removal of the 0.5 names, and documentation follow-ups.
 - Fixed: the host guide said the server lists ten tools; it lists nine.
   `CITATION.cff` named version 0.4.0. On macOS, closing a managed process tree
   could raise `PermissionError` when `killpg` answered EPERM for a group whose

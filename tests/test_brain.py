@@ -154,7 +154,8 @@ class Create(BrainBase):
         self.assertTrue((self.vault / "100-Command-Center" / "Dashboard.md").is_file())
         self.assertEqual({p.name for p in (self.vault / "850-Companion").iterdir()},
                          COMPANION_FILES)
-        for name in ("Daily", "Project", "Decision", "Person", "Meeting"):
+        for name in ("Daily", "Project", "Decision", "Person", "Meeting", "Memory", "Handover",
+                     "Directive Log", "Claim Ledger", "Board"):
             text = (self.vault / "Templates" / f"{name}.md").read_text(encoding="utf-8")
             for key in ("aliases:", "related:", "supersedes:", "status:", "tags:"):
                 self.assertIn(key, text.split("---")[1], (name, key))

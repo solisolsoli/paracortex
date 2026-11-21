@@ -15,6 +15,7 @@ overview; [QUICKSTART.md](../QUICKSTART.md) is the same ground as commands, and
 | [synapse.md](synapse.md) | 0.3 — synaptic retrieval over explicit links, activation trace | `search --method synaptic`, `graph health`, `graph suggest`, `graph_neighbors` |
 | [subagents.md](subagents.md) | 0.3 — lean sub-agent jobs and hand-back checks | `packet`, `job`, `handback`, `handoff` |
 | [brain-guide.md](brain-guide.md) | 0.3 — building your own brain; rules and hooks | `brain init`, `rules init/check/record`, `brief` |
+| [working-records.md](working-records.md) | Note conventions for long multi-agent work: memory notes, handovers, directive logs, claim ledgers, boards | `brain init` (templates) |
 | [decisions.md](decisions.md) | Manual public or synthetic text assessment | `decisions assess` (preview by default; `--send` is explicit) |
 | [responses.md](responses.md) | Manual public or synthetic task generation | `responses run` (preview by default; `--send` is explicit) |
 | [api-routing.md](api-routing.md) | Offline, advisory route preview | `api plan` |
@@ -23,6 +24,7 @@ overview; [QUICKSTART.md](../QUICKSTART.md) is the same ground as commands, and
 | [privacy.md](privacy.md) | Every artifact the tool writes; retention, deletion, threat model | — |
 | [design-rationale.md](design-rationale.md) | Why it is built this way, with public sources | — |
 | [validation.md](validation.md) | Measured results, provenance and limits | benchmark and evaluation commands |
+| [ROADMAP.md](ROADMAP.md) | Proposed work that is not built yet, with the reason it waits | — |
 | [publishing-checklist.md](publishing-checklist.md) | Maintainers: updating the existing repository, required checks, publication privacy, tags and reproducible artifacts | — |
 
 Search and indexing themselves are covered in the top-level README and
