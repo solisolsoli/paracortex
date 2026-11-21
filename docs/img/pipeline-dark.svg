@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="420" viewBox="0 0 960 420" role="img" aria-labelledby="t d">
+<title id="t">How Paracortex works</title><desc id="d">Two rows. When you index: your Markdown notes are scanned (exclusions, no symlinks, UTF-8 only) into a local index with a full-text table, a link graph and the SHA-256 of every note. When you ask: the question is searched with BM25 full-text search and optionally expanded along explicit links; every source is re-hashed and compared with the index, changed notes are withheld; the evidence packet goes to the agent through the CLI, the MCP server or the prompt hook.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9aa4ae"/></marker><marker id="arrowa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#4cc2b0"/></marker></defs>
+<text x="16" y="30" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#9aa4ae" text-anchor="start">WHEN YOU INDEX  (paracortex index)</text>
+<rect x="16" y="44" width="162" height="112" rx="10" fill="#161b22" stroke="#3d444d" stroke-width="1.5"/>
+<text x="30" y="70" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#e6edf3" text-anchor="start">Your notes</text>
+<text x="30" y="94" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">Markdown files or</text>
+<text x="30" y="113" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">an Obsidian vault;</text>
+<text x="30" y="132" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">only read here</text>
+<line x1="180" y1="100" x2="206" y2="100" stroke="#9aa4ae" stroke-width="1.6" marker-end="url(#arrow)"/>
+<rect x="208" y="44" width="162" height="112" rx="10" fill="#161b22" stroke="#3d444d" stroke-width="1.5"/>
+<text x="222" y="70" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#e6edf3" text-anchor="start">Scan</text>
+<text x="222" y="94" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">exclusions checked</text>
+<text x="222" y="113" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">before any read; no</text>
+<text x="222" y="132" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">symlinks; UTF-8 only</text>
+<line x1="372" y1="100" x2="398" y2="100" stroke="#9aa4ae" stroke-width="1.6" marker-end="url(#arrow)"/>
+<rect x="400" y="44" width="354" height="112" rx="10" fill="#161b22" stroke="#3d444d" stroke-width="1.5"/>
+<text x="414" y="70" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#e6edf3" text-anchor="start">Local index in .context/</text>
+<text x="414" y="94" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">full-text table (SQLite FTS5)</text>
+<text x="414" y="113" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">link graph of your links</text>
+<text x="414" y="132" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">SHA-256 of every note</text>
+<text x="606" y="94" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">reused when nothing</text>
+<text x="606" y="113" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">changed; one changed</text>
+<text x="606" y="132" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">note is re-indexed alone</text>
+<text x="16" y="214" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#9aa4ae" text-anchor="start">WHEN YOU ASK  (search, MCP tool or prompt hook)</text>
+<rect x="16" y="228" width="162" height="132" rx="10" fill="#161b22" stroke="#3d444d" stroke-width="1.5"/>
+<text x="30" y="254" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#e6edf3" text-anchor="start">Question</text>
+<text x="30" y="278" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">"which timer</text>
+<text x="30" y="297" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">controller did we</text>
+<text x="30" y="316" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">choose and why"</text>
+<line x1="180" y1="294" x2="206" y2="294" stroke="#9aa4ae" stroke-width="1.6" marker-end="url(#arrow)"/>
+<rect x="208" y="228" width="162" height="132" rx="10" fill="#161b22" stroke="#3d444d" stroke-width="1.5"/>
+<text x="222" y="254" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#e6edf3" text-anchor="start">Retrieve</text>
+<text x="222" y="278" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">full-text search,</text>
+<text x="222" y="297" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">BM25 ranking, top 3;</text>
+<text x="222" y="316" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">optional: follow</text>
+<text x="222" y="335" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">explicit links</text>
+<line x1="372" y1="294" x2="398" y2="294" stroke="#9aa4ae" stroke-width="1.6" marker-end="url(#arrow)"/>
+<rect x="400" y="228" width="162" height="132" rx="10" fill="#161b22" stroke="#3d444d" stroke-width="1.5"/>
+<text x="414" y="254" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#e6edf3" text-anchor="start">Check</text>
+<text x="414" y="278" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">re-hash each source</text>
+<text x="414" y="297" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">and compare with the</text>
+<text x="414" y="316" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">index; a changed</text>
+<text x="414" y="335" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">note is withheld</text>
+<line x1="564" y1="294" x2="590" y2="294" stroke="#9aa4ae" stroke-width="1.6" marker-end="url(#arrow)"/>
+<rect x="592" y="228" width="162" height="132" rx="10" fill="#10302c" stroke="#4cc2b0" stroke-width="1.8"/>
+<text x="606" y="254" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#4cc2b0" text-anchor="start">Evidence packet</text>
+<text x="606" y="278" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">original text, path,</text>
+<text x="606" y="297" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">lines and SHA-256;</text>
+<text x="606" y="316" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">PARTIAL, NOT_FOUND</text>
+<text x="606" y="335" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">or ERROR</text>
+<line x1="756" y1="294" x2="782" y2="294" stroke="#9aa4ae" stroke-width="1.6" marker-end="url(#arrow)"/>
+<rect x="784" y="228" width="162" height="132" rx="10" fill="#161b22" stroke="#3d444d" stroke-width="1.5"/>
+<text x="798" y="254" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#e6edf3" text-anchor="start">To your agent</text>
+<text x="798" y="278" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">command line (JSON)</text>
+<text x="798" y="297" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">MCP server (9 tools)</text>
+<text x="798" y="316" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">prompt hook</text>
+<text x="798" y="335" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">Obsidian Brain View</text>
+<line x1="460" y1="158" x2="309.0" y2="226" stroke="#9aa4ae" stroke-width="1.6" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+<line x1="481.0" y1="158" x2="481.0" y2="226" stroke="#9aa4ae" stroke-width="1.6" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+<text x="16" y="396" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">Dashed: reads the index. Nothing leaves your machine unless your AI host sends the packet to its model.</text>
+</svg>

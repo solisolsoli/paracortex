@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="470" viewBox="0 0 920 470" role="img" aria-labelledby="t d">
+<title id="t">One synaptic retrieval, traced</title><desc id="d">The activation trace of the quick-start question on the fictional starter vault. Three full-text hits are the seeds (activation 1.00, 1.00 and 0.96). One hop along explicit links reaches eight notes; Watering Schedule v2 (activation 0.154, reached from three seeds) and Drip Irrigation Basics (0.040) were delivered in the packet; the other six were not.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#59636e"/></marker><marker id="arrowa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0b6e64"/></marker></defs>
+<text x="16" y="30" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#59636e" text-anchor="start">SEEDS: FULL-TEXT HITS (HOP 0)</text>
+<text x="540" y="30" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#59636e" text-anchor="start">NOTES ONE EXPLICIT LINK AWAY (HOP 1)</text>
+<path d="M 336 196 C 440 196, 440 56, 540 56" fill="none" stroke="#0b6e64" stroke-width="2.2"/>
+<path d="M 336 296 C 440 296, 440 56, 540 56" fill="none" stroke="#0b6e64" stroke-width="2.2"/>
+<path d="M 336 96 C 440 96, 440 56, 540 56" fill="none" stroke="#0b6e64" stroke-width="2.2"/>
+<path d="M 336 196 C 440 196, 440 100, 540 100" fill="none" stroke="#c8d1da" stroke-width="1.3"/>
+<path d="M 336 96 C 440 96, 440 144, 540 144" fill="none" stroke="#0b6e64" stroke-width="2.2"/>
+<path d="M 336 96 C 440 96, 440 188, 540 188" fill="none" stroke="#c8d1da" stroke-width="1.3"/>
+<path d="M 336 96 C 440 96, 440 232, 540 232" fill="none" stroke="#c8d1da" stroke-width="1.3"/>
+<path d="M 336 96 C 440 96, 440 276, 540 276" fill="none" stroke="#c8d1da" stroke-width="1.3"/>
+<path d="M 336 96 C 440 96, 440 320, 540 320" fill="none" stroke="#c8d1da" stroke-width="1.3"/>
+<path d="M 336 96 C 440 96, 440 364, 540 364" fill="none" stroke="#c8d1da" stroke-width="1.3"/>
+<rect x="16" y="70" width="320" height="52" rx="8" fill="#e3f3f0" stroke="#0b6e64" stroke-width="1.6"/>
+<text x="30" y="92" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2328" text-anchor="start">Example - Garden Irrigation</text>
+<text x="30" y="111" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#59636e" text-anchor="start">activation 1.00</text>
+<rect x="16" y="170" width="320" height="52" rx="8" fill="#e3f3f0" stroke="#0b6e64" stroke-width="1.6"/>
+<text x="30" y="192" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2328" text-anchor="start">Example - 2026-01-15</text>
+<text x="30" y="211" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#59636e" text-anchor="start">activation 1.00</text>
+<rect x="16" y="270" width="320" height="52" rx="8" fill="#e3f3f0" stroke="#0b6e64" stroke-width="1.6"/>
+<text x="30" y="292" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2328" text-anchor="start">Example - Decision - Timer Controller</text>
+<text x="30" y="311" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#59636e" text-anchor="start">activation 0.96</text>
+<rect x="540" y="39" width="364" height="34" rx="8" fill="#e3f3f0" stroke="#0b6e64" stroke-width="1.6"/>
+<text x="554" y="61" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1f2328" text-anchor="start">Example - Watering Schedule v2</text>
+<text x="892" y="61" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#0b6e64" text-anchor="end">0.154</text>
+<rect x="540" y="83" width="364" height="34" rx="8" fill="#f6f8fa" stroke="#c8d1da" stroke-width="1.2"/>
+<text x="554" y="105" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#59636e" text-anchor="start">daily/Index</text>
+<text x="892" y="105" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#59636e" text-anchor="end">0.069</text>
+<rect x="540" y="127" width="364" height="34" rx="8" fill="#e3f3f0" stroke="#0b6e64" stroke-width="1.6"/>
+<text x="554" y="149" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1f2328" text-anchor="start">Example - Drip Irrigation Basics</text>
+<text x="892" y="149" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#0b6e64" text-anchor="end">0.040</text>
+<rect x="540" y="171" width="364" height="34" rx="8" fill="#f6f8fa" stroke="#c8d1da" stroke-width="1.2"/>
+<text x="554" y="193" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#59636e" text-anchor="start">Example - Person - Sam</text>
+<text x="892" y="193" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#59636e" text-anchor="end">0.039</text>
+<rect x="540" y="215" width="364" height="34" rx="8" fill="#f6f8fa" stroke="#c8d1da" stroke-width="1.2"/>
+<text x="554" y="237" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#59636e" text-anchor="start">Example - Meeting - Garden Club 2026-01-14</text>
+<text x="892" y="237" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#59636e" text-anchor="end">0.032</text>
+<rect x="540" y="259" width="364" height="34" rx="8" fill="#f6f8fa" stroke="#c8d1da" stroke-width="1.2"/>
+<text x="554" y="281" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#59636e" text-anchor="start">Example - Quick Capture</text>
+<text x="892" y="281" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#59636e" text-anchor="end">0.031</text>
+<rect x="540" y="303" width="364" height="34" rx="8" fill="#f6f8fa" stroke="#c8d1da" stroke-width="1.2"/>
+<text x="554" y="325" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#59636e" text-anchor="start">300-Projects/Index</text>
+<text x="892" y="325" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#59636e" text-anchor="end">0.026</text>
+<rect x="540" y="347" width="364" height="34" rx="8" fill="#f6f8fa" stroke="#c8d1da" stroke-width="1.2"/>
+<text x="554" y="369" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#59636e" text-anchor="start">100-Command-Center/Dashboard</text>
+<text x="892" y="369" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#59636e" text-anchor="end">0.012</text>
+<text x="16" y="410" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="13" font-weight="400" fill="#1f2328" text-anchor="start">contribution(u → v) = activation(u) × 0.5 × kind weight × (1 + 2 × link relevance) / degree(u) / √degree(v)</text>
+<text x="16" y="440" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#59636e" text-anchor="start">Highlighted: delivered after the unchanged full-text packet, within 600 extra estimated tokens.</text>
+<text x="16" y="460" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#59636e" text-anchor="start">Selection uses how well each link's own line matches the question, not activation alone.</text>
+</svg>

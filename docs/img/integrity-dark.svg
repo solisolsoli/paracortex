@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="300" viewBox="0 0 960 300" role="img" aria-labelledby="t d">
+<title id="t">A changed note is withheld</title><desc id="d">Four steps on one note. paracortex index stores its SHA-256 5961c595. You append a line, so the file on disk now hashes to 90d173e5. paracortex search re-hashes the note, sees the difference and withholds it with the reason 'changed since indexing'; the other passages are still delivered. After paracortex index runs again, the note is delivered with hash 90d173e5.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9aa4ae"/></marker><marker id="arrowa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#4cc2b0"/></marker></defs>
+<text x="16" y="28" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#9aa4ae" text-anchor="start">ONE NOTE: 300-Projects/Example - Decision - Timer Controller.md</text>
+<rect x="16" y="44" width="210" height="176" rx="10" fill="#161b22" stroke="#3d444d" stroke-width="1.7"/>
+<text x="30" y="72" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="14" font-weight="700" fill="#e6edf3" text-anchor="start">1  paracortex index</text>
+<text x="30" y="100" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#e6edf3" text-anchor="start">index stores the note's</text>
+<text x="30" y="119" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#e6edf3" text-anchor="start">SHA-256</text>
+<text x="30" y="144" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12.5" font-weight="600" fill="#e6edf3" text-anchor="start">sha256 5961c595...</text>
+<rect x="256" y="44" width="210" height="176" rx="10" fill="#161b22" stroke="#3d444d" stroke-width="1.7"/>
+<text x="270" y="72" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="14" font-weight="700" fill="#e6edf3" text-anchor="start">2  you edit the note</text>
+<text x="270" y="100" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#e6edf3" text-anchor="start">one line appended;</text>
+<text x="270" y="119" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#e6edf3" text-anchor="start">the file now hashes to</text>
+<text x="270" y="144" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12.5" font-weight="600" fill="#e6edf3" text-anchor="start">sha256 90d173e5...</text>
+<rect x="496" y="44" width="210" height="176" rx="10" fill="#2f2410" stroke="#e0a73a" stroke-width="1.7"/>
+<text x="510" y="72" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="14" font-weight="700" fill="#e0a73a" text-anchor="start">3  paracortex search</text>
+<text x="510" y="100" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#e6edf3" text-anchor="start">90d173e5 is not 5961c595:</text>
+<text x="510" y="119" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#e6edf3" text-anchor="start">withheld, "changed since</text>
+<text x="510" y="138" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#e6edf3" text-anchor="start">indexing"; other hits</text>
+<text x="510" y="157" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#e6edf3" text-anchor="start">are still delivered</text>
+<rect x="736" y="44" width="210" height="176" rx="10" fill="#10302c" stroke="#4cc2b0" stroke-width="1.7"/>
+<text x="750" y="72" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="14" font-weight="700" fill="#4cc2b0" text-anchor="start">4  paracortex index</text>
+<text x="750" y="100" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#e6edf3" text-anchor="start">incremental: 1 changed,</text>
+<text x="750" y="119" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#e6edf3" text-anchor="start">26 unchanged; the note is</text>
+<text x="750" y="138" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#e6edf3" text-anchor="start">delivered again, with</text>
+<text x="750" y="163" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12.5" font-weight="600" fill="#4cc2b0" text-anchor="start">sha256 90d173e5...</text>
+<line x1="229" y1="132" x2="253" y2="132" stroke="#9aa4ae" stroke-width="1.6" marker-end="url(#arrow)"/>
+<line x1="469" y1="132" x2="493" y2="132" stroke="#9aa4ae" stroke-width="1.6" marker-end="url(#arrow)"/>
+<line x1="709" y1="132" x2="733" y2="132" stroke="#9aa4ae" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="16" y="252" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">The hash proves which bytes were indexed and that they are still the bytes on disk.</text>
+<text x="16" y="274" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#9aa4ae" text-anchor="start">It does not prove that the text is true, relevant or safe to follow.</text>
+</svg>
