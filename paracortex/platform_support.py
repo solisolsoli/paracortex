@@ -679,6 +679,8 @@ class ManagedProcess:
                     os.killpg(self.process.pid, number)
                 except ProcessLookupError:
                     pass
+                except PermissionError as exc:
+                    self._tolerate_exiting_group(exc)
                 deadline = time.monotonic() + float(grace_seconds)
                 while (number == signal.SIGTERM and self._posix_group_alive()
                        and time.monotonic() < deadline):
@@ -689,11 +691,21 @@ class ManagedProcess:
                         os.killpg(self.process.pid, signal.SIGKILL)
                     except ProcessLookupError:
                         pass
+                    except PermissionError as exc:
+                        self._tolerate_exiting_group(exc)
             try:
                 self.process.wait(timeout=max(1.0, float(grace_seconds)))
             except subprocess.TimeoutExpired:
                 self.process.kill()
                 self.process.wait()
+
+    def _tolerate_exiting_group(self, exc: PermissionError) -> None:
+        """macOS answers killpg with EPERM, not ESRCH, while the group's last members are
+        exiting (zombies); seen in tests/test_platform_support.py after a kill(). Once the
+        root has exited that is the end of the group, so it is not an error; while the root
+        still runs, EPERM is real and is raised."""
+        if self.process.poll() is None:
+            raise exc
 
     def _posix_group_alive(self) -> bool:
         try:

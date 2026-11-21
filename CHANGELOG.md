@@ -31,6 +31,13 @@ No changes recorded yet.
   them under the new server name (`mcp__paracortex__search_vault`).
 - Changed (may affect users): the Obsidian plugin id changed, so Obsidian treats
   it as a new plugin; copy `data.json` to keep settings (docs/RENAME.md).
+- Fixed: the host guide said the server lists ten tools; it lists nine.
+  `CITATION.cff` named version 0.4.0. On macOS, closing a managed process tree
+  could raise `PermissionError` when `killpg` answered EPERM for a group whose
+  root had already exited and whose last members were still exiting; that case
+  now counts as the end of the group, and EPERM while the root runs is still
+  raised (seen once in `tests/test_platform_support.py`, not reproduced in 17
+  later runs).
 - The sub-agent payload estimates in `docs/subagents.md` and
   `docs/validation.md` were regenerated (`eval/orchestration_cost.py --docs`):
   the shorter name lowers the stand-in lean payloads by 4 estimated tokens and

@@ -92,7 +92,7 @@ Writes `<project>/.mcp.json` (default project: the vault directory itself):
 
 Other `mcpServers` keys and every other key in the file are kept. Claude Code
 asks for approval the first time it sees a project MCP server. Confirm with
-`/mcp` in the session; the ten tools appear as `mcp__paracortex__*`
+`/mcp` in the session; the nine tools appear as `mcp__paracortex__*`
 (`mcp__context-layer__*` for an entry 0.5 wrote; re-running `install` renames it,
 see [the rename guide](RENAME.md)).
 
@@ -604,7 +604,7 @@ macOS (Darwin 25.6.0), CPython 3.12.4, by `tests/test_mcp_install.py`,
 - the server as a subprocess over real pipes: `initialize` for every supported
   revision and for unknown ones, 2026-07-28 requests without `initialize`
   (`server/discover`, `tools/list`, `tools/call`, `-32022`, `-32602`), `ping`,
-  `tools/list` (ten tools, titles, annotations, every `maximum`),
+  `tools/list` (nine tools, titles, annotations, every `maximum`),
   `search_vault` evidence with a path and a 64-hex hash, every limit refused as a
   tool error naming it, `read_source` (happy path, offset, the 6000 limit, hash
   mismatch, `..`, excluded prefix, dotted path, absolute path, missing file,
