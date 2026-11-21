@@ -20,7 +20,7 @@ import unittest
 from unittest import mock
 import warnings
 
-from _portable_helpers import isolated_home_env
+from _portable_helpers import isolated_home_env, readable_hook_command
 
 REPO = Path(os.environ.get("TEST_REPO_HOME", Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(REPO))
@@ -220,7 +220,9 @@ class HostEntries(unittest.TestCase):
         commands = [hook["command"] for group in data["hooks"]["UserPromptSubmit"]
                     for hook in group["hooks"]]
         self.assertEqual(len(commands), 1)
-        self.assertNotIn("context-layer", commands[0])
+        readable = readable_hook_command(commands[0])     # Windows: decoded EncodedCommand
+        self.assertNotIn("context-layer", readable)
+        self.assertIn("paracortex", readable)
 
     def test_a_0_5_plan_marker_stays_in_use(self):
         folder = self.project / ".claude"
@@ -232,20 +234,28 @@ class HostEntries(unittest.TestCase):
         self.assertEqual(install.plan_marker(self.project).name, install.PLAN_MARKER)
 
     def test_codex_0_5_block_is_replaced_and_removed(self):
+        """The fixture is written as bytes (as InstallCodex does), so it holds the line
+        ending under test on every platform; the installer reads and writes the file with
+        newline="" and must keep the user's lines byte for byte around the block it removes."""
         codex = self.root / "codex"
         codex.mkdir()
         os.environ["CODEX_HOME"] = str(codex)
         config = codex / "config.toml"
-        config.write_text('model = "x"\n\n# >>> context-layer >>>\n'
-                          '[mcp_servers.context_layer]\ncommand = "context-layer"\n'
-                          'args = ["mcp"]\n# <<< context-layer <<<\n', encoding="utf-8")
-        with contextlib.redirect_stderr(io.StringIO()):
-            installed = install.codex_change(self.vault, removing=False)
-            removed = install.codex_change(self.vault, removing=True)
-        self.assertNotIn("context_layer", installed.new)
-        self.assertIn("[mcp_servers.paracortex]", installed.new)
-        self.assertEqual(installed.new.count("[mcp_servers."), 1)
-        self.assertEqual(removed.new, 'model = "x"\n\n')
+        for nl in ("\n", "\r\n"):
+            with self.subTest(line_ending=repr(nl)):
+                lines = ['model = "x"', "", "# >>> context-layer >>>",
+                         "[mcp_servers.context_layer]", 'command = "context-layer"',
+                         'args = ["mcp"]', "# <<< context-layer <<<"]
+                config.write_bytes(nl.join(lines).encode() + nl.encode())
+                with contextlib.redirect_stderr(io.StringIO()):
+                    installed = install.codex_change(self.vault, removing=False)
+                    removed = install.codex_change(self.vault, removing=True)
+                self.assertNotIn("context_layer", installed.new)
+                self.assertNotIn("context-layer", installed.new)
+                self.assertIn("[mcp_servers.paracortex]", installed.new)
+                self.assertEqual(installed.new.count("[mcp_servers."), 1)
+                self.assertTrue(installed.new.startswith(f'model = "x"{nl}{nl}'))
+                self.assertEqual(removed.new, f'model = "x"{nl}{nl}')
 
 
 class RuleMarkers(unittest.TestCase):
