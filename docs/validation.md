@@ -5,6 +5,18 @@ This guide collects the results behind Paracortex. Start with the
 for tested platforms. Retrieval checks, live-host studies and answer quality
 are different kinds of evidence; the limits below are part of each result.
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="img/benchmark-dark.svg">
+    <img src="img/benchmark-light.svg" width="860"
+         alt="Sealed offline benchmark, fictional 130-note vault, 72 questions. Complete evidence on the 64 answerable questions: grep 37, FTS 33, synaptic 46, synaptic compact 37. Two-hop bridge questions (20): 0, 0, 10 and 10. Mean packet size in estimated tokens: 388, 333, 527 and 334.">
+  </picture>
+</p>
+
+The figure draws the benchmark table below. How the methods differ is explained
+in [How retrieval works](retrieval.md); what a passing case proves, and what it
+does not, in [The integrity model](integrity.md).
+
 ## What was measured
 
 All numbers below come from commands in this repository. Token counts marked

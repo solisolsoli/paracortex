@@ -2,6 +2,8 @@
 
 This document explains why paracortex is built the way it is. Each section says what we decided, why we decided it, and which public sources back the reasoning. The decisions describe the intended design; this text was written for 0.3.0 and revised for 0.4.0. What a given release actually does is recorded in [CHANGELOG.md](../CHANGELOG.md). What the tests actually cover is recorded in the test suite. Where this document and the code disagree, the code is the fact and this document is the bug.
 
+Two companion pages explain the mechanisms in more detail: [How retrieval works](retrieval.md) and [The integrity model](integrity.md).
+
 ## 1. Deliver verbatim, hash-pinned evidence, not generated citations
 
 **Decision.** Retrieval returns unmodified source text. Each passage carries the file's vault-relative path, the SHA-256 of the exact bytes it came from, and its position in that file. A packet is withheld when a source changed after indexing. The tool never paraphrases, summarises or rewrites what it delivers.
